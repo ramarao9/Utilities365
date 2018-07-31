@@ -1,0 +1,59 @@
+{
+  "name": "utilities365",
+  "description": "",
+  "productName": "Utilities365",
+  "version": "0.1.0",
+  "author": "",
+  "private": true,
+  "homepage": "./",
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.0-14",
+    "@fortawesome/free-solid-svg-icons": "^5.1.0-11",
+    "@fortawesome/react-fontawesome": "0.1.0-11",
+    "adal-node": "^0.1.28",
+    "axios": "^0.18.0",
+    "bulma": "^0.7.1",
+    "bulma-switch": "^2.0.0",
+    "concurrently": "^3.6.0",
+    "crypto": "^1.0.1",
+    "dynamics-web-api": "^1.4.3",
+    "electron-is-dev": "^0.3.0",
+    "is-empty": "^1.2.0",
+    "path": "^0.12.7",
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1",
+    "react-redux": "^5.0.7",
+    "react-router-dom": "^4.3.1",
+    "react-scripts": "1.1.4",
+    "redux": "^4.0.0",
+    "split-string": "^5.0.4",
+    "url": "^0.11.0",
+    "wait-on": "^2.1.0"
+  },
+  "main": "src/electron-starter.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "electron": "electron .",
+    "electron-dev": "concurrently \"BROWSER=none npm start\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron-pack": "build — em.main=build/electron-starter.js",
+    "preelectron-pack": "npm build",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^2.0.3",
+    "electron-builder": "^20.16.4",
+    "electron-packager": "^12.1.0"
+  },
+  "build": {
+    "appId": "com.electron.utilities365",
+    "productName": "Utilities365",
+    "directories": {
+      "buildResources": "assets"
+    },
+    "extends": null
+  }
+}

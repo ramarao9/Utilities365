@@ -1,0 +1,33 @@
+.cstm-dropdown-content
+{
+    overflow-x: hidden;
+    overflow-y: auto !important;
+    max-height: 200px;
+}
+
+.dropdown-selection
+{
+    display:flex;
+    flex-direction: row;
+    border: 1px solid #b5b5b5;
+    align-items: stretch;
+}
+
+.drpdwnBtnDiv >button
+{
+    border:none;
+}
+
+.selectedItemsDiv >a
+{
+    margin: 4px;
+}
+
+.selectedItemsDiv>input{
+    border:none;
+}
+
+.w100
+{
+    width: 100%;
+}
