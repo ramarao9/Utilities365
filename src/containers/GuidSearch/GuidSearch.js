@@ -11,6 +11,8 @@ import IsEmpty from 'is-empty';
 import SplitString from 'split-string';
 
 
+
+//
 class GuidSearch extends Component {
     state = {
         entities: [],
