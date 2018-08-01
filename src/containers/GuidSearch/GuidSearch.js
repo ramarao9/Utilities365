@@ -44,7 +44,9 @@ class GuidSearch extends Component {
             },
             value: ""
         }
-    }
+    };
+    entitiesToSearchOn = [];
+    dynamicsWebAPIClient = null
 
 
 
@@ -57,9 +59,11 @@ class GuidSearch extends Component {
 
     getEntitiesFromCRM = () => {
 
-        var dynamicsWebApi = new DynamicsWebApi({
+        this.dynamicsWebAPIClient = new DynamicsWebApi({
             webApiUrl: crmUtil.getResource() + "api/data/v9.0/"
         });
+
+
 
 
         var request = {
@@ -69,9 +73,13 @@ class GuidSearch extends Component {
             token: this.props.tokenData.access_token
         };
 
-        dynamicsWebApi.retrieveRequest(request).then(this.getEntitiesFromCRMSuccess).catch(function (error) {
+        this.dynamicsWebAPIClient.retrieveRequest(request).then(this.getEntitiesFromCRMSuccess).catch(function (error) {
             var s = 100;
         });
+
+
+
+
 
     }
 
@@ -99,6 +107,36 @@ class GuidSearch extends Component {
         this.setState({ entities: entitiesFromCrm });
     }
 
+    onSearchClick = () => {
+        var guid = "19229FF1-1C8E-E811-A978-000D3A1C9C85";
+        var logicalName = "account";
+
+
+        this.performSearch();
+
+
+    }
+
+    performSearch =()=>{
+        let guidToSearch = this.state.guidToSearch;
+
+
+        if(IsEmpty(guidToSearch))
+        {
+
+            //To Do show indicator that the guid is required
+            return;
+        }
+        
+        if (!IsEmpty(this.entitiesToSearchOn) && this.entitiesToSearchOn.length >= 1) {
+            let entityToSearch = this.entitiesToSearchOn[0];
+
+            this.searchCRMEntityWithId(entityToSearch, guidToSearch.value);
+
+
+        }
+    }
+
     searchCRMEntityWithId = (entityLogicalName, id) => {
 
 
@@ -109,19 +147,18 @@ class GuidSearch extends Component {
         let entities = [...this.state.entities];
         let entityInfo = entities.find(x => x.LogicalName === entityLogicalName);
 
-        var dynamicsWebApi = new DynamicsWebApi({
-            webApiUrl: crmUtil.getResource() + "api/data/v9.0/"
-        });
+
+
 
         var request = {
-            key:id,
             collection: entityInfo.LogicalCollectionName,
             select: [entityInfo.PrimaryIdAttribute],
+            filter: entityInfo.PrimaryIdAttribute + " eq " + id,
             token: this.props.tokenData.access_token
         };
 
-        dynamicsWebApi.retrieveRequest(request).then(this.searchCRMEntityWithIdSuccess).catch(function (error) {
-
+        //perform a multiple records retrieve operation
+        this.dynamicsWebAPIClient.retrieveMultipleRequest(request).then(this.searchCRMEntityWithIdSuccess).catch(function (error) {
             var y = 10;
             var d = 1;
         });
@@ -130,19 +167,18 @@ class GuidSearch extends Component {
 
     searchCRMEntityWithIdSuccess = (result) => {
 
-        var y = 10;
-        var d = 1;
-        //After the search is complete remove the entity from 'entitiesToSearchOn'
+        if (IsEmpty(result.value) || result.value.length === 0) {
+            //No Match found remove the entity from 'entitiesToSearchOn'
 
+
+        }
+        else {
+            //Match Found quit the search
+        }
 
     }
 
-    onSearchClick = () => {
-        var guid = "19229FF1-1C8E-E811-A978-000D3A1C9C85";
-        var logicalName = "account";
 
-        this.searchCRMEntityWithId(logicalName,guid);
-    }
 
 
     inputChangedHandler = (event, inputIdentifier) => {
@@ -180,9 +216,11 @@ class GuidSearch extends Component {
         if (IsEmpty(selectedEntities))
             return;
 
-        let entitiesToSearchOnArr = SplitString(selectedEntities, { separator: ',' });
+        this.entitiesToSearchOn = SplitString(selectedEntities, { separator: ',' });
 
-        this.setState({ entitiesToSearchOn: entitiesToSearchOnArr });
+        // this.setState({ entitiesToSearchOn: entitiesToSearchOnArr });
+
+
     }
 
 
