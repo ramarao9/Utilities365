@@ -8,7 +8,7 @@ import Input from '../../components/UI/Input/Input';
 import EntityMultiSelect from '../../components/CRM/EntityMultiSelect/EntityMultiSelect';
 import Aux from '../../hoc/_Aux/_Aux';
 import IsEmpty from 'is-empty';
-import SplitString from 'split-string';
+
 
 
 
@@ -43,6 +43,10 @@ class GuidSearch extends Component {
                 readOnly: "readOnly"
             },
             value: ""
+        },
+        searchInProcess: false,
+        runningLog: {
+
         }
     };
     entitiesToSearchOn = [];
@@ -68,7 +72,7 @@ class GuidSearch extends Component {
 
         var request = {
             collection: 'EntityDefinitions',
-            select: ['LogicalName', 'SchemaName', 'DisplayName', 'ObjectTypeCode', 'LogicalCollectionName', 'PrimaryIdAttribute'],
+            select: ['LogicalName', 'SchemaName', 'DisplayName', 'ObjectTypeCode', 'LogicalCollectionName', 'PrimaryNameAttribute', 'PrimaryIdAttribute'],
             filter: "IsIntersect eq false",
             token: this.props.tokenData.access_token
         };
@@ -98,6 +102,7 @@ class GuidSearch extends Component {
             }
             entity.OTC = entityObj.ObjectTypeCode;
             entity.LogicalName = entityObj.LogicalName;
+            entity.PrimaryNameAttribute = entityObj.PrimaryNameAttribute;
             entity.PrimaryIdAttribute = entityObj.PrimaryIdAttribute;
             entity.LogicalCollectionName = entityObj.LogicalCollectionName;
             return entity;
@@ -111,29 +116,31 @@ class GuidSearch extends Component {
         var guid = "19229FF1-1C8E-E811-A978-000D3A1C9C85";
         var logicalName = "account";
 
+        this.setState({ searchInProcess: true });
 
         this.performSearch();
 
 
     }
 
-    performSearch =()=>{
+    performSearch = () => {
         let guidToSearch = this.state.guidToSearch;
 
 
-        if(IsEmpty(guidToSearch))
-        {
+        if (IsEmpty(guidToSearch)) {
 
+            this.setState({ searchInProcess: false });
             //To Do show indicator that the guid is required
             return;
         }
-        
+
         if (!IsEmpty(this.entitiesToSearchOn) && this.entitiesToSearchOn.length >= 1) {
             let entityToSearch = this.entitiesToSearchOn[0];
 
             this.searchCRMEntityWithId(entityToSearch, guidToSearch.value);
-
-
+        }
+        else {
+            this.setState({ searchInProcess: false });
         }
     }
 
@@ -147,33 +154,51 @@ class GuidSearch extends Component {
         let entities = [...this.state.entities];
         let entityInfo = entities.find(x => x.LogicalName === entityLogicalName);
 
-
+        var self = this;
 
 
         var request = {
             collection: entityInfo.LogicalCollectionName,
-            select: [entityInfo.PrimaryIdAttribute],
+            select: [entityInfo.PrimaryIdAttribute, entityInfo.PrimaryNameAttribute],
             filter: entityInfo.PrimaryIdAttribute + " eq " + id,
             token: this.props.tokenData.access_token
         };
 
         //perform a multiple records retrieve operation
-        this.dynamicsWebAPIClient.retrieveMultipleRequest(request).then(this.searchCRMEntityWithIdSuccess).catch(function (error) {
-            var y = 10;
-            var d = 1;
+        this.dynamicsWebAPIClient.retrieveMultipleRequest(request).then(function (result) {
+            self.searchCRMEntityWithIdSuccess(result, entityLogicalName, entityInfo.PrimaryIdAttribute, entityInfo.PrimaryNameAttribute)
+        }).catch(function (error) {
+            this.entitiesToSearchOn = this.entitiesToSearchOn.filter(x => x !== entityLogicalName);
+            this.performSearch();
         });
 
     }
 
-    searchCRMEntityWithIdSuccess = (result) => {
+    searchCRMEntityWithIdSuccess = (result, entityLogicalName, primaryIdAttribute, primaryAttribute) => {
 
         if (IsEmpty(result.value) || result.value.length === 0) {
             //No Match found remove the entity from 'entitiesToSearchOn'
 
-
+            this.entitiesToSearchOn = this.entitiesToSearchOn.filter(x => x !== entityLogicalName);
+            this.performSearch();
         }
         else {
             //Match Found quit the search
+
+
+            let record = result.value[0];
+            let name = record[primaryAttribute];
+            let id = record[primaryIdAttribute];
+
+            const matchedRecord = { ...this.state.matchedRecord };
+
+            const resourceUrl = crmUtil.getResource() + "main.aspx?etn=" + entityLogicalName + "&pagetype=entityrecord&id=%7B" + id + "%7D";
+
+
+            matchedRecord.url = resourceUrl
+            matchedRecord.value = name;
+
+            this.setState({ matchedRecord: matchedRecord, searchInProcess: false });
         }
 
     }
@@ -216,7 +241,7 @@ class GuidSearch extends Component {
         if (IsEmpty(selectedEntities))
             return;
 
-        this.entitiesToSearchOn = SplitString(selectedEntities, { separator: ',' });
+        this.entitiesToSearchOn = selectedEntities.split(',');
 
         // this.setState({ entitiesToSearchOn: entitiesToSearchOnArr });
 
@@ -251,13 +276,27 @@ class GuidSearch extends Component {
             entitiesToSearch = <EntityMultiSelect label="Entities to Search" entities={this.state.entities} changed={this.onEntitySelectChange} is-small />
         }
 
+
+        let matchedRecordUI = null;
+
+        if (!IsEmpty(matchedRecordEl.value)) {
+            matchedRecordUI = (<Input
+                id={matchedRecordEl.id}
+                elementType={matchedRecordEl.elementType}
+                elementConfig={matchedRecordEl.elementConfig}
+                size="is-small"
+                clicked={(event) => this.inputChangedHandler(event, matchedRecordEl.id)}
+                value={matchedRecordEl.value}
+                addOnLabel="Copy Link"
+                label="Match" />);
+        }
         return (
             <Aux>
                 <div className="columns is-desktop">
                     <div className="column is-half">
 
                         <div className="buttons">
-                            <span className="button is-info" onClick={this.onSearchClick}>Search</span>
+                            <span className="button is-info" disabled={this.state.searchInProcess} onClick={this.onSearchClick}>Search</span>
                         </div>
 
                         <Input
@@ -282,15 +321,7 @@ class GuidSearch extends Component {
                         {entitiesToSearch}
 
 
-                        <Input
-                            id={matchedRecordEl.id}
-                            elementType={matchedRecordEl.elementType}
-                            elementConfig={matchedRecordEl.elementConfig}
-                            size="is-small"
-                            clicked={(event) => this.inputChangedHandler(event, matchedRecordEl.id)}
-                            value={matchedRecordEl.value}
-                            addOnLabel="Copy Link"
-                            label="Match" />
+                        {matchedRecordUI}
 
 
                     </div>
