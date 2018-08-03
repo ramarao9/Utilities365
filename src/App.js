@@ -12,11 +12,14 @@ class App extends Component {
     return (
       <div>
         <Layout>
-        <Switch>
-            <Route path="/" exact component={GuidSearch} />
+          <Switch>
+            <Route path="#" exact component={Home} />
+            <Route path="./" exact component={Home} />
+            <Route path="/" exact component={Home} />
             <Route path="/home" exact component={Home} />
             <Route path="/auth" exact component={Auth} />
             <Route path="/guidsearch" exact component={GuidSearch} />
+            <Route path="*" component={Home} />
           </Switch>
         </Layout>
       </div>

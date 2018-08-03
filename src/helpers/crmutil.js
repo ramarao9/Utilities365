@@ -9,6 +9,6 @@ export function getResource() {
 export function isValidToken(token)
 {
     return (token !== null && 
-        token.access_token!==null &&
-        token.access_token!==undefined);
+        token.accessToken!==null &&
+        token.accessToken!==undefined);
 }

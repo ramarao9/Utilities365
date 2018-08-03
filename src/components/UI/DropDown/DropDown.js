@@ -60,15 +60,19 @@ class dropDown extends Component {
         });
 
 
+
+        this.props.changed(updatedSelections);
+
         //Update SetState to indicate selections and current options and to clear input
         this.setState({ selections: updatedSelections, currentDropdownOptions: currentDropdownOptions, showDropwDownMenu: false });
 
 
-        this.props.changed(updatedSelections);
     }
 
 
     render() {
+
+
 
         let drpDownClasses = ["dropdown", "w100"];
         if (this.state.showDropwDownMenu) {
@@ -82,7 +86,7 @@ class dropDown extends Component {
             let options = null;
             if (currentDropDownOptions.length > 0) {
                 options = currentDropDownOptions.map(ddwnOption => (
-                    <a key={ddwnOption.Value} href="#" onClick={() => this.onDropdownClick(ddwnOption.Value)} className="dropdown-item">{ddwnOption.Label}</a>
+                    <a key={ddwnOption.Value}  onClick={() => this.onDropdownClick(ddwnOption.Value)} className="dropdown-item">{ddwnOption.Label}</a>
                 ));
 
                 dropdownContent = (

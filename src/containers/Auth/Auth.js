@@ -108,7 +108,7 @@ class Auth extends Component {
         authContext.acquireTokenWithAuthorizationCode(code, "https://google.com", resource, clientId, null, this.adalCallback);
 
 
-       
+
 
         if (authWndw)
             authWndw.destroy();
@@ -120,13 +120,13 @@ class Auth extends Component {
     }
 
     adalCallback = (error, tokenObj) => {
-        if (!error) {
-            alert("success" + tokenObj.access_token);
+
+        if (tokenObj != null) {
             this.props.onTokenGenerated(tokenObj);
         }
-        else {
-            console.log('Token has not been retrieved. Error: ' + error.stack);
-            this.props.onTokenGenerated(tokenObj)
+        else {          
+            let errMsg = 'Error occured while retrieving the Token: ' + error.message + '\n';
+            alert(errMsg);
         }
     }
 
@@ -136,12 +136,12 @@ class Auth extends Component {
             "scope": "user_impersonation",
             "expires_in": "3599",
             "ext_expires_in": "0",
-            "expires_on": "1533183666",
-            "not_before": "1533179766",
+            "expires_on": "1533273296",
+            "not_before": "1533269396",
             "resource": "https://ramajuly2018.crm.dynamics.com/",
-            "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IjdfWnVmMXR2a3dMeFlhSFMzcTZsVWpVWUlHdyIsImtpZCI6IjdfWnVmMXR2a3dMeFlhSFMzcTZsVWpVWUlHdyJ9.eyJhdWQiOiJodHRwczovL3JhbWFqdWx5MjAxOC5jcm0uZHluYW1pY3MuY29tLyIsImlzcyI6Imh0dHBzOi8vc3RzLndpbmRvd3MubmV0LzkzNDA0OTViLTE2NTYtNGJlNS05OTMwLTY5YzlkNTVkMDAxZi8iLCJpYXQiOjE1MzMxNzk3NjYsIm5iZiI6MTUzMzE3OTc2NiwiZXhwIjoxNTMzMTgzNjY2LCJhY3IiOiIxIiwiYWlvIjoiNDJCZ1lEaXlTdHk5MnI2ZGo5dHJ1czJWaDJjTG8vNHUzWGg1NXM3c2JWYU9NbTh5WFBVQSIsImFtciI6WyJwd2QiXSwiYXBwaWQiOiJmN2I0MGY4NS1kYTVkLTQ0YWQtOWM5Mi03NTM2NjlhYzQxOTkiLCJhcHBpZGFjciI6IjAiLCJmYW1pbHlfbmFtZSI6IktvbmVydSIsImdpdmVuX25hbWUiOiJSYW1hIiwiaXBhZGRyIjoiNzMuMTg1LjEzOS41MiIsIm5hbWUiOiJSYW1hIEtvbmVydSIsIm9pZCI6ImZiMmMyMTJjLTY5OTAtNDcxOC05OTEyLTkyNDBiMGY4OTQzMSIsInB1aWQiOiIxMDAzN0ZGRUFDOEFENDI3Iiwic2NwIjoidXNlcl9pbXBlcnNvbmF0aW9uIiwic3ViIjoiTWpEVC1pV0ZiSEZseWhyb0RxUEFrSERnSEZrdUNsUlJBV1BiR0ZPdkQzcyIsInRpZCI6IjkzNDA0OTViLTE2NTYtNGJlNS05OTMwLTY5YzlkNTVkMDAxZiIsInVuaXF1ZV9uYW1lIjoicmFtYUByYW1hanVseTIwMTgub25taWNyb3NvZnQuY29tIiwidXBuIjoicmFtYUByYW1hanVseTIwMTgub25taWNyb3NvZnQuY29tIiwidXRpIjoielpnNUswY0pma3l5Unp1cThpc0xBQSIsInZlciI6IjEuMCIsIndpZHMiOlsiNjJlOTAzOTQtNjlmNS00MjM3LTkxOTAtMDEyMTc3MTQ1ZTEwIl19.WhymLyuy9-OmROOsOVfo81th53wdWyORsNHqrkLP0vHrDcftPJhBNamVd4xSfRjjq1E8_CvWj_AplANpB4E5fwhQeFEHq49Fc0bMO5BiJgQUCaHR8f_BYl2m0AV8yRFbkfkzv7fPtHsZVsZVV0xUvXghEepjlKOx82eQCkFOYwst6nPXCO19ewLrE79FIRcY4zGtuIy1941nMRTcuhUGq1euZoh4yGtOctRNG8z8FhtyTunvrlaN-SFWsbPa-tDBmY0i8ZdQ3urdSto-Ei55TuoO7HZA_b0lENWQpXtPLEiduSrl-ymW_ENhY21Q1epFXuciTcN95u3yN1ufo6rNGA",
-            "refresh_token": "AQABAAAAAADXzZ3ifr-GRbDT45zNSEFEhfMkxgsS2-FIA5DRcES_ePDOtDsr-FqJOWyw_Btf_VJj2PQ1VBuMCISE-SyGsWk4lEs1lVAoidF-3Kc2c0yrsvjhIbaQhgSn58UJ1_KIucJSM-oKsib0UGll_0uvWV31VpXEo2CPBXkHBBCFxOigToJDUQFHzmsDYzktaGR1yTCrya0zJGKfYKMXaZQ_VXwkaamq8O5LOPHAdN7e6SWBruHvDY2yvrubVya_bbePKlrftYx7j_ixZeM2uKTnt6Z3qB-n1eG49jzaDLNXG6UQPLC2OOROsILsC37yaJsIZ64-XOmNvegiGbklndJOei4dB7LqkKJSWbPl0J0Qc9R-Ly9TA42y8lkIzX_-BI6zLsnH7OOGT7XLTtvrENmCBpg1xDXf2Q3Onm3fHeMNCggOxlWbUeyNAp6EM1AppVi5s5KC4FgtnSZMiL6wNK2QDO0gAd96V167cs4rjyH15N6B4-oM7HqmC0ApoPYBKq-H-gfPxO6f0_EFSnYFPYb1ZfRwB5fJbgy6qQK444ByGWaVRPdqL2Sz2dr5CEoEtGYWoS4AcoUxeGzI1dCTxPpY6JT3zUzzlHVwsVMh-nKMWmkX1cmaX1eaWLiiOtXrj2QrWGzKRnIz6isMMzdratSZKNA0tlIsn8Q_n6Nl__h3KctU8yUYxI3wzk2KPlt0H_sEWdAFnusLpcoivyrhjRRJLJ_Uh-QPO1yiGG8z-ON6gv_8rAChUEbzty-FTB1KQZkkBWL5Lonc_vWL-9qd_gAenA920X-7qC6XeYXFPENGBCy5QCAA",
-            "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJmN2I0MGY4NS1kYTVkLTQ0YWQtOWM5Mi03NTM2NjlhYzQxOTkiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC85MzQwNDk1Yi0xNjU2LTRiZTUtOTkzMC02OWM5ZDU1ZDAwMWYvIiwiaWF0IjoxNTMzMTc5NzY2LCJuYmYiOjE1MzMxNzk3NjYsImV4cCI6MTUzMzE4MzY2NiwiYW1yIjpbInB3ZCJdLCJmYW1pbHlfbmFtZSI6IktvbmVydSIsImdpdmVuX25hbWUiOiJSYW1hIiwiaXBhZGRyIjoiNzMuMTg1LjEzOS41MiIsIm5hbWUiOiJSYW1hIEtvbmVydSIsIm9pZCI6ImZiMmMyMTJjLTY5OTAtNDcxOC05OTEyLTkyNDBiMGY4OTQzMSIsInN1YiI6Im41bERnRS1RdTQ0aVkwODQ0NkhPMmhpUHRDeWpxNkEtaGkyNUdWNFVJbGciLCJ0aWQiOiI5MzQwNDk1Yi0xNjU2LTRiZTUtOTkzMC02OWM5ZDU1ZDAwMWYiLCJ1bmlxdWVfbmFtZSI6InJhbWFAcmFtYWp1bHkyMDE4Lm9ubWljcm9zb2Z0LmNvbSIsInVwbiI6InJhbWFAcmFtYWp1bHkyMDE4Lm9ubWljcm9zb2Z0LmNvbSIsInZlciI6IjEuMCJ9."
+            "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IjdfWnVmMXR2a3dMeFlhSFMzcTZsVWpVWUlHdyIsImtpZCI6IjdfWnVmMXR2a3dMeFlhSFMzcTZsVWpVWUlHdyJ9.eyJhdWQiOiJodHRwczovL3JhbWFqdWx5MjAxOC5jcm0uZHluYW1pY3MuY29tLyIsImlzcyI6Imh0dHBzOi8vc3RzLndpbmRvd3MubmV0LzkzNDA0OTViLTE2NTYtNGJlNS05OTMwLTY5YzlkNTVkMDAxZi8iLCJpYXQiOjE1MzMyNjkzOTYsIm5iZiI6MTUzMzI2OTM5NiwiZXhwIjoxNTMzMjczMjk2LCJhY3IiOiIxIiwiYWlvIjoiNDJCZ1lGQktWaTB2bkx6MlZreDF2MGZsTmRZRFd5U2ZYdjBTTEw1c0RxOWV0K0dXR3hNQSIsImFtciI6WyJwd2QiXSwiYXBwaWQiOiJmN2I0MGY4NS1kYTVkLTQ0YWQtOWM5Mi03NTM2NjlhYzQxOTkiLCJhcHBpZGFjciI6IjAiLCJmYW1pbHlfbmFtZSI6IktvbmVydSIsImdpdmVuX25hbWUiOiJSYW1hIiwiaXBhZGRyIjoiNzMuMTg1LjEzOS41MiIsIm5hbWUiOiJSYW1hIEtvbmVydSIsIm9pZCI6ImZiMmMyMTJjLTY5OTAtNDcxOC05OTEyLTkyNDBiMGY4OTQzMSIsInB1aWQiOiIxMDAzN0ZGRUFDOEFENDI3Iiwic2NwIjoidXNlcl9pbXBlcnNvbmF0aW9uIiwic3ViIjoiTWpEVC1pV0ZiSEZseWhyb0RxUEFrSERnSEZrdUNsUlJBV1BiR0ZPdkQzcyIsInRpZCI6IjkzNDA0OTViLTE2NTYtNGJlNS05OTMwLTY5YzlkNTVkMDAxZiIsInVuaXF1ZV9uYW1lIjoicmFtYUByYW1hanVseTIwMTgub25taWNyb3NvZnQuY29tIiwidXBuIjoicmFtYUByYW1hanVseTIwMTgub25taWNyb3NvZnQuY29tIiwidXRpIjoiR3o0U3pkekpVMDZZZkhCUnNhY0NBQSIsInZlciI6IjEuMCIsIndpZHMiOlsiNjJlOTAzOTQtNjlmNS00MjM3LTkxOTAtMDEyMTc3MTQ1ZTEwIl19.J1MxnF5TSAFru8p76A-rF23Pn7tCaP0hRuLox4xhaoO1JwgTR0Qavtyd4jluYQlXeWyAQX6XZNYaFVARmLymqxfG4V5zV_cEpeha88SfYB30TUpvhxdTAN9WiH-3ev4PZ8EvY_RrtiM6W_9mtlz60yAxDsW8gp8US1W-nSAGJSpXE-QtgliaZsl-GJlj_J4FvQOciu9lHpjx4RkOzKZqhd9pjlQKjOVSpMGcvMRHzaY-AkfV4A2tbIWuuUVkVlyZRgpMSr1pTvQhz8jlqKDpJTTQLHcyLyOJDXQ11bC8049B1wNS87nFDcCCgSqrAUMwoiRukzjfJ4vOJRikXFeftw",
+            "refresh_token": "AQABAAAAAADXzZ3ifr-GRbDT45zNSEFEoA8AjQN9Rmv8KjuMQZHWZSlxFqs-PPEA-sUz6kl2E2Ta2mP99fTaWD3tMVV433Dpq-KDNNlr6hovvtGwQi5TOXhimqwVRD6aI4N_6jUiWSYmrH4V_7ou6R_bzGvZGOblF1mqFagyfPzDRwPvkoL6FQWsaWxCh2N0GPnd9cPLblnu4Ofw51QoCHA4lz7XFpP5goRPYB5d0EhrHF80JDUCrgBgeOFB4OntE0W8O2__mS4WMtX1Sy2-4w9qc-nxJcAjyw-n8MdFvdTjhMBuYgfEQYoienLb4CdM3897JDtfWjgMJyztXS9TtV3lZsIx7b0Sfd2iKUAjYSoEFtljqb0T-O-0gNSXkjW6J51V2sYCCmr4Nr3v5jtckxwAeeEL_SGtSTQ40hhhFyq1YkJlw1jN0Tl_AjgBhN9meNT3b61Do-j814W_2n85EWh_o6XjvBBIDmkoyrR8F7sGzHU-B8jATDGzMBtTiWN6bNk-9h3D07lzHRQ3dXIaFtGePrZy9NxbHJgiuQo71FoVAFRtWE4fFY-amJdsEgE8Vv2Hs3JThL1ybMKlX6qhwmm54yHzko9e-ckJv_T2ndjrl8td_AgPvjGpF9sYq79473WVOd0izDFg7PVivEzVSNUCUkyg5YwxtyLwOk6I6SZaq7NiqXJcol9w6vhyphzeYIyv-CxuMs-AwMY3hqwVOG-QYLTo_1FeFu-Q-fgK_rYNWD5DlZCKOD__9TnzRiDb4l4jFSWKUsVaCxcX3XxBkkJ3ZVyqr5Q0o7bLWqzZnSG_wvKpWw52KSAA",
+            "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiJmN2I0MGY4NS1kYTVkLTQ0YWQtOWM5Mi03NTM2NjlhYzQxOTkiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC85MzQwNDk1Yi0xNjU2LTRiZTUtOTkzMC02OWM5ZDU1ZDAwMWYvIiwiaWF0IjoxNTMzMjY5Mzk2LCJuYmYiOjE1MzMyNjkzOTYsImV4cCI6MTUzMzI3MzI5NiwiYW1yIjpbInB3ZCJdLCJmYW1pbHlfbmFtZSI6IktvbmVydSIsImdpdmVuX25hbWUiOiJSYW1hIiwiaXBhZGRyIjoiNzMuMTg1LjEzOS41MiIsIm5hbWUiOiJSYW1hIEtvbmVydSIsIm9pZCI6ImZiMmMyMTJjLTY5OTAtNDcxOC05OTEyLTkyNDBiMGY4OTQzMSIsInN1YiI6Im41bERnRS1RdTQ0aVkwODQ0NkhPMmhpUHRDeWpxNkEtaGkyNUdWNFVJbGciLCJ0aWQiOiI5MzQwNDk1Yi0xNjU2LTRiZTUtOTkzMC02OWM5ZDU1ZDAwMWYiLCJ1bmlxdWVfbmFtZSI6InJhbWFAcmFtYWp1bHkyMDE4Lm9ubWljcm9zb2Z0LmNvbSIsInVwbiI6InJhbWFAcmFtYWp1bHkyMDE4Lm9ubWljcm9zb2Z0LmNvbSIsInZlciI6IjEuMCJ9."
         };
     }
     getAuthorizationUrl = () => {
@@ -169,13 +169,13 @@ class Auth extends Component {
     }
 
     render() {
-      //  this.loginToDynamics365();
+        //  this.loginToDynamics365();
 
         if (isValidToken(this.props.tokenData)) {
             return <Redirect to='/' />
         }
 
-       
+
         return (
             <div>
                 <Button btnType="Login"

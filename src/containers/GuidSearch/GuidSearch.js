@@ -59,6 +59,7 @@ class GuidSearch extends Component {
         if (crmUtil.isValidToken(this.props.tokenData)) {
             this.getEntitiesFromCRM();
         }
+
     }
 
     getEntitiesFromCRM = () => {
@@ -74,7 +75,7 @@ class GuidSearch extends Component {
             collection: 'EntityDefinitions',
             select: ['LogicalName', 'SchemaName', 'DisplayName', 'ObjectTypeCode', 'LogicalCollectionName', 'PrimaryNameAttribute', 'PrimaryIdAttribute'],
             filter: "IsIntersect eq false",
-            token: this.props.tokenData.access_token
+            token: this.props.tokenData.accessToken
         };
 
         this.dynamicsWebAPIClient.retrieveRequest(request).then(this.getEntitiesFromCRMSuccess).catch(function (error) {
@@ -113,8 +114,6 @@ class GuidSearch extends Component {
     }
 
     onSearchClick = () => {
-        var guid = "19229FF1-1C8E-E811-A978-000D3A1C9C85";
-        var logicalName = "account";
 
         this.setState({ searchInProcess: true });
 
@@ -161,15 +160,15 @@ class GuidSearch extends Component {
             collection: entityInfo.LogicalCollectionName,
             select: [entityInfo.PrimaryIdAttribute, entityInfo.PrimaryNameAttribute],
             filter: entityInfo.PrimaryIdAttribute + " eq " + id,
-            token: this.props.tokenData.access_token
+            token: this.props.tokenData.accessToken
         };
 
         //perform a multiple records retrieve operation
         this.dynamicsWebAPIClient.retrieveMultipleRequest(request).then(function (result) {
             self.searchCRMEntityWithIdSuccess(result, entityLogicalName, entityInfo.PrimaryIdAttribute, entityInfo.PrimaryNameAttribute)
         }).catch(function (error) {
-            this.entitiesToSearchOn = this.entitiesToSearchOn.filter(x => x !== entityLogicalName);
-            this.performSearch();
+            self.entitiesToSearchOn = this.entitiesToSearchOn.filter(x => x !== entityLogicalName);
+            self.performSearch();
         });
 
     }
@@ -243,7 +242,6 @@ class GuidSearch extends Component {
 
         this.entitiesToSearchOn = selectedEntities.split(',');
 
-        // this.setState({ entitiesToSearchOn: entitiesToSearchOnArr });
 
 
     }
@@ -256,6 +254,8 @@ class GuidSearch extends Component {
         if (!crmUtil.isValidToken(this.props.tokenData)) {
             return <Redirect to='/Auth' />
         }
+
+
 
 
         const guidSearchEl = {
@@ -271,7 +271,7 @@ class GuidSearch extends Component {
         }
 
         let entitiesToSearch = null;
-
+      
         if (!this.state.allEntitiesCheck.checked) {
             entitiesToSearch = <EntityMultiSelect label="Entities to Search" entities={this.state.entities} changed={this.onEntitySelectChange} is-small />
         }

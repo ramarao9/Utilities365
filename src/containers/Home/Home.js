@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Redirect } from 'react-router';
 import Aux from '../../hoc/_Aux/_Aux';
+import * as crmUtil from '../../helpers/crmutil';
+
 
 class Home extends Component {
     state = {
@@ -11,7 +13,7 @@ class Home extends Component {
 
     render() {
 
-        if (this.props.tokenData === null || this.props.tokenData === undefined) {
+        if (!crmUtil.isValidToken(this.props.tokenData)) {
             return <Redirect to='/Auth' />
         }
 
