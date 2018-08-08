@@ -12,9 +12,9 @@ import registerServiceWorker from './registerServiceWorker';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAngleDown,faTimes } from '@fortawesome/free-solid-svg-icons'
+import { faAngleDown,faTimes,faSearch,faEraser } from '@fortawesome/free-solid-svg-icons'
 
-library.add(faAngleDown,faTimes)
+library.add(faAngleDown,faTimes,faSearch,faEraser)
 
 const store = createStore(reducer);
 

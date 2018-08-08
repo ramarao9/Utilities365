@@ -8,7 +8,7 @@ class dropDown extends Component {
 
     // <Dropdown placeholder='Select Entity(s)' fluid multiple search selection options={props.entities} />
     state = {
-        selections: "",
+        selections: [],
         showDropwDownMenu: false,
         dropdownOptions: [...this.props.options],
         currentDropdownOptions: [...this.props.options]
@@ -46,27 +46,54 @@ class dropDown extends Component {
 
     onDropdownClick = (selectedValue) => {
 
-
-
         //Set Selections
-        const currentSelections = this.state.selections;
+        const updatedSelectionsArr = [...this.state.selections];
 
-        const updatedSelections = (currentSelections != null && currentSelections !== "") ? currentSelections + "," + selectedValue : selectedValue;
-        const updatedSelectionsArr = updatedSelections.split(",");
+        if(selectedValue != null && selectedValue !== "") {
+            updatedSelectionsArr.push(selectedValue);
+        }
+        const updatedSelections = updatedSelectionsArr.join(",");
+
+        const currentDropDownOptions = this.getCurrentDropDownOptions(updatedSelectionsArr);
+
+        this.props.changed(updatedSelections);
+
+        //Update SetState to indicate selections and current options and to clear input
+        this.setState({ selections: updatedSelectionsArr, currentDropdownOptions: currentDropDownOptions, showDropwDownMenu: false });
+
+
+    }
+
+    removeOption = (event,entityToRemove) => {
+
+        const currentSelectionsArr = [...this.state.selections];
+
+        const updatedSelectionsArr = currentSelectionsArr.filter(optionValue => {
+            return optionValue !== entityToRemove;
+        });
+
+        const updatedSelectionsCsv = updatedSelectionsArr.join(",");
+
+        this.props.changed(updatedSelectionsCsv);
+
+        const currentDropDownOptions = this.getCurrentDropDownOptions(updatedSelectionsArr);
+
+        //Update SetState to indicate selections and current options and to clear input
+        this.setState({ selections: updatedSelectionsArr, currentDropdownOptions: currentDropDownOptions });
+
+
+    }
+
+    getCurrentDropDownOptions = (updatedSelectionsArr) => {
+
+
         const dropDownOptions = [...this.state.dropdownOptions];
 
         const currentDropdownOptions = dropDownOptions.filter(option => {
             return !updatedSelectionsArr.includes(option.Value);
         });
 
-
-
-        this.props.changed(updatedSelections);
-
-        //Update SetState to indicate selections and current options and to clear input
-        this.setState({ selections: updatedSelections, currentDropdownOptions: currentDropdownOptions, showDropwDownMenu: false });
-
-
+        return currentDropdownOptions;
     }
 
 
@@ -86,7 +113,7 @@ class dropDown extends Component {
             let options = null;
             if (currentDropDownOptions.length > 0) {
                 options = currentDropDownOptions.map(ddwnOption => (
-                    <a key={ddwnOption.Value}  onClick={() => this.onDropdownClick(ddwnOption.Value)} className="dropdown-item">{ddwnOption.Label}</a>
+                    <a key={ddwnOption.Value} onClick={() => this.onDropdownClick(ddwnOption.Value)} className="dropdown-item">{ddwnOption.Label}</a>
                 ));
 
                 dropdownContent = (
@@ -101,23 +128,19 @@ class dropDown extends Component {
         const dropDownOptions = [...this.state.dropdownOptions];
         //Using selections Add to Selections Div
         let selectionsDisplay = "";
-        const selectionsStr = this.state.selections;
-        if (!IsEmpty(selectionsStr)) {
-            const selectionsArr = selectionsStr.split(",");
-
-            if (selectionsArr != null && selectionsArr.length > 0) {
-
+   
+        if (this.state.selections.length>0) {
+            const selectionsArr = [...this.state.selections];
                 selectionsDisplay = (
                     selectionsArr.map(selection => (
                         <a key={selection} className="button is-small is-light">
                             <span>{dropDownOptions.find(option => { return option.Value === selection }).Label}</span>
-                            <span className="icon is-small">
+                            <span className="icon is-small" onClick={(ev) => this.removeOption(ev,selection)}>
                                 <FontAwesomeIcon icon="times" />
                             </span>
                         </a>
                     ))
-                );
-            }
+                );           
         }
 
         return (
@@ -147,7 +170,7 @@ class dropDown extends Component {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="dropdown-menu" role="menu">
+                                    <div className="dropdown-menu w100" role="menu">
                                         {dropdownContent}
                                     </div>
 

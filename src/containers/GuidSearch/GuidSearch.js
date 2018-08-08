@@ -8,7 +8,7 @@ import Input from '../../components/UI/Input/Input';
 import EntityMultiSelect from '../../components/CRM/EntityMultiSelect/EntityMultiSelect';
 import Aux from '../../hoc/_Aux/_Aux';
 import IsEmpty from 'is-empty';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 
 
@@ -271,7 +271,7 @@ class GuidSearch extends Component {
         }
 
         let entitiesToSearch = null;
-      
+
         if (!this.state.allEntitiesCheck.checked) {
             entitiesToSearch = <EntityMultiSelect label="Entities to Search" entities={this.state.entities} changed={this.onEntitySelectChange} is-small />
         }
@@ -296,8 +296,23 @@ class GuidSearch extends Component {
                     <div className="column is-half">
 
                         <div className="buttons">
-                            <span className="button is-info" disabled={this.state.searchInProcess} onClick={this.onSearchClick}>Search</span>
+                            <a className="button is-radiusless is-white" disabled={this.state.searchInProcess} onClick={this.onSearchClick}>
+                                <span className="icon is-small">
+                                <FontAwesomeIcon icon="search" />
+                                </span>
+                                <span>Search</span>
+                            </a>
+
+                            <a className="button is-radiusless is-white" disabled={this.state.searchInProcess} onClick={this.onSearchClick}>
+                                <span className="icon is-small">
+                                <FontAwesomeIcon icon="eraser" />
+                                </span>
+                                <span>Clear</span>
+                            </a>
                         </div>
+
+
+
 
                         <Input
                             id={guidSearchEl.id}
