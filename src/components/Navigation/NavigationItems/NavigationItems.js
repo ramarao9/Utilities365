@@ -38,6 +38,7 @@ class navigationItems extends Component {
                         <div className="navbar-start">
                             <NavLink className="navbar-item" exact to="/home">Home</NavLink>
                             <NavLink className="navbar-item" exact to="/guidsearch">Guid Search</NavLink>
+                            <NavLink className="navbar-item" exact to="/cli">CLI</NavLink>
                         </div>
                     </div>
                 </nav>

@@ -311,9 +311,6 @@ class GuidSearch extends Component {
                             </a>
                         </div>
 
-
-
-
                         <Input
                             id={guidSearchEl.id}
                             elementType={guidSearchEl.elementType}

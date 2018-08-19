@@ -1,0 +1,25 @@
+.terminal-input{
+    display: flex;
+    flex-direction: row;
+}
+
+.terminal-prompt
+{
+    color:white;
+}
+
+.terminal-inp-cont{
+    width:100%;
+}
+
+.terminal-main-input{
+    background-color: black; 
+    color: white;
+    border:none;
+   width:100%;
+}
+
+
+.terminal-main-input:focus{
+    outline: none;
+}
