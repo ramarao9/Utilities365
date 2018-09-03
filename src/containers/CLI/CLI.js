@@ -5,7 +5,7 @@ import * as crmUtil from '../../helpers/crmutil';
 import * as actionTypes from '../../store/actions';
 import Terminal from '../../components/UI/Terminal/Terminal';
 import IsEmpty from 'is-empty';
-
+import {getCliData} from '../../services/CliParsingService';
 
 class CLI extends Component {
 
@@ -19,16 +19,12 @@ class CLI extends Component {
         if (ev.keyCode !== 13)
             return;
 
-        let userInput = ev.target.value;
+        const userInput = ev.target.value;
 
-        if (IsEmpty(userInput)) {
-            //To Do :- create a new empty output
-            return;
-        }
+        const cliData = getCliData(userInput);
+       
 
-        let userArgs = userInput.split(' ');
-
-        var s = 100;
+        const s=100;
     }
 
     render() {
