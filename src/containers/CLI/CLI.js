@@ -5,26 +5,55 @@ import * as crmUtil from '../../helpers/crmutil';
 import * as actionTypes from '../../store/actions';
 import Terminal from '../../components/UI/Terminal/Terminal';
 import IsEmpty from 'is-empty';
-import {getCliData} from '../../services/CliParsingService';
-
+import { getCliData } from '../../services/CliParsingService';
+import { PerformCrmAction } from '../../services/CLI/CrmCliService';
 class CLI extends Component {
 
     state = {
 
+        inputText: "",
         outputs: []
     };
 
-    onTerminalInputChanged = (ev) => {
+    onTerminalInputKeyUp = (ev) => {
 
         if (ev.keyCode !== 13)
             return;
 
-        const userInput = ev.target.value;
+        const userInput = this.state.inputText;
 
         const cliData = getCliData(userInput);
-       
 
-        const s=100;
+        PerformCrmAction(cliData, this.onCrmActionComplete);
+
+    }
+
+    onTerminalInputChanged = (ev) => {
+        const userInput = ev.target.value;
+        this.setState({ inputText: userInput });
+    }
+
+    onCrmActionComplete = (result) => {
+        const userInput = this.state.inputText;
+
+        const updatedOutputs = [...this.state.outputs];
+        updatedOutputs.push(">" + userInput);
+        updatedOutputs.push(result);
+
+
+        this.setState({ outputs: updatedOutputs, inputText: "" });
+
+
+    }
+
+    addTextToOutput = (outputText) => {
+        const updatedOutputs = [...this.state.outputs];
+        updatedOutputs.push(outputText);
+        this.setState({ outputs: updatedOutputs });
+    }
+
+    clearInputText = () => {
+        this.setState({ inputText: "" });
     }
 
     render() {
@@ -33,16 +62,19 @@ class CLI extends Component {
             return <Redirect to='/Auth' />
         }
 
+        return (
+            <div>
+                <h2>CLI</h2>
 
-        return (<div>
-            <h2>CLI</h2>
-
-            <div className="terminalContainer">
-                <Terminal
-                    outputs={this.state.outputs}
-                    terminalInputChange={this.onTerminalInputChanged} />
+                <div className="terminalContainer">
+                    <Terminal
+                        outputs={this.state.outputs}
+                        terminalInputChange={(event) => this.onTerminalInputChanged(event)}
+                        terminalInputKeyUp={this.onTerminalInputKeyUp}
+                        inputText={this.state.inputText}
+                    />
+                </div>
             </div>
-        </div>
         );
     }
 

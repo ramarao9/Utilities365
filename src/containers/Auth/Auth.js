@@ -7,7 +7,7 @@ import AdalNode from 'adal-node';
 import DynamicsWebApi from 'dynamics-web-api';
 import Crypto from 'crypto'
 import * as actionTypes from '../../store/actions';
-
+import * as crmUtil from '../../helpers/crmutil';
 const isDev = window.require('electron-is-dev');
 const { BrowserWindow } = window.require('electron').remote;
 
@@ -16,8 +16,6 @@ class Auth extends Component {
     state = {
 
     }
-
-
 
     loginToDynamics365 = (event) => {
         if (isDev) {
@@ -33,9 +31,9 @@ class Auth extends Component {
  
 
     requestAccessToken = () => {
-        var authUrl = this.getAuthorityUri();
-        var resource = this.getResource();
-        var clientId = this.getClientId();
+        var authUrl = crmUtil.getAuthorityUri();
+        var resource = crmUtil.getOrgUrl();
+        var clientId = crmUtil.getClientId();
 
         let authWindow = new BrowserWindow({
             width: 800,
@@ -65,9 +63,9 @@ class Auth extends Component {
     }
 
     onNavigateToAAD = (newUrl, authWndw) => {
-        var authUrl = this.getAuthorityUri();
-        var resource = this.getResource();
-        var clientId = this.getClientId();
+        var authUrl = crmUtil.getAuthorityUri();
+        var resource = crmUtil.getOrgUrl();
+        var clientId = crmUtil.getClientId();
         var queryParams = newUrl.substr(newUrl.indexOf("?"));
         var urlParams = new URLSearchParams(queryParams);
 
@@ -78,10 +76,7 @@ class Auth extends Component {
             return;
 
         var authContext = new AdalNode.AuthenticationContext(authUrl);
-        authContext.acquireTokenWithAuthorizationCode(code, "https://google.com", resource, clientId, null, this.adalCallback);
-
-
-
+        authContext.acquireTokenWithAuthorizationCode(code, crmUtil.getRedirectUri(), resource, clientId, null, this.adalCallback);
 
         if (authWndw)
             authWndw.destroy();
@@ -107,39 +102,28 @@ class Auth extends Component {
         return {
             "token_type": "Bearer",
             "scope": "user_impersonation",
-            "expires_in": "3600",
-            "ext_expires_in": "0",
-            "expires_on": "1536000667",
-            "not_before": "1535996767",
-            "resource": "https://ramaaugust2018.crm.dynamics.com/",
-            "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IjdfWnVmMXR2a3dMeFlhSFMzcTZsVWpVWUlHdyIsImtpZCI6IjdfWnVmMXR2a3dMeFlhSFMzcTZsVWpVWUlHdyJ9.eyJhdWQiOiJodHRwczovL3JhbWFhdWd1c3QyMDE4LmNybS5keW5hbWljcy5jb20vIiwiaXNzIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvZmY2YmM1MTQtN2Y4Zi00NGViLWIzZWYtNzMyYjc3ZjdlOTg4LyIsImlhdCI6MTUzNTk5Njc2NywibmJmIjoxNTM1OTk2NzY3LCJleHAiOjE1MzYwMDA2NjcsImFjciI6IjEiLCJhaW8iOiJBU1FBMi84SUFBQUFEVGxJeUFTait4cmdiQ1pSWFAzN0ZUU1kvaXk0ZExCYnVjNDEyTGZ5QUEwPSIsImFtciI6WyJwd2QiXSwiYXBwaWQiOiI2NTQ0YTM4OS01YjlhLTQ2MWUtOGMwNC03OWMwNjA1MGZmZTMiLCJhcHBpZGFjciI6IjAiLCJmYW1pbHlfbmFtZSI6IktvbmVydSIsImdpdmVuX25hbWUiOiJSYW1hIiwiaXBhZGRyIjoiNzMuMTg1LjEzOS41MiIsIm5hbWUiOiJSYW1hIEtvbmVydSIsIm9pZCI6IjMzOWQ0NDM4LTk4NzEtNDAwZC04MzViLTZlNTZkZTQ5YWY2YiIsInB1aWQiOiIxMDAzMDAwMEFENEY2NURFIiwic2NwIjoidXNlcl9pbXBlcnNvbmF0aW9uIiwic3ViIjoiX1FnQVFhRTMtcjJjdnlDQVpUdE9CX1BkdldJSURYS1ZDUjAtZFBsZkdYOCIsInRpZCI6ImZmNmJjNTE0LTdmOGYtNDRlYi1iM2VmLTczMmI3N2Y3ZTk4OCIsInVuaXF1ZV9uYW1lIjoicmFtYUByYW1hYXVndXN0MjAxOC5vbm1pY3Jvc29mdC5jb20iLCJ1cG4iOiJyYW1hQHJhbWFhdWd1c3QyMDE4Lm9ubWljcm9zb2Z0LmNvbSIsInV0aSI6ImJqQVFNU056VUVLQ2FUeTdFamhKQUEiLCJ2ZXIiOiIxLjAiLCJ3aWRzIjpbIjYyZTkwMzk0LTY5ZjUtNDIzNy05MTkwLTAxMjE3NzE0NWUxMCJdfQ.FnOuFsEck8I_bcJaJqvcrUsyQ5XFfPlUc0pAZIzjB4O7xw_WD9hmlMmjE4RH4EJRtxQVjV7SlAiqqCG3OZVh1MngAkhUX44ikcLJdD5q3a4T82kfdf7W-_MxQA4ka9nGBcWgaQhgYQBKeRkGixkXppDmRb9xAa7cSJbXLuGlICXAtHkJS5ar6Z8QKjNOhSp7jkleRA45H7glsFJmT-EZ2cvTNvJSgsEH1UAwwzlmBfRdxf4dzVolufkluYQA3ML84GCg_0gcWwBZ3vZ0xiKNijEKMKF9JbhYj2TxaUUhugiX8-7Kwx2JPdQPvqKWtOsuh6fpxODSGCTvIOlVq7wRjw",
-            "refresh_token": "AQABAAAAAADXzZ3ifr-GRbDT45zNSEFEGGODRJApcxjHgeXru-O1vLfinMCHBRITIDWBDG6EDJazMoil_gF92vKQBDNBtvCmohuDkBx68B5DJ01o34QiCssDHQtRj7wmbMGrxiMZSKI7CezKmmceNnETuKn0xVjDHnvTyHww4U9b8A1gy8qN36M-TmfQ4ijaOPmHRjyWAQ5eGRL_rC_ghtMZ4cMGRUS9kC3mthYUbjKSLdUFYcc0N271st6rHYyCqf5Sd0TLnsRsKdt4MNtY-UzteVttnXFuk2q2jqikKiafghEpw40185sGB_pyb1zscYN51NRFPEbTM0h7lTvgqYL-y3rLQLOgfayouCD2RX58bsHZ7qGnEeV1prtsR3mAFS0Yt6qfGGpIOLvWuygCbpoVsJW_VG2qpXsUXQjm0BMsE5CTGhhXJEQMctclkSBLfs7KYB9N8ac28Cn_PhEC1ryoKan0SoFC8EIxu-Bvj3QM4ntq17UZsswDfA2eySRsMMD9BuLfb3ngWKavbHGIzNrwCHJFX_CElihG0zp05kTiu3XobvtDqhYt-9glp_PGgicpuyK8_CRwYFmnhrGAr0fEtkpOfNoocnscYMsPWAyopEchAMxXB_u0k3Ch9wirFDmtuGDKKDopaxvBtQt1FXU6_G7RfuPVJoukrVN3VHSHpsh3c71xX5i7yaP3EtNVRDmh8ZJFfAkpTAHQu_qBLL8BHZIsWJkLiQAW2tZeqseQiICXIGmigC7ONQtFZb4-C6HuqseT6VdHRuaFHUtIAEeQr535wl6m0NeTzMcE6Fqb9cFeuBigPqBOPWo9N6uOXdmUrh9UmLMgAA",
-            "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiI2NTQ0YTM4OS01YjlhLTQ2MWUtOGMwNC03OWMwNjA1MGZmZTMiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9mZjZiYzUxNC03ZjhmLTQ0ZWItYjNlZi03MzJiNzdmN2U5ODgvIiwiaWF0IjoxNTM1OTk2NzY3LCJuYmYiOjE1MzU5OTY3NjcsImV4cCI6MTUzNjAwMDY2NywiYW1yIjpbInB3ZCJdLCJmYW1pbHlfbmFtZSI6IktvbmVydSIsImdpdmVuX25hbWUiOiJSYW1hIiwiaXBhZGRyIjoiNzMuMTg1LjEzOS41MiIsIm5hbWUiOiJSYW1hIEtvbmVydSIsIm9pZCI6IjMzOWQ0NDM4LTk4NzEtNDAwZC04MzViLTZlNTZkZTQ5YWY2YiIsInN1YiI6IkhrVS1RMW5zNkZ2dGxsQnktUVhBYllleXZLZ0o1NDRUc1pTN3VTN2NHY0UiLCJ0aWQiOiJmZjZiYzUxNC03ZjhmLTQ0ZWItYjNlZi03MzJiNzdmN2U5ODgiLCJ1bmlxdWVfbmFtZSI6InJhbWFAcmFtYWF1Z3VzdDIwMTgub25taWNyb3NvZnQuY29tIiwidXBuIjoicmFtYUByYW1hYXVndXN0MjAxOC5vbm1pY3Jvc29mdC5jb20iLCJ2ZXIiOiIxLjAifQ."
+            "expires_in": "3599",
+            "ext_expires_in": "3599",
+            "expires_on": "1542483704",
+            "not_before": "1542479804",
+            "resource": "https://ramanovember2018.crm.dynamics.com/",
+            "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IndVTG1ZZnNxZFF1V3RWXy1oeFZ0REpKWk00USIsImtpZCI6IndVTG1ZZnNxZFF1V3RWXy1oeFZ0REpKWk00USJ9.eyJhdWQiOiJodHRwczovL3JhbWFub3ZlbWJlcjIwMTguY3JtLmR5bmFtaWNzLmNvbS8iLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9hMTVmNzFmZC0xZWRkLTQ0NzAtOGMwNC05OTM1M2JjOGMyOGIvIiwiaWF0IjoxNTQyNDc5ODA0LCJuYmYiOjE1NDI0Nzk4MDQsImV4cCI6MTU0MjQ4MzcwNCwiYWNyIjoiMSIsImFpbyI6IkFTUUEyLzhKQUFBQUpzK2tLTmgzSVQ2ZFpyNklSNEZzRm5QdG55OGF3Nks2V2JRM3hzanlrYTQ9IiwiYW1yIjpbInB3ZCJdLCJhcHBpZCI6IjZhNWE1M2Q0LWRmYWEtNDVlOS05MTY5LTUyZmE3NDFiM2FmZiIsImFwcGlkYWNyIjoiMCIsImZhbWlseV9uYW1lIjoiS29uZXJ1IiwiZ2l2ZW5fbmFtZSI6IlJhbWEiLCJpcGFkZHIiOiI3My4xODUuMTM5LjUyIiwibmFtZSI6IlJhbWEgS29uZXJ1Iiwib2lkIjoiOTRiOWM3ZTAtZWU2MS00YWY2LWI3OTItNTdjZWU2NDQ1YjMwIiwicHVpZCI6IjEwMDMyMDAwMkY4QjgxNzQiLCJzY3AiOiJ1c2VyX2ltcGVyc29uYXRpb24iLCJzdWIiOiJYUmxIRDdUS0p1V1hkckxIRmVHZzB2NE5uamtVYWNDTk9tU1NKR3Fyc1NjIiwidGlkIjoiYTE1ZjcxZmQtMWVkZC00NDcwLThjMDQtOTkzNTNiYzhjMjhiIiwidW5pcXVlX25hbWUiOiJyYW1hQHJhbWFub3ZlbWJlcjIwMTgub25taWNyb3NvZnQuY29tIiwidXBuIjoicmFtYUByYW1hbm92ZW1iZXIyMDE4Lm9ubWljcm9zb2Z0LmNvbSIsInV0aSI6ImNRYk1SeGd2b1VpWnZ1NUVUaGNZQUEiLCJ2ZXIiOiIxLjAiLCJ3aWRzIjpbIjYyZTkwMzk0LTY5ZjUtNDIzNy05MTkwLTAxMjE3NzE0NWUxMCJdfQ.Wi8i0mTZVqVNMX0NwlFvWOMqnSE0kPOcXvgFxJ8wqdQ8cZ1T8h-d9oVI_Tl4InPCLzpOEgtGrKY7NeR7E_8q0DQAxBQ1p3vc8d5fyaFVHy0ZINcsV3d1etTNA1JWkDR9_fe4pCBDoMLLezS77e00gLBTufDYQOgNhL6ZVQykfqNlZZXEYmJaKeUey6-cuO0v3EWS5UKWKG4WtjIinXBjQTM4s9iZo_r-UOXQFeHsjfxi-2dvNPJsfu7QA4qy3xtCvwF4Lab1WLBqaxVyIV59Y2zDtXGkRXLtqp2SGoq1sadBJhmwvGk1spQNK-jRZjeMseQCTRrp-cYU3E7--4O6gQ",
+            "refresh_token": "AQABAAAAAAC5una0EUFgTIF8ElaxtWjT0ki7Nc8lFjd7_E7CPK46zy7b7s3m7yMRNNH4LktOOE6eG2jX-C9024Q1d42nfCWRaqU6dxGtqDy1cGYb7C5yAE2QiAbJPVwPyIW7g9xh375F3OsQFrb9yOXco6DGTeOm8y3jZFfRbBRvrT4e4adR15AtE5kHU-bT_x1yewKNHfpQezLxlgpyOg3kfT7aibsqOTGjUMO0zr2iNEUTwMg50HaiOFS7wSv1e1CRaBa-qqWIH1gXQbpHHLEEqvESVK6QvD2j1igumlzwp8fjxZGcezqKrMckQzxTH2U2ax5P7vB9FHhJDQR5T-8g16WQBojpeSDnH_Epd_OAB8Lw1B4mikHEmYdqweUKIvKYxcKI6CpzYHuw2O8eUTACUcSQjj8ESUJjtW0RWLVPJKEwGcYhvGrJJH86XaA9pWiozhUDsBgmn12-iwkqZMScrb7vyUKI29XkpDXrE7g2NDnC5dDx7KbJQKRoO5zrZNhIb7zuJkr8Eq3G3apdDU_id2vvNPQWA4J2WpmLBnhLwBOvaoKp8vWxqsBY-BtqYulYi2-7yyrvj3ityqFwHpbHD3YdOILyGTV9MLo_4clF_8eLHqeDMsWYyUT9NB_bYU-9xETgn7Qe9uvOdaO9xLwvwSjR4ZT1FMCWFZPu61-7kXTJekFctChWG29AldKW7leaUpuhUm2am5_XKcYAuh_5prRzAggOAkpztH7lv6SJ91xGcbgrzIcMNMv1ib3PK-8baTgdU7XWsUNsWtaXEnBuffgy_4kt64a85C1SuwrNYRwsdFnWNPkp4XwzF-Ysso5dotXt8WsgAA",
+            "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJub25lIn0.eyJhdWQiOiI2YTVhNTNkNC1kZmFhLTQ1ZTktOTE2OS01MmZhNzQxYjNhZmYiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC9hMTVmNzFmZC0xZWRkLTQ0NzAtOGMwNC05OTM1M2JjOGMyOGIvIiwiaWF0IjoxNTQyNDc5ODA0LCJuYmYiOjE1NDI0Nzk4MDQsImV4cCI6MTU0MjQ4MzcwNCwiYW1yIjpbInB3ZCJdLCJmYW1pbHlfbmFtZSI6IktvbmVydSIsImdpdmVuX25hbWUiOiJSYW1hIiwiaXBhZGRyIjoiNzMuMTg1LjEzOS41MiIsIm5hbWUiOiJSYW1hIEtvbmVydSIsIm9pZCI6Ijk0YjljN2UwLWVlNjEtNGFmNi1iNzkyLTU3Y2VlNjQ0NWIzMCIsInN1YiI6InV5N200YWhfV0xmWUZndlNxRFF1alNEQ0dqYlMwVmdXZzhxcWJaNDNQdjAiLCJ0aWQiOiJhMTVmNzFmZC0xZWRkLTQ0NzAtOGMwNC05OTM1M2JjOGMyOGIiLCJ1bmlxdWVfbmFtZSI6InJhbWFAcmFtYW5vdmVtYmVyMjAxOC5vbm1pY3Jvc29mdC5jb20iLCJ1cG4iOiJyYW1hQHJhbWFub3ZlbWJlcjIwMTgub25taWNyb3NvZnQuY29tIiwidmVyIjoiMS4wIn0."
         };
     }
     getAuthorizationUrl = () => {
-        var authUrl = this.getAuthorityUri();
-        var resource = this.getResource();
-        var clientId = this.getClientId();
-        var redirectUri = "https://google.com";
+        var authUrl = crmUtil.getAuthorityUri();
+        var resource = crmUtil.getOrgUrl();
+        var clientId = crmUtil.getClientId();
+        var redirectUri = crmUtil.getRedirectUri();
         var state = this.getStateForOAuth();
 
         var authorizationUrl = authUrl + "?response_type=code&client_id=" + clientId + "&redirect_uri=" + redirectUri + "&state=" + state + "&resource=" + resource;
         return authorizationUrl;
     }
 
-    getClientId = () => {
-        return "6544a389-5b9a-461e-8c04-79c06050ffe3";
-    }
-    getAuthorityUri = () => {
-        var authUrl = "https://login.microsoftonline.com/ff6bc514-7f8f-44eb-b3ef-732b77f7e988/oauth2/authorize";
-        return authUrl;
-    }
 
-    getResource = () => {
-        var resource = "https://ramaaugust2018.crm.dynamics.com";
-        return resource;
-    }
 
     render() {
         //  this.loginToDynamics365();
@@ -157,8 +141,6 @@ class Auth extends Component {
         );
     }
 }
-
-
 
 const mapStateToProps = state => {
     return {

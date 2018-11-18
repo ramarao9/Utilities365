@@ -1,8 +1,9 @@
 .terminal-output-line {
-    margin-top: 10px;
-    margin-bottom: 10px;
     white-space: pre-wrap;
     color: inherit;
     font-family: Inconsolata,monospace;
     font-size: .9em;
+    background-color: black;
+    color: white;
+    padding: 0;
 }

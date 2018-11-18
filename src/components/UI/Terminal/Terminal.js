@@ -8,7 +8,9 @@ const terminal = (props) => (
 
     <div className="terminal-main">
         <TerminalOutputs outputs={props.outputs} />
-        <TerminalInput onInputChange={props.terminalInputChange} />
+        <TerminalInput onInputChange={props.terminalInputChange} 
+        onInputKeyUp={props.terminalInputKeyUp}
+        terminalInputText={props.inputText} />
     </div>
 );
 

@@ -65,7 +65,7 @@ class GuidSearch extends Component {
     getEntitiesFromCRM = () => {
 
         this.dynamicsWebAPIClient = new DynamicsWebApi({
-            webApiUrl: crmUtil.getResource() + "api/data/v9.0/"
+            webApiUrl: crmUtil.getOrgUrl() + "api/data/v9.0/"
         });
 
 
@@ -191,7 +191,7 @@ class GuidSearch extends Component {
 
             const matchedRecord = { ...this.state.matchedRecord };
 
-            const resourceUrl = crmUtil.getResource() + "main.aspx?etn=" + entityLogicalName + "&pagetype=entityrecord&id=%7B" + id + "%7D";
+            const resourceUrl = crmUtil.getOrgUrl() + "main.aspx?etn=" + entityLogicalName + "&pagetype=entityrecord&id=%7B" + id + "%7D";
 
 
             matchedRecord.url = resourceUrl
