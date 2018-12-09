@@ -3,7 +3,8 @@ import * as actionTypes from './actions';
 const initialState =
 {
     tokenData: {},
-    crmUsers: []
+    crmUsers: [],
+    currentUserId: null
 };
 
 
@@ -27,6 +28,11 @@ const reducer = (state = initialState, action) => {
             crmUsers: [...action.crmUsers]
         };
 
+
+        case actionTypes.GET_CURRENT_USER_ID: return {
+            ...state,
+            currentUserId: action.currentUserId
+        }
         default:
             return state;
     }

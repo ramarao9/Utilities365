@@ -2,8 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
-import reducer from './store/reducer';
+
+import store from './store/store';
 
 
 import './index.css';
@@ -16,7 +16,7 @@ import { faAngleDown,faTimes,faSearch,faEraser } from '@fortawesome/free-solid-s
 
 library.add(faAngleDown,faTimes,faSearch,faEraser)
 
-const store = createStore(reducer);
+
 
 const app = (
     <Provider store={store}>
