@@ -7,27 +7,28 @@
   "private": true,
   "homepage": "./",
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^1.2.0-14",
-    "@fortawesome/free-solid-svg-icons": "^5.1.0-11",
-    "@fortawesome/react-fontawesome": "0.1.0-11",
+    "@fortawesome/fontawesome-svg-core": "^1.2.15",
+    "@fortawesome/free-solid-svg-icons": "^5.7.2",
+    "@fortawesome/react-fontawesome": "^0.1.4",
     "adal-node": "^0.1.28",
     "axios": "^0.18.0",
-    "bulma": "^0.7.1",
+    "bulma": "^0.7.4",
     "bulma-switch": "^2.0.0",
-    "concurrently": "^3.6.0",
+    "concurrently": "^4.1.0",
+    "cross-env": "^5.2.0",
     "crypto": "^1.0.1",
-    "dynamics-web-api": "^1.4.3",
-    "electron-is-dev": "^0.3.0",
+    "dynamics-web-api": "^1.5.1",
+    "electron-is-dev": "^1.0.1",
     "is-empty": "^1.2.0",
     "path": "^0.12.7",
-    "react": "^16.4.1",
-    "react-dom": "^16.4.1",
-    "react-redux": "^5.0.7",
+    "react": "^16.8.4",
+    "react-dom": "^16.8.4",
+    "react-redux": "^6.0.1",
     "react-router-dom": "^4.3.1",
-    "react-scripts": "1.1.4",
-    "redux": "^4.0.0",
+    "react-scripts": "^2.1.8",
+    "redux": "^4.0.1",
     "url": "^0.11.0",
-    "wait-on": "^2.1.0"
+    "wait-on": "^3.2.0"
   },
   "main": "src/electron-starter.js",
   "scripts": {
@@ -36,16 +37,16 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "electron": "electron .",
-    "electron-dev": "concurrently \"BROWSER=none npm start\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron-dev": "concurrently \"cross-env BROWSER=none npm start\" \"wait-on http://localhost:3000 && electron .\"",
     "electron-pack": "build — em.main=build/electron-starter.js",
     "preelectron-pack": "npm build",
     "pack": "electron-builder --dir",
     "dist": "electron-builder"
   },
   "devDependencies": {
-    "electron": "^2.0.3",
-    "electron-builder": "^20.16.4",
-    "electron-packager": "^12.1.0"
+    "electron": "^4.0.8",
+    "electron-builder": "^20.39.0",
+    "electron-packager": "^13.1.1"
   },
   "build": {
     "appId": "com.electron.utilities365",
@@ -54,5 +55,11 @@
       "buildResources": "assets"
     },
     "extends": null
-  }
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
 }

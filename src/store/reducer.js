@@ -25,9 +25,8 @@ const reducer = (state = initialState, action) => {
 
         case actionTypes.SET_ENTITIES: return {
             ...state,
-            entities: {
-                ...action.entities
-            }
+            entities: [...action.entities]
+            
         };
 
 

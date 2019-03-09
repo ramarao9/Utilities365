@@ -6,18 +6,18 @@ import AdalNode from 'adal-node';
 const isDev = window.require('electron-is-dev');
 
 
-export function retrieveMultiple(request, successCallback, errorCallback, passThroughCallback, passThroughObj) {
-    request = setTokenOnRequestIfValid(request);
+// export function retrieveMultiple(request, successCallback, errorCallback, passThroughCallback, passThroughObj) {
 
-    //Handle token if it expired or null etc. or change the implementation to use callback funtion for token to retrieve it before every request
-    let dynamicsWebAPIClient = getWebAPIClient();
+//     request = setTokenOnRequestIfValid(request);
+//     //Handle token if it expired or null etc. or change the implementation to use callback funtion for token to retrieve it before every request
+//     let dynamicsWebAPIClient = getWebAPIClient();
 
-    dynamicsWebAPIClient.retrieveMultipleRequest(request).then(function (result) {
-        successCallback(result, passThroughCallback, passThroughObj);
-    }).catch(function (error) {
-        errorCallback(error, passThroughCallback, passThroughObj);
-    });
-}
+//     dynamicsWebAPIClient.retrieveMultipleRequest(request).then(function (result) {
+//         successCallback(result, passThroughCallback, passThroughObj);
+//     }).catch(function (error) {
+//         errorCallback(error, passThroughCallback, passThroughObj);
+//     });
+// }
 
 export function executeUnboundAction(functionName, successCallback, errorCallback, passThroughCallback, passThroughObj) {
 
@@ -31,18 +31,16 @@ export function executeUnboundAction(functionName, successCallback, errorCallbac
 
 }
 
-
+export const retrieveMultiple = async(request)=>{
+    request = setTokenOnRequestIfValid(request);
+    let dynamicsWebAPIClient = getWebAPIClient();
+    return dynamicsWebAPIClient.retrieveMultipleRequest(request);
+}
 
 
 export const retrieveEntitites = async (properties, filter) => {
-
-    let dynamicsWebAPIClient = getWebAPIClient();
-    dynamicsWebAPIClient.retrieveEntities(properties, filter).then(function (response) {
-        return response;
-    }).catch(function (error) {
-       return error;
-    }); 
-
+    let dynamicsWebAPIClient = getWebAPIClient(true);
+    return dynamicsWebAPIClient.retrieveEntities(properties, filter);
 }
 
 
@@ -56,6 +54,7 @@ function getWebAPIClient(useTokenRefresh) {
     if (tokenExpired || useTokenRefresh) {//Need to use for UnboundExecute Action
         webApiConfig.onTokenRefresh = acquireTokenForRefresh;
     }
+
 
     let dynamicsWebAPIClient = new DynamicsWebApi(webApiConfig);
 
