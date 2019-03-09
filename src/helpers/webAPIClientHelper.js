@@ -1,5 +1,6 @@
 import DynamicsWebApi from 'dynamics-web-api';
 import store from '../store/store';
+import * as actionTypes from '../store/actions';
 import * as crmUtil from './crmutil';
 import AdalNode from 'adal-node';
 const isDev = window.require('electron-is-dev');
@@ -31,10 +32,21 @@ export function executeUnboundAction(functionName, successCallback, errorCallbac
 }
 
 
+
+
+export const retrieveEntitites = async (properties, filter) => {
+
+    let dynamicsWebAPIClient = getWebAPIClient();
+    dynamicsWebAPIClient.retrieveEntities(properties, filter).then(function (response) {
+        return response;
+    }).catch(function (error) {
+       return error;
+    }); 
+
+}
+
+
 function getWebAPIClient(useTokenRefresh) {
-
-
-
 
     var webApiConfig = { webApiUrl: crmUtil.getOrgUrl() + "api/data/v9.0/" };
 
@@ -58,6 +70,8 @@ function acquireTokenForRefresh(dynamicsWebApiCallback) {
         if (!error) {
             //call DynamicsWebApi callback only when a token has been retrieved
             dynamicsWebApiCallback(token);
+            //Update the token in the store
+            updateTokenInStore(token);
         }
         else {
             if (isDev) {
@@ -86,7 +100,7 @@ function setTokenOnRequestIfValid(request) {
 function hasTokenExpired() {
     const tokenData = getTokenFromStore();
     const now = new Date();
-    const tokenExpiresOn = new Date(tokenData.expiresOn);
+    const tokenExpiresOn = new Date(tokenData.expiresOn * 1000);
     return (now > tokenExpiresOn);
 }
 
@@ -95,4 +109,9 @@ function hasTokenExpired() {
 function getTokenFromStore() {
     const currentState = store.getState();
     return (currentState != null) ? currentState.tokenData : null;
+}
+
+
+function updateTokenInStore(tokenData) {
+    store.dispatch({ type: actionTypes.SET_ACCESS_TOKEN, token: tokenData });
 }

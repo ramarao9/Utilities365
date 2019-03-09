@@ -19,15 +19,15 @@ export function getOrgInfo() {
 }
 
 export function getClientId() {
-    return "6a5a53d4-dfaa-45e9-9169-52fa741b3aff";
+    return "941501b6-4bf0-4f3e-b6ed-658c0a560a8c";
 }
 export function getAuthorityUri() {
-    var authUrl = "https://login.microsoftonline.com/a15f71fd-1edd-4470-8c04-99353bc8c28b/oauth2/authorize";
+    var authUrl = "https://login.microsoftonline.com/a60f8a6c-4efd-4e18-8dc8-698195f503e3/oauth2/authorize";
     return authUrl;
 }
 
 export function getOrgUrl() {
-    var resource = "https://ramanovember2018.crm.dynamics.com/";
+    var resource = "https://ramafebruary2019.crm.dynamics.com/";
     return resource;
 }
 

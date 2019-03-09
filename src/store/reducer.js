@@ -4,14 +4,15 @@ const initialState =
 {
     tokenData: {},
     crmUsers: [],
-    currentUserId: null
+    currentUserId: null,
+    entities:[]
 };
 
 
 const reducer = (state = initialState, action) => {
 
     switch (action.type) {
-        case actionTypes.GET_ACCESS_TOKEN: return {
+        case actionTypes.SET_ACCESS_TOKEN: return {
             ...state,
             tokenData: {
                 ...action.token
@@ -20,6 +21,13 @@ const reducer = (state = initialState, action) => {
 
         case actionTypes.REFRESH_ACCESS_TOKEN: return {
 
+        };
+
+        case actionTypes.SET_ENTITIES: return {
+            ...state,
+            entities: {
+                ...action.entities
+            }
         };
 
 
