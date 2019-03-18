@@ -1,0 +1,60 @@
+
+
+.org-select-box {
+    display: flex;           /* establish flex container */
+    flex-direction: column;  /* make main axis vertical */
+    justify-content: center; /* center items vertically, in this case */
+    align-items: center;     /* center items horizontally, in this case */
+    height: 500px;
+}
+.org-select-box>div{
+
+    width: 500px;
+
+}
+
+
+
+.env-cont{
+    margin:10px 0px;
+    cursor: pointer;
+    display: flex;
+
+}
+
+.env-cont:hover{   
+        background-color: #e6e6e6 !important;
+}
+
+.env-detail
+{
+    margin:0px 10px;
+    flex-grow: 8;
+}
+.org-name{
+    font-size: 14px;  
+    display: block;
+    font-weight: bold;
+    margin:5px 0px;
+
+}
+
+.org-url{
+    font-size:12px;
+    display: block;
+    margin:5px 0px;
+}
+
+.env-actions {
+    margin: 0px 10px;
+}
+.env-actions > span{
+    margin: 2px 2px;
+} 
+
+
+.new-org-cont{
+    display: flex;
+    justify-content: flex-end;
+    margin: 20px;
+}

@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { Redirect } from 'react-router';
 import { connect } from 'react-redux';
+import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { isValidToken } from '../../helpers/crmutil';
 import Button from '../../components/UI/Button/Button';
 import AdalNode from 'adal-node';
@@ -8,13 +10,18 @@ import DynamicsWebApi from 'dynamics-web-api';
 import Crypto from 'crypto'
 import * as actionTypes from '../../store/actions';
 import * as crmUtil from '../../helpers/crmutil';
+import './Auth.css';
 const isDev = window.require('electron-is-dev');
 const { BrowserWindow } = window.require('electron').remote;
+
+
 
 class Auth extends Component {
 
     state = {
-
+        currentEnv: {},
+        environments: [{ orgName: "ramamarch", orgUrl: "https://ramamarch2019.onmicrosoft.com" },
+        { orgName: "ramafeb", orgUrl: "https://ramafeb2019.onmicrosoft.com" }]
     }
 
     loginToDynamics365 = (event) => {
@@ -29,6 +36,15 @@ class Auth extends Component {
     }
 
 
+    getAuthorizationEndpointUrl = () => {
+
+
+
+
+        //await axios.get("")
+
+    }
+
 
     requestAccessToken = () => {
 
@@ -40,7 +56,7 @@ class Auth extends Component {
 
         });
 
-   
+
 
         var authorizationUrl = this.getAuthorizationUrl();
         authWindow.loadURL(authorizationUrl);
@@ -130,15 +146,65 @@ class Auth extends Component {
 
 
     render() {
-        //  this.loginToDynamics365();
 
         if (isValidToken(this.props.tokenData)) {
             return <Redirect to='/' />
         }
 
 
+
+        const envs = [...this.state.environments];
+
+        if (envs.length > 0) {
+
+            return (
+
+                <div className="org-select-box">
+                    <div className="org-select-box-item" >
+
+                        <h4 class="title is-4">Pick an Organization</h4>
+                        {envs.map(environ => (
+                            <div className="env-cont">
+                                <div className="env-detail">
+                                    <span class="org-name">{environ.orgName}</span>
+                                    <span class="org-url">{environ.orgUrl}</span>
+                                </div>
+                                <div className="env-actions">
+                                    <span class="icon">
+                                        <FontAwesomeIcon icon="pencil-alt" />
+                                    </span>
+
+                                    <span class="icon">
+                                        <FontAwesomeIcon icon="trash-alt" />
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+
+
+
+                    </div>
+
+                    <div className="new-org-cont">
+                        <div>
+                            <a class="button is-small">
+                                <span class="icon is-small">
+                                <FontAwesomeIcon icon="plus" />
+                                </span>
+                                <span>New</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+
+            );
+
+        }
+
         return (
             <div>
+
                 <Button btnType="Login"
                     clicked={this.loginToDynamics365}>Login</Button>
             </div>

@@ -10,7 +10,7 @@ import './App.css';
 class App extends Component {
   render() {
     return (
-      <div>
+      <div className="root-div">
         <Layout>
           <Switch>
             <Route path="#" exact component={Home} />
