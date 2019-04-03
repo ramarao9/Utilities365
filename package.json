@@ -15,10 +15,12 @@
     "bulma": "^0.7.4",
     "bulma-switch": "^2.0.0",
     "concurrently": "^4.1.0",
+    "cors": "^2.8.5",
     "cross-env": "^5.2.0",
     "crypto": "^1.0.1",
     "dynamics-web-api": "^1.5.1",
     "electron-is-dev": "^1.0.1",
+    "electron-store": "^3.0.0",
     "is-empty": "^1.2.0",
     "path": "^0.12.7",
     "react": "^16.8.4",
@@ -26,7 +28,6 @@
     "react-redux": "^6.0.1",
     "react-router-dom": "^4.3.1",
     "react-scripts": "^2.1.8",
-    "realm": "^2.25.0",
     "redux": "^4.0.1",
     "url": "^0.11.0",
     "wait-on": "^3.2.0"
@@ -42,7 +43,8 @@
     "electron-pack": "build — em.main=build/electron-starter.js",
     "preelectron-pack": "npm build",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
   },
   "devDependencies": {
     "electron": "^4.0.8",

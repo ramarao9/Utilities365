@@ -353,7 +353,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = dispatch => {
     return {
         onTokenRefresh: () => dispatch({ type: actionTypes.REFRESH_ACCESS_TOKEN })
-    }
+    };
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(GuidSearch);

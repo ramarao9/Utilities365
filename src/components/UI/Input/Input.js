@@ -31,7 +31,8 @@ const input = (props) => {
             inputElement = <input
                 {...props.elementConfig}
                 id={props.id}
-                checked={props.checked}
+                checked={props.checked}    
+                onChange={props.changed}       
                 className={inputClasses.join(' ')}
             />;
             break;

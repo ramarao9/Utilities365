@@ -12,9 +12,9 @@ import registerServiceWorker from './registerServiceWorker';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAngleDown,faTimes,faSearch,faEraser, faPencilAlt , faTrashAlt, faPlus} from '@fortawesome/free-solid-svg-icons'
+import { faAngleDown, faTimes, faSearch, faEraser, faPencilAlt, faTrashAlt, faPlus } from '@fortawesome/free-solid-svg-icons'
 
-library.add(faAngleDown,faTimes,faSearch,faEraser,faPencilAlt, faTrashAlt, faPlus)
+library.add(faAngleDown, faTimes, faSearch, faEraser, faPencilAlt, faTrashAlt, faPlus)
 
 
 
@@ -25,6 +25,9 @@ const app = (
         </BrowserRouter>
     </Provider>
 );
+
+
+
 
 ReactDOM.render(app, document.getElementById('root'));
 registerServiceWorker();
