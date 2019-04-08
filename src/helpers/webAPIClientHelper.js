@@ -84,7 +84,7 @@ function acquireTokenForRefresh(dynamicsWebApiCallback) {
     var authorityUri = crmUtil.getAuthorityUri();
     var resource = crmUtil.getOrgUrl();
     var authContext = new AdalNode.AuthenticationContext(authorityUri);
-    authContext.acquireTokenWithRefreshToken(tokenData.refreshToken, tokenData.idToken, resource, adalCallback);
+    authContext.acquireTokenForRefresh() (tokenData.refreshToken, tokenData.idToken, resource, adalCallback);
 }
 
 function setTokenOnRequestIfValid(request) {

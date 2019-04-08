@@ -1,15 +1,15 @@
 
 
-.org-select-box {
+.conn-select-box {
     display: flex;           /* establish flex container */
     flex-direction: column;  /* make main axis vertical */
     justify-content: center; /* center items vertically, in this case */
     align-items: center;     /* center items horizontally, in this case */
     height: 500px;
 }
-.org-select-box>div{
+.conn-select-box>div{
 
-    width: 500px;
+    min-width: 900px;
 
 }
 

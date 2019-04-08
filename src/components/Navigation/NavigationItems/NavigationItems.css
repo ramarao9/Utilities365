@@ -13,3 +13,17 @@
         flex-flow: row;
     }
 }
+
+
+.userInfo
+{
+    margin:0px 5px;
+    color:white;
+    font-size: 12px;
+}
+
+.userInfo span{
+    display:block;
+}
+
+

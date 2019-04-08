@@ -5,7 +5,8 @@ const initialState =
     tokenData: {},
     crmUsers: [],
     currentUserId: null,
-    entities:[]
+    entities:[],
+    currentUser:null
 };
 
 
@@ -40,6 +41,13 @@ const reducer = (state = initialState, action) => {
             ...state,
             currentUserId: action.currentUserId
         }
+
+          case actionTypes.SET_CURRENT_USER: return {
+            ...state,
+            currentUser: {
+                ...action.userInfo
+            }
+        };
         default:
             return state;
     }

@@ -29,7 +29,7 @@ export const getConnections = () => {
 
 export const saveConnection = (connectionInfo) => {
 
-    let connections = this.getConnections();
+    let connections = getConnections();
 
     connections = connections.filter(x => x.orgUrl !== connectionInfo.orgUrl);
     connections.push(connectionInfo);
@@ -39,7 +39,20 @@ export const saveConnection = (connectionInfo) => {
 }
 
 
-export const removeConnection = () => {
+export const getConnection=(orgUrl)=>{
+
+    let connections = getConnections();
 
 
+let connection=connections.find(x=>x.orgUrl===orgUrl);
+return connection;
+
+}
+
+export const removeConnection = (orgUrl) => {
+let connections = getConnections();
+    connections = connections.filter(x => x.orgUrl !== orgUrl);
+    setConfigData("Connections", connections);
+
+    return connections;
 }

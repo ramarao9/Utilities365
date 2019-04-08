@@ -1,34 +1,37 @@
-import React from 'react';
+import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import classes from './AnchorButton.css';
+import  './AnchorButton.css'
 
-const anchorButton = (props) => {
+const anchorButton = props => {
+  let icon = null
 
-    let icon = null;
-
-    if (props.iconName) {
-        let iconClasses = ["icon"];
-        if (props.iconClasses) {
-            iconClasses = iconClasses.concat(props.iconClasses);
-        }
-        icon = <span className={iconClasses.join(' ')}>
-            <FontAwesomeIcon icon={props.iconName} />
-        </span>
+  if (props.iconName) {
+    let iconClasses = ['icon']
+    if (props.iconClasses) {
+      iconClasses = iconClasses.concat(props.iconClasses)
     }
+    icon = (
+      <span className={iconClasses.join(' ')}>
+        <FontAwesomeIcon icon={props.iconName} />
+      </span>
+    )
+  }
 
+  let buttonClasses = ['button', 'btnMrgn'];
+  if (props.classes) {
+    buttonClasses = buttonClasses.concat(props.classes)
+  }
 
-    let buttonClasses = ["button"];
-    if (props.classes) {
-        buttonClasses = buttonClasses.concat(props.classes);
-    }
+  return (
+    <a
+      className={buttonClasses.join(' ')}
+      disabled={props.disabled}
+      onClick={props.clicked}
+    >
+      {icon}
+      <span>{props.label}</span>
+    </a>
+  )
+}
 
-
-
-    return (
-        <a className={buttonClasses.join(' ')} disabled={props.disabled} onClick={props.clicked}>
-            {icon}
-            <span>{props.label}</span>
-        </a>);
-};
-
-export default anchorButton;
+export default anchorButton

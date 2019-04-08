@@ -18,7 +18,7 @@ function createWindow() {
   if (isDev) {
     mainWindow = new BrowserWindow(
       {
-        'web-preferences': { 'web-security': false },
+        webPreferences: {webSecurity: false},
         width: 800,
         height: 600,
         allowRunningInsecureContent: true
