@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Redirect } from "react-router";
 import { connect } from "react-redux";
-
+import MoreButton from "../../components/UI/MoreButton/MoreButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isValidToken } from "../../helpers/crmutil";
 import AnchorButton from "../../components/UI/AnchorButton/AnchorButton";
@@ -21,13 +21,12 @@ import "./Auth.css";
 const isDev = window.require("electron-is-dev");
 const { BrowserWindow } = window.require("electron").remote;
 
-
-
 class Auth extends Component {
   state = {
     currentEnv: {},
     connections: getConnections(),
     showNewConnectionUI: false,
+    connectionInEditMode: null,
     newOrgConnection: {
       name: {
         label: "Name",
@@ -107,7 +106,7 @@ class Auth extends Component {
   };
 
   onNewConnectionClick = event => {
-   this.showOrHideNewConnectionUI(true);
+    this.showOrHideNewConnectionUI(true);
   };
 
   connectClick = event => {
@@ -122,34 +121,46 @@ class Auth extends Component {
     this.showOrHideNewConnectionUI(false);
   };
 
-  showOrHideNewConnectionUI=(show)=>{
+  showOrHideNewConnectionUI = show => {
     this.setState({ showNewConnectionUI: show });
+  };
+
+  onEnvActionClick = (event, action, connection) => {
+    switch (action.id) {
+      case "edit":
+        this.setState({ connectionInEditMode: connection });
+        break;
+
+      case "remove":
+        this.deleteConnection(connection);
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  onUpdateExistingConnection=()=>{
+
+
+
+     this.setState({ connectionInEditMode: null });
   }
 
+  onEditConnectionCancel = (event, connection) => {
+       this.setState({ connectionInEditMode: null });
 
- onEditConnectionClick=(event, connection)=>{
+  };
 
-    
-  }
+  deleteConnection = connection => {
+    let updatedConnections = removeConnection(connection.orgUrl);
 
+    this.props.onuserUpdated(null);
 
-  onDeleteConnectionClick=(event, connection)=>{
+    this.setState({ connections: updatedConnections });
+  };
 
- let updatedConnections=  removeConnection(connection.orgUrl);
-
-
-this.props.onuserUpdated(null);
-
-
-this.setState({connections:updatedConnections});
-
-
-  }
-
-
- 
   connectToExistingOrg = (event, connection) => {
-
     var authContext = new AdalNode.AuthenticationContext(
       connection.authorizationUrl
     );
@@ -163,45 +174,35 @@ this.setState({connections:updatedConnections});
   };
 
   connectToExistingOrgCallback = (error, token) => {
+    if (!error) {
+      let connection = getConnection(token.resource);
 
-      if (!error) {
-         
-        let connection= getConnection(token.resource);
+      connection.accessToken = token;
 
-        connection.accessToken=token;
+      saveConnection(connection);
 
-        saveConnection(connection);
+      let orgName = connection.name;
 
-        
+      this.setUserInfo(token, orgName);
 
-let orgName=connection.name;
+      this.props.onTokenGenerated(token);
 
-this.setUserInfo(token, orgName);
-
-
-  this.props.onTokenGenerated(token);
-
-
-
-
- this.props.history.push('/');
-
-        }
-        else {
-
-        }
-
+      this.props.history.push("/");
+    } else {
+    }
   };
 
-  setUserInfo=(token, orgName)=>{
+  setUserInfo = (token, orgName) => {
+    let userFullName = token.givenName + " " + token.familyName;
+    let userId = token.isUserIdDisplayable ? token.userId : "";
+    let currentUserInfo = {
+      name: userFullName,
+      orgName: orgName,
+      userId: userId
+    };
 
-
-let userFullName=token.givenName+ " " + token.familyName;
-let userId=token.isUserIdDisplayable?token.userId:"";
-        let currentUserInfo={name:userFullName,orgName:orgName,userId:userId};
-
-this.props.onuserUpdated(currentUserInfo);
-  }
+    this.props.onuserUpdated(currentUserInfo);
+  };
 
   getAuthorizationUrl = connectionInfo => {
     var state = this.getStateForOAuth();
@@ -223,7 +224,7 @@ this.props.onuserUpdated(currentUserInfo);
     const newConnectionInfo = {
       ...this.state.newOrgConnection
     };
-    const connName=newConnectionInfo.name.value;
+    const connName = newConnectionInfo.name.value;
     const orgUrl = newConnectionInfo.orgUrl.value;
     const appId = newConnectionInfo.applicationId.value;
     const replyUrl = newConnectionInfo.replyUrl.value;
@@ -231,7 +232,7 @@ this.props.onuserUpdated(currentUserInfo);
     const saveConnection = newConnectionInfo.saveNewConnection.checked;
 
     const connectionInfo = {
-      name:connName,
+      name: connName,
       orgUrl: orgUrl,
       appId: appId,
       replyUrl: replyUrl,
@@ -242,8 +243,6 @@ this.props.onuserUpdated(currentUserInfo);
     return connectionInfo;
   };
 
-
-
   requestAccessToken = authorizationUrl => {
     let authWindow = new BrowserWindow({
       width: 800,
@@ -251,11 +250,9 @@ this.props.onuserUpdated(currentUserInfo);
       show: false
     });
 
-
-if(isDev)
-{
-  authWindow.webPreferences= {webSecurity: false};
-}
+    if (isDev) {
+      authWindow.webPreferences = { webSecurity: false };
+    }
     authWindow.loadURL(authorizationUrl);
     authWindow.show();
 
@@ -282,8 +279,6 @@ if(isDev)
       connectionInfo.authorizationUrl
     );
 
- 
-
     authContext.acquireTokenWithAuthorizationCode(
       code,
       connectionInfo.replyUrl,
@@ -302,20 +297,18 @@ if(isDev)
   };
 
   adalCallback = (error, tokenObj) => {
-
     let connectionInfo = this.getNewConnectionInfo();
     if (tokenObj != null) {
       this.props.onTokenGenerated(tokenObj);
 
-      let orgName=connectionInfo.name;
+      let orgName = connectionInfo.name;
 
-this.setUserInfo(tokenObj, orgName);
+      this.setUserInfo(tokenObj, orgName);
 
-      if(connectionInfo.saveConnection)
-      {
-      delete connectionInfo.saveConnection;
-      connectionInfo["accessToken"] = tokenObj;
-      saveConnection(connectionInfo);
+      if (connectionInfo.saveConnection) {
+        delete connectionInfo.saveConnection;
+        connectionInfo["accessToken"] = tokenObj;
+        saveConnection(connectionInfo);
       }
     } else {
       let errMsg =
@@ -324,7 +317,6 @@ this.setUserInfo(tokenObj, orgName);
     }
   };
 
- 
   render() {
     if (isValidToken(this.props.tokenData)) {
       return <Redirect to="/" />;
@@ -332,44 +324,81 @@ this.setUserInfo(tokenObj, orgName);
 
     const connections = [...this.state.connections];
 
-    if (connections.length > 0 && !this.state.showNewConnectionUI) {
+    let connectionInEditMode = { ...this.state.connectionInEditMode };
+    if (connectionInEditMode != null && connectionInEditMode.hasOwnProperty("name")) {
+      let nameConfig = {
+        type: "text"
+      };
+
       return (
         <div className="conn-select-box">
-        <div>
           <div className="conn-select-box-item">
-            <h4 className="title is-4">Pick an Organization</h4>
-            {connections.map(connection => (
-              <div
-                key={connection.orgUrl}
-                className="env-cont"
-                
-              >
-                <div className="env-detail" onClick={event => this.connectToExistingOrg(event, connection)}>
-                  <span className="org-name">{connection.name}</span>
-                  <span className="org-url">{connection.orgUrl}</span>
-                </div>
-                <div className="env-actions">
-                  <span className="icon" onClick={event=>this.onEditConnectionClick(event, connection)}>
-                    <FontAwesomeIcon icon="pencil-alt" />
-                  </span>
+            <Input
+              elementType="input"
+              elementConfig={nameConfig}
+              size="is-small"
+              value={connectionInEditMode.name}
+              label="Name"
+            />
+          </div>
 
-                  <span className="icon" onClick={event=>this.onDeleteConnectionClick(event, connection)}>
-                    <FontAwesomeIcon icon="trash-alt" />
-                  </span>
+          <div className="buttons is-right">
+            <AnchorButton
+              clicked={event => this.onUpdateExistingConnection(event)}
+              label="Update"
+            />
+
+            <AnchorButton
+              clicked={event => this.onEditConnectionCancel(event)}
+              label="Cancel"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    if (connections.length > 0 && !this.state.showNewConnectionUI) {
+      const envActions = [
+        { id: "edit", label: "Edit" },
+        { id: "remove", label: "Remove" }
+      ];
+
+      return (
+        <div className="conn-select-box">
+          <div>
+            <div className="conn-select-box-item">
+              <h4 className="title is-4">Pick an Organization</h4>
+              {connections.map(connection => (
+                <div key={connection.orgUrl} className="env-cont">
+                  <div
+                    className="env-detail"
+                    onClick={event =>
+                      this.connectToExistingOrg(event, connection)
+                    }
+                  >
+                    <span className="org-name">{connection.name}</span>
+                    <span className="org-url">{connection.orgUrl}</span>
+                  </div>
+                  <div className="env-actions">
+                    <MoreButton
+                      clicked={this.onEnvActionClick}
+                      actions={envActions}
+                      contextObj={connection}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-          <div className="new-org-cont">
-            <div>
-              <AnchorButton
-                iconName="plus"
-                classes={["is-small"]}
-                clicked={event => this.onNewConnectionClick(event)}
-                label="New"
-              />
+              ))}
             </div>
-          </div>
+            <div className="new-org-cont">
+              <div>
+                <AnchorButton
+                  iconName="plus"
+                  classes={["is-small"]}
+                  clicked={event => this.onNewConnectionClick(event)}
+                  label="New"
+                />
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -378,7 +407,7 @@ this.setUserInfo(tokenObj, orgName);
     const newConnectionElements = [];
 
     for (let key in this.state.newOrgConnection) {
-           newConnectionElements.push({
+      newConnectionElements.push({
         id: key,
         config: this.state.newOrgConnection[key]
       });
@@ -420,11 +449,7 @@ this.setUserInfo(tokenObj, orgName);
       </div>
     );
 
-    return (
-      <div>
-        {newOrg}
-      </div>
-    );
+    return <div>{newOrg}</div>;
   }
 }
 
@@ -438,7 +463,8 @@ const mapDispatchToProps = dispatch => {
   return {
     onTokenGenerated: token =>
       dispatch({ type: actionTypes.SET_ACCESS_TOKEN, token: token }),
-      onuserUpdated:user=>dispatch({type:actionTypes.SET_CURRENT_USER, userInfo:user})
+    onuserUpdated: user =>
+      dispatch({ type: actionTypes.SET_CURRENT_USER, userInfo: user })
   };
 };
 
