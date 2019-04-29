@@ -117,132 +117,6 @@ class Auth extends Component {
     this.requestAccessToken(authorizationUrl);
   };
 
-  cancelConnectionClick = () => {
-    this.showOrHideNewConnectionUI(false);
-  };
-
-  showOrHideNewConnectionUI = show => {
-    this.setState({ showNewConnectionUI: show });
-  };
-
-  onEnvActionClick = (event, action, connection) => {
-    switch (action.id) {
-      case "edit":
-        this.setState({ connectionInEditMode: connection });
-        break;
-
-      case "remove":
-        this.deleteConnection(connection);
-        break;
-
-      default:
-        break;
-    }
-  };
-
-  onUpdateExistingConnection=()=>{
-
-
-
-     this.setState({ connectionInEditMode: null });
-  }
-
-  onEditConnectionCancel = (event, connection) => {
-       this.setState({ connectionInEditMode: null });
-
-  };
-
-  deleteConnection = connection => {
-    let updatedConnections = removeConnection(connection.orgUrl);
-
-    this.props.onuserUpdated(null);
-
-    this.setState({ connections: updatedConnections });
-  };
-
-  connectToExistingOrg = (event, connection) => {
-    var authContext = new AdalNode.AuthenticationContext(
-      connection.authorizationUrl
-    );
-    authContext.acquireTokenWithRefreshToken(
-      connection.accessToken.refreshToken,
-      connection.appId,
-      null,
-      connection.accessToken.resource,
-      this.connectToExistingOrgCallback
-    );
-  };
-
-  connectToExistingOrgCallback = (error, token) => {
-    if (!error) {
-      let connection = getConnection(token.resource);
-
-      connection.accessToken = token;
-
-      saveConnection(connection);
-
-      let orgName = connection.name;
-
-      this.setUserInfo(token, orgName);
-
-      this.props.onTokenGenerated(token);
-
-      this.props.history.push("/");
-    } else {
-    }
-  };
-
-  setUserInfo = (token, orgName) => {
-    let userFullName = token.givenName + " " + token.familyName;
-    let userId = token.isUserIdDisplayable ? token.userId : "";
-    let currentUserInfo = {
-      name: userFullName,
-      orgName: orgName,
-      userId: userId
-    };
-
-    this.props.onuserUpdated(currentUserInfo);
-  };
-
-  getAuthorizationUrl = connectionInfo => {
-    var state = this.getStateForOAuth();
-
-    var authorizationUrl =
-      connectionInfo.authorizationUrl +
-      "?response_type=code&client_id=" +
-      connectionInfo.appId +
-      "&redirect_uri=" +
-      connectionInfo.replyUrl +
-      "&state=" +
-      state +
-      "&resource=" +
-      connectionInfo.orgUrl;
-    return authorizationUrl;
-  };
-
-  getNewConnectionInfo = () => {
-    const newConnectionInfo = {
-      ...this.state.newOrgConnection
-    };
-    const connName = newConnectionInfo.name.value;
-    const orgUrl = newConnectionInfo.orgUrl.value;
-    const appId = newConnectionInfo.applicationId.value;
-    const replyUrl = newConnectionInfo.replyUrl.value;
-    const authorizationUrl = newConnectionInfo.authorizationEndpointUrl.value;
-    const saveConnection = newConnectionInfo.saveNewConnection.checked;
-
-    const connectionInfo = {
-      name: connName,
-      orgUrl: orgUrl,
-      appId: appId,
-      replyUrl: replyUrl,
-      authorizationUrl: authorizationUrl,
-      saveConnection: saveConnection
-    };
-
-    return connectionInfo;
-  };
-
   requestAccessToken = authorizationUrl => {
     let authWindow = new BrowserWindow({
       width: 800,
@@ -291,6 +165,29 @@ class Auth extends Component {
     if (authWndw) authWndw.destroy();
   };
 
+  getNewConnectionInfo = () => {
+    const newConnectionInfo = {
+      ...this.state.newOrgConnection
+    };
+    const connName = newConnectionInfo.name.value;
+    const orgUrl = newConnectionInfo.orgUrl.value;
+    const appId = newConnectionInfo.applicationId.value;
+    const replyUrl = newConnectionInfo.replyUrl.value;
+    const authorizationUrl = newConnectionInfo.authorizationEndpointUrl.value;
+    const saveConnection = newConnectionInfo.saveNewConnection.checked;
+
+    const connectionInfo = {
+      name: connName,
+      orgUrl: orgUrl,
+      appId: appId,
+      replyUrl: replyUrl,
+      authorizationUrl: authorizationUrl,
+      saveConnection: saveConnection
+    };
+
+    return connectionInfo;
+  };
+
   getStateForOAuth = () => {
     var stateOAuth = Crypto.randomBytes(64).toString("hex");
     return stateOAuth;
@@ -317,6 +214,128 @@ class Auth extends Component {
     }
   };
 
+  setUserInfo = (token, orgName) => {
+    let userFullName = token.givenName + " " + token.familyName;
+    let userId = token.isUserIdDisplayable ? token.userId : "";
+    let currentUserInfo = {
+      name: userFullName,
+      orgName: orgName,
+      userId: userId
+    };
+
+    this.props.onuserUpdated(currentUserInfo);
+  };
+
+  getAuthorizationUrl = connectionInfo => {
+    var state = this.getStateForOAuth();
+
+    var authorizationUrl =
+      connectionInfo.authorizationUrl +
+      "?response_type=code&client_id=" +
+      connectionInfo.appId +
+      "&redirect_uri=" +
+      connectionInfo.replyUrl +
+      "&state=" +
+      state +
+      "&resource=" +
+      connectionInfo.orgUrl;
+    return authorizationUrl;
+  };
+
+  cancelConnectionClick = () => {
+    this.showOrHideNewConnectionUI(false);
+  };
+
+  showOrHideNewConnectionUI = show => {
+    this.setState({ showNewConnectionUI: show });
+  };
+
+  onEnvActionClick = (event, action, connection) => {
+    switch (action.id) {
+      case "edit":
+        this.setState({ connectionInEditMode: connection });
+        break;
+
+      case "remove":
+        this.deleteConnection(connection);
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  onConnectionNameUpdated = ev => {
+    let updatedConnectionInEditMode = { ...this.state.connectionInEditMode };
+
+    updatedConnectionInEditMode.name = ev.target.value;
+
+    this.setState({ connectionInEditMode: updatedConnectionInEditMode });
+  };
+
+  onUpdateExistingConnection = () => {
+    let updatedConnectionInEditMode = { ...this.state.connectionInEditMode };
+
+    saveConnection(updatedConnectionInEditMode);
+
+    let updatedConnections = [...this.state.connections];
+
+    let connectionIndex = updatedConnections.findIndex(
+      x => x.orgUrl === updatedConnectionInEditMode.orgUrl
+    );
+
+    updatedConnections[connectionIndex] = updatedConnectionInEditMode;
+
+    this.setState({
+      connections: updatedConnections,
+      connectionInEditMode: null
+    });
+  };
+
+  onEditConnectionCancel = (event, connection) => {
+    this.setState({ connectionInEditMode: null });
+  };
+
+  deleteConnection = connection => {
+    let updatedConnections = removeConnection(connection.orgUrl);
+
+    this.props.onuserUpdated(null);
+
+    this.setState({ connections: updatedConnections });
+  };
+
+  connectToExistingOrg = (event, connection) => {
+    var authContext = new AdalNode.AuthenticationContext(
+      connection.authorizationUrl
+    );
+    authContext.acquireTokenWithRefreshToken(
+      connection.accessToken.refreshToken,
+      connection.appId,
+      null,
+      connection.accessToken.resource,
+      this.connectToExistingOrgCallback
+    );
+  };
+
+  connectToExistingOrgCallback = (error, token) => {
+    if (!error) {
+      let connection = getConnection(token.resource);
+
+      connection.accessToken = token;
+
+      saveConnection(connection);
+
+      let orgName = connection.name;
+
+      this.setUserInfo(token, orgName);
+
+      this.props.onTokenGenerated(token);
+
+      this.props.history.push("/");
+    } else {
+    }
+  };
+
   render() {
     if (isValidToken(this.props.tokenData)) {
       return <Redirect to="/" />;
@@ -325,7 +344,10 @@ class Auth extends Component {
     const connections = [...this.state.connections];
 
     let connectionInEditMode = { ...this.state.connectionInEditMode };
-    if (connectionInEditMode != null && connectionInEditMode.hasOwnProperty("name")) {
+    if (
+      connectionInEditMode != null &&
+      connectionInEditMode.hasOwnProperty("name")
+    ) {
       let nameConfig = {
         type: "text"
       };
@@ -337,6 +359,7 @@ class Auth extends Component {
               elementType="input"
               elementConfig={nameConfig}
               size="is-small"
+              changed={ev => this.onConnectionNameUpdated(ev)}
               value={connectionInEditMode.name}
               label="Name"
             />
@@ -365,7 +388,7 @@ class Auth extends Component {
 
       return (
         <div className="conn-select-box">
-          <div>
+          <div className="conn-select-box-cont">
             <div className="conn-select-box-item">
               <h4 className="title is-4">Pick an Organization</h4>
               {connections.map(connection => (

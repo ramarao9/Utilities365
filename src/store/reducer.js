@@ -40,6 +40,15 @@ const reducer = (state = initialState, action) => {
         case actionTypes.GET_CURRENT_USER_ID: return {
             ...state,
             currentUserId: action.currentUserId
+        };
+
+        case actionTypes.SIGNOUT_USER:return{
+            ...state,
+            currentUserId:null,
+            currentUser:null,
+            tokenData:{},
+            crmUsers:[],
+            entities:[]
         }
 
           case actionTypes.SET_CURRENT_USER: return {

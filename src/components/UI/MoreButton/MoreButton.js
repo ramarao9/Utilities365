@@ -1,83 +1,67 @@
-import React, { Component } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import pickerMore from "./picker_more.svg";
 import "./MoreButton.css";
 
-class MoreButton extends Component {
-  state = {
-    showActionsMenu: false
+const MoreButton = ({ clicked, actions, contextObj }) => {
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
+
+  const node = useRef();
+
+  useEffect(() => {
+    // add when mounted
+    document.addEventListener("mousedown", closeDropDownWhenClickedOutside);
+    // return function to be called when unmounted
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        closeDropDownWhenClickedOutside
+      );
+    };
+  }, []);
+
+  const closeDropDownWhenClickedOutside = e => {
+    if (node.current.contains(e.target)) return;
+
+    setShowActionsMenu(false);
   };
-  componentWillMount() {
-    document.addEventListener(
-      "mousedown",
-      this.closeDropDownWhenClickedOutside,
-      false
-    );
+
+  const onActionClicked = (event, action) => {
+    clicked(event, action, contextObj);
+  };
+
+  let dropdownStyles = ["dropdown"];
+
+  if (showActionsMenu) {
+    dropdownStyles.push("is-active");
   }
 
-  componentWillUnmount() {
-    document.removeEventListener(
-      "mousedown",
-      this.closeDropDownWhenClickedOutside,
-      false
-    );
-  }
+  const dropDownActions = [...actions];
 
-  closeDropDownWhenClickedOutside = e => {
-    if (!this.menu.contains(e.target)) {
-      this.toggleMenuDisplay();
-    }
-  };
+  let dropDownContent = dropDownActions.map(action => (
+    <a
+      key={action.id}
+      href="#"
+      className="dropdown-item"
+      onClick={event => onActionClicked(event, action)}
+    >
+      {action.label}
+    </a>
+  ));
 
-  toggleMenuDisplay = ev => {
-    this.setState(prevState => ({
-      showActionsMenu: !prevState.showActionsMenu
-    }));
-  };
-
-  onActionClicked = (event, action) => {
-    this.props.clicked(event, action, this.props.contextObj);
-    this.toggleMenuDisplay();
-  };
-
-  render() {
-    let dropdownStyles = ["dropdown"];
-
-    if (this.state.showActionsMenu) {
-      dropdownStyles.push("is-active");
-    }
-
-    const dropDownActions = [...this.props.actions];
-
-    let dropDownContent = dropDownActions.map(action => (
-      <a
-        key={action.id}
-        href="#"
-        className="dropdown-item"
-        onClick={event => this.onActionClicked(event, action)}
+  return (
+    <div className={dropdownStyles.join(" ")}>
+      <div
+        className="dropdown-trigger"
+        onClick={ev => setShowActionsMenu(true)}
       >
-        {action.label}
-      </a>
-    ));
-
-    return (
-      <div className={dropdownStyles.join(" ")}>
-        <div
-          className="dropdown-trigger"
-          onClick={ev => this.toggleMenuDisplay(ev)}
-        >
-          <img src={pickerMore} />
-        </div>
-
-        <div
-          className="dropdown-menu"
-          onBlur={this.toggleMenuDisplay}
-          ref={menu => (this.menu = menu)}
-        >
-          <div className="dropdown-content">{dropDownContent}</div>
-        </div>
+        <img src={pickerMore} />
       </div>
-    );
-  }
-}
+
+      <div className="dropdown-menu" ref={node}>
+        <div className="dropdown-content">{dropDownContent}</div>
+      </div>
+    </div>
+  );
+};
 
 export default MoreButton;

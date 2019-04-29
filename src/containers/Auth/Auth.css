@@ -6,12 +6,28 @@
     justify-content: center; /* center items vertically, in this case */
     align-items: center;     /* center items horizontally, in this case */
     height: 500px;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    top: 0;
+    left: 0;
+    background-color:#0078d4;
 }
+
+.conn-select-box-cont{
+    min-width: 600px !important;
+}
+
 .conn-select-box>div{
 
-    min-width: 900px;
+    min-width: 800px;
+    background-color: white;
+    padding:20px;
 
 }
+
+
 
 
 
