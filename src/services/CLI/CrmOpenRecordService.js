@@ -41,7 +41,7 @@ export async function getCRMRecord(cliData) {
 
     let entity = results[0];
 
-    return { entityReference: { id: entity[entityMetadata.PrimaryIdAttribute], logicalName: entityMetadata.LogicalName, name : entity[entityMetadata.PrimaryNameAttribute]} };
+    return { entityReference: { id: entity[entityMetadata.PrimaryIdAttribute], logicalname: entityMetadata.LogicalName, name : entity[entityMetadata.PrimaryNameAttribute]} };
 
 }
 

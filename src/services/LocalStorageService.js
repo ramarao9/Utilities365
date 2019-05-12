@@ -46,3 +46,9 @@ export const removeConnection = orgUrl => {
 
   return connections;
 };
+
+export const updateToken = tokenData => {
+  let connection = getConnection(tokenData.resource);
+  connection.accessToken = tokenData;
+  saveConnection(connection);
+};

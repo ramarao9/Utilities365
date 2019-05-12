@@ -15,7 +15,7 @@ class CLI extends Component {
         outputs: []
     };
 
-    onTerminalInputKeyUp = (ev) => {
+    onTerminalInputKeyUp = async (ev) => {
 
         if (ev.keyCode !== 13)
             return;
@@ -24,7 +24,9 @@ class CLI extends Component {
 
         const cliData = getCliData(userInput);
 
-        PerformCrmAction(cliData, this.onCrmActionComplete);
+       let cliResponse= await PerformCrmAction(cliData);
+
+       this.showActionResult(cliResponse);
 
     }
 
@@ -33,17 +35,13 @@ class CLI extends Component {
         this.setState({ inputText: userInput });
     }
 
-    onCrmActionComplete = (result) => {
+    showActionResult = (cliResponse) => {
         const userInput = this.state.inputText;
 
         const updatedOutputs = [...this.state.outputs];
         updatedOutputs.push(">" + userInput);
-        updatedOutputs.push(result);
-
-
+        updatedOutputs.push(cliResponse.message);
         this.setState({ outputs: updatedOutputs, inputText: "" });
-
-
     }
 
     addTextToOutput = (outputText) => {
