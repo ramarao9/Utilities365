@@ -7,8 +7,6 @@ import { getConnection, updateToken } from "../services/LocalStorageService";
 import AdalNode from "adal-node";
 const isDev = window.require("electron-is-dev");
 
-
-
 export function executeUnboundAction(
   functionName,
   successCallback,
@@ -31,10 +29,24 @@ export const retrieve = async request => {
   return dynamicsWebAPIClient.retrieve(request);
 };
 
+export const batchRetrieveMultipleRequests = async retrieveMultipleRequests => {
+  let dynamicsWebAPIClient = getWebAPIClient(true);
+
+  dynamicsWebAPIClient.startBatch();
+  retrieveMultipleRequests.forEach(requestObj => {
+    dynamicsWebAPIClient.retrieveMultipleRequest(requestObj);
+  });
+
+  let executeBatchPromise = dynamicsWebAPIClient.executeBatch();
+  return executeBatchPromise;
+};
+
 export const retrieveMultiple = async request => {
   request = setTokenOnRequestIfValid(request);
   let dynamicsWebAPIClient = getWebAPIClient();
-  let retrieveMultipleResponse=dynamicsWebAPIClient.retrieveMultipleRequest(request);
+  let retrieveMultipleResponse = dynamicsWebAPIClient.retrieveMultipleRequest(
+    request
+  );
   return retrieveMultipleResponse;
 };
 

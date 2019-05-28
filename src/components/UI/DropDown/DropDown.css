@@ -25,7 +25,13 @@
 
 .selectedItemsDiv>input{
     border:none;
+ 
 }
+
+.selectedItemsDiv>input:focus{
+    outline: none;
+}
+
 
 .w100
 {

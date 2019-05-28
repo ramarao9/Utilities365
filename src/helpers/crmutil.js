@@ -1,6 +1,8 @@
 export function isValidToken(token) {
+
+
   return (
-    token !== null &&
+    token != null &&
     token.accessToken !== null &&
     token.accessToken !== undefined
   );

@@ -18,7 +18,7 @@ export const getEntities = async () => {
   let entities = getEntitiesFromStore();
 
   if (entities == null || entities.length === 0) {
-    let filter = "IsIntersect eq false";
+    let filter = "IsValidForAdvancedFind eq true";
     let entityProperties = getEntityProperties();
     let retrieveEntitiesResponse = await retrieveEntitites(
       entityProperties,
@@ -62,6 +62,7 @@ function getEntityProperties() {
     "LogicalName",
     "DisplayCollectionName",
     "LogicalCollectionName",
+    "EntitySetName",
     "ObjectTypeCode",
     "PrimaryNameAttribute",
     "SchemaName",
