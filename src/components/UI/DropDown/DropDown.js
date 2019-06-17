@@ -6,8 +6,6 @@ import "./DropDown.css";
 
 const dropDown = props => {
   const node = useRef();
-
-  const [selections, setSelections] = useState([]);
   const [showDropDown, setShowDropDown] = useState(false);
   const [dropdownOptions, setDropdownoptions] = useState(props.options);
   const [currentDropdownOptions, setCurrentDropdownOptions] = useState(
@@ -62,41 +60,40 @@ const dropDown = props => {
 
   const onDropdownClick = selectedValue => {
     //Set Selections
-    const updatedSelectionsArr = [...selections];
+    const updatedSelectionsArr = [...props.selections];
 
     if (selectedValue != null && selectedValue !== "") {
       updatedSelectionsArr.push(selectedValue);
     }
-    const updatedSelections = updatedSelectionsArr.join(",");
-
+   
     const options = getCurrentDropDownOptions(updatedSelectionsArr);
 
-    props.changed(updatedSelections);
+   
     //Update State to indicate selections and current options and to clear input
-    setSelections(updatedSelectionsArr);
     setCurrentDropdownOptions(options);
     showMenu(false);
+
+     props.changed(updatedSelectionsArr);
   };
 
   const removeOption = (event, entityToRemove) => {
-    const currentSelectionsArr = [...selections];
+    const currentSelectionsArr = [...props.selections];
 
     const updatedSelectionsArr = currentSelectionsArr.filter(optionValue => {
       return optionValue !== entityToRemove;
     });
 
-    const updatedSelectionsCsv = updatedSelectionsArr.join(",");
-
-    props.changed(updatedSelectionsCsv);
+  
+    
 
     const updatedCurrentDropDownOptions = getCurrentDropDownOptions(
       updatedSelectionsArr
     );
 
     //Update State to indicate selections and current options and to clear input
-
-    setSelections(updatedSelectionsArr);
     setCurrentDropdownOptions(updatedCurrentDropDownOptions);
+
+    props.changed(updatedSelectionsArr);
   };
 
   const getCurrentDropDownOptions = updatedSelectionsArr => {
@@ -136,8 +133,8 @@ const dropDown = props => {
   //Using selections Add to Selections Div
   let selectionsDisplay = "";
 
-  if (selections.length > 0) {
-    const selectionsArr = [...selections];
+  if (props.selections.length > 0) {
+    const selectionsArr = [...props.selections];
     selectionsDisplay = selectionsArr.map(selection => (
       <a key={selection} className="button is-small is-light">
         <span>

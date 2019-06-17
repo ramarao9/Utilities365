@@ -5,19 +5,25 @@ import DynamicsWebApi from "dynamics-web-api";
 import * as crmUtil from "../../helpers/crmutil";
 import * as actionTypes from "../../store/actions";
 import Input from "../../components/UI/Input/Input";
+import ProgressBar from "../../components/UI/ProgressBar/ProgressBar";
+import Notification from "../../components/UI/Notification/Notification";
 import EntityMultiSelect from "../../components/CRM/EntityMultiSelect/EntityMultiSelect";
 import Aux from "../../hoc/_Aux/_Aux";
 import IsEmpty from "is-empty";
+import AnchorButton from "../../components/UI/AnchorButton/AnchorButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getEntities } from "../../services/CrmMetadataService";
+import "./GuidSearch.css";
 import {
   getCurrentOrgUrl,
   batchRetrieveMultipleRequests
 } from "../../helpers/webAPIClientHelper";
 
+const { clipboard } = window.require("electron");
+
 const GuidSearch = () => {
   const [entities, setEntities] = useState([]);
-  const [runningLog, setRunningLog] = useState({});
+  const [noResultsFound, setNoResultsFound] = useState(false);
   const [searchInProcess, setSearchInProcess] = useState(false);
   const [entitiesToSearchOn, setEntitiesToSearchOn] = useState([]);
   const [allEntitiesCheck, setAllEntitiesCheck] = useState({
@@ -43,7 +49,7 @@ const GuidSearch = () => {
     url: "",
     elementType: "input",
     elementConfig: {
-      type: "textAddOn",
+      type: "text",
       readOnly: "readOnly"
     },
     value: ""
@@ -125,6 +131,27 @@ const GuidSearch = () => {
     setEntities(entitiesFromCrm);
   };
 
+  const onClearClick = () => {
+    updateGuidToSearch("");
+    updateMatchedRecord("", "");
+    updateAllEntitiesCheck(false);
+    setNoResultsFound(false);
+    setEntitiesToSearchOn([]);
+  };
+
+  const updateGuidToSearch = value => {
+    let guid = { ...guidToSearch };
+    guid.value = value;
+
+    setGuidToSearch(guid);
+  };
+  const updateAllEntitiesCheck = isChecked => {
+    const allEntCheck = { ...allEntitiesCheck };
+    allEntCheck.checked = isChecked;
+
+    setAllEntitiesCheck(allEntCheck);
+  };
+
   const onSearchClick = async () => {
     let guidToSearchOn = guidToSearch.value;
     if (IsEmpty(guidToSearchOn)) {
@@ -132,10 +159,15 @@ const GuidSearch = () => {
       return;
     }
 
-    let entitiesToSearch =
-      !IsEmpty(entitiesToSearchOn) && entitiesToSearchOn.length >= 1
-        ? [...entitiesToSearchOn]
-        : [...entities];
+    let entitiesToSearch = null;
+
+    if (!IsEmpty(entitiesToSearchOn) && entitiesToSearchOn.length >= 1) {
+      entitiesToSearch = entitiesToSearchOn.map(x => {
+        return entities.find(y => y.LogicalName === x);
+      });
+    } else {
+      entitiesToSearch = [...entities];
+    }
 
     if (entities == null || entities.length === 1) return;
 
@@ -150,10 +182,32 @@ const GuidSearch = () => {
       };
     });
 
-    let matchedRecord = await performSearch(retrieveMultipleRequestsForSearch);
+    let result = await performSearch(retrieveMultipleRequestsForSearch);
+
+    if (result != null) {
+      let currentOrgUrl = getCurrentOrgUrl();
+
+      let url = crmUtil.getRecordUrl(
+        currentOrgUrl,
+        result.LogicalName,
+        result.Id
+      );
+
+      updateMatchedRecord(result.Name, url);
+    } else {
+      setNoResultsFound(true);
+    }
 
     setSearchInProcess(false);
-    debugger;
+  };
+
+  const updateMatchedRecord = (value, url) => {
+    let record = { ...matchedRecord };
+
+    record.value = value;
+    record.url = url;
+
+    setMatchedRecord(record);
   };
 
   const performSearch = async retrieveMultipleRequestsForSearch => {
@@ -235,9 +289,7 @@ const GuidSearch = () => {
   };
 
   const onEntitySelectChange = selectedEntities => {
-    if (IsEmpty(selectedEntities)) return;
-
-    setEntitiesToSearchOn(selectedEntities.split(","));
+    setEntitiesToSearchOn(selectedEntities);
   };
 
   const inputChangedHandler = (event, id) => {
@@ -255,6 +307,8 @@ const GuidSearch = () => {
       allEntitiesChk.checked = !allEntitiesChk.checked;
 
       setAllEntitiesCheck(allEntitiesChk);
+    } else if (id === "matchedInput") {
+      clipboard.writeText(matchedRecord.url);
     }
   };
 
@@ -271,6 +325,7 @@ const GuidSearch = () => {
         label="Entities to Search"
         entities={entities}
         changed={onEntitySelectChange}
+        selections={entitiesToSearchOn}
         is-small
       />
     );
@@ -280,16 +335,43 @@ const GuidSearch = () => {
 
   if (!IsEmpty(matchedRecord.value)) {
     matchedRecordUI = (
-      <Input
-        id={matchedRecord.id}
-        elementType={matchedRecord.elementType}
-        elementConfig={matchedRecord.elementConfig}
-        size="is-small"
-        clicked={event => inputChangedHandler(event, matchedRecord.id)}
-        value={matchedRecord.value}
-        addOnLabel="Copy Link"
-        label="Match"
-      />
+      <div className="columns is-desktop">
+        <div className="column is-half">
+          <Input
+            id={matchedRecord.id}
+            elementType={matchedRecord.elementType}
+            elementConfig={matchedRecord.elementConfig}
+            size="is-small"
+            value={matchedRecord.value}
+            label="Matched Record"
+          />
+        </div>
+        <div className="copy-link-div">
+          <AnchorButton
+            iconName="copy"
+            classes={["is-small"]}
+            iconClasses={["has-text-grey-darker"]}
+            toolTip="Copy to clipboard"
+            clicked={event => inputChangedHandler(event, matchedRecord.id)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  let progressbarUI = null;
+
+  if (searchInProcess) {
+    progressbarUI = (
+      <ProgressBar progressClasses={["is-small", "is-warning"]} />
+    );
+  }
+
+  let noResultsNotificationUI = null;
+
+  if (noResultsFound) {
+    noResultsNotificationUI = (
+      <Notification message="No records have been found that match the guid." />
     );
   }
 
@@ -312,7 +394,7 @@ const GuidSearch = () => {
             <a
               className="button is-radiusless is-white"
               disabled={searchInProcess}
-              onClick={onSearchClick}
+              onClick={onClearClick}
             >
               <span className="icon is-small">
                 <FontAwesomeIcon icon="eraser" />
@@ -321,6 +403,9 @@ const GuidSearch = () => {
             </a>
           </div>
 
+          {progressbarUI}
+
+          {noResultsNotificationUI}
           <Input
             id={guidToSearch.id}
             elementType={guidToSearch.elementType}
@@ -343,10 +428,9 @@ const GuidSearch = () => {
             label="All Entities"
           />
           {entitiesToSearch}
-
-          {matchedRecordUI}
         </div>
       </div>
+      {matchedRecordUI}
     </Aux>
   );
 };

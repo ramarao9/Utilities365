@@ -1,3 +1,7 @@
 .btnMrgn {
     margin: 0px 5px;
 }
+
+.no-label{
+    padding-right:0px !important;
+}

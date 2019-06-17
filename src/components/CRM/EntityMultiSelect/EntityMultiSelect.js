@@ -3,6 +3,7 @@ import  DropDown  from '../../UI/DropDown/DropDown'
 
 const entityMultiSelect = (props) => (
     <DropDown placeholder='Select Entity(s)' 
+    selections={props.selections}
     label={props.label} 
     fluid multiple search selection 
     changed={props.changed}
