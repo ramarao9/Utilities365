@@ -24,9 +24,15 @@ export function executeUnboundAction(
       errorCallback(error, passThroughCallback, passThroughObj);
     });
 }
-export const retrieve = async request => {
+
+export const retrieveAttributes = async (entityName,attributeType,attributeProperties,attributeFilter) => {
+  let dynamicsWebAPIClient = getWebAPIClient(true);
+  return dynamicsWebAPIClient.retrieveAttributes(entityName,attributeType,attributeProperties,attributeFilter,null);
+};
+
+export const retrieveRequest = async request => {
   let dynamicsWebAPIClient = getWebAPIClient();
-  return dynamicsWebAPIClient.retrieve(request);
+  return dynamicsWebAPIClient.retrieveRequest(request);
 };
 
 export const batchRetrieveMultipleRequests = async retrieveMultipleRequests => {

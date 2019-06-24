@@ -7,6 +7,8 @@ import Terminal from '../../components/UI/Terminal/Terminal';
 import IsEmpty from 'is-empty';
 import { getCliData } from '../../services/CliParsingService';
 import { PerformCrmAction } from '../../services/CLI/CrmCliService';
+
+import { ELEMENT_TYPE_TEXT } from '../../services/CLI/CliResponse';
 class CLI extends Component {
 
     state = {
@@ -36,11 +38,14 @@ class CLI extends Component {
     }
 
     showActionResult = (cliResponse) => {
+ 
         const userInput = this.state.inputText;
 
         const updatedOutputs = [...this.state.outputs];
-        updatedOutputs.push(">" + userInput);
-        updatedOutputs.push(cliResponse.message);
+        updatedOutputs.push({type:ELEMENT_TYPE_TEXT,data:">" + userInput});
+        if(cliResponse!=null){
+        updatedOutputs.push(cliResponse);
+        }
         this.setState({ outputs: updatedOutputs, inputText: "" });
     }
 

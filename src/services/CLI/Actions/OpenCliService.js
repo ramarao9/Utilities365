@@ -1,9 +1,10 @@
 import IsEmpty from "is-empty";
-import { handleCrmOpenUserActions } from "../User/CrmOpenUserService";
-import { getCRMRecord } from "../CrmOpenRecordService";
+import { getEntityMetadata } from "../../CrmMetadataService";
+import { retrieveMultiple } from "../../../helpers/webAPIClientHelper";
+
+import { getErrorResponse, getTextResponse } from "../CliResponse";
 import { getCurrentOrgUrl } from "../../../helpers/webAPIClientHelper";
 import { openWindow } from "../../../helpers/util";
-import { getCliResponse } from "../../../helpers/crmutil";
 
 import {
   STR_NO_RECORDS_FOUND_FOR_CRITERIA,
@@ -16,25 +17,8 @@ export const handleCrmOpenActions = async cliData => {
 
   const target = cliData.target;
 
-  if (IsEmpty(target)) {
-    return getCliResponse(
-      "message",
-      null,
-      "false",
-      `Unable to determine the target on which ${
-        cliData.action
-      } needs to be performed`
-    );
-
-    return;
-  }
-
   switch (target.toLowerCase().trim()) {
-    case "myuser":
-    case "systemuser":
-    case "user":
-      cliResponse = await handleCrmOpenUserActions(cliData);
-      break;
+
 
     case "advfind":
     case "advancedfind":
@@ -43,12 +27,8 @@ export const handleCrmOpenActions = async cliData => {
 
     //Default is opening the entity record using the params
     default:
-     cliResponse = await handleOpenRecordAction(cliData);
+      cliResponse = await handleOpenRecordAction(cliData);
       break;
-  }
-
-  if (cliResponse.success) {
-    openRecord(cliResponse.response);
   }
 
   return cliResponse;
@@ -59,20 +39,88 @@ async function handleOpenRecordAction(cliData, onactionCompleteCallback) {
     let result = await getCRMRecord(cliData);
     let targetRecord = result.entityReference;
 
-     return getCliResponse(
-      "open",
-      targetRecord,
-      true,
-      `Record  ${ targetRecord.name} with id ${targetRecord.id} opened successfully!`
+    openRecord(targetRecord);
+
+    return getTextResponse(
+      `Record  ${targetRecord.name} with id ${
+        targetRecord.id
+      } opened successfully!`
     );
   } catch (error) {
-       return getCliResponse(
-      "open",
-      null,
-      false,
-     `${STR_ERROR_OCCURRED} ${error.message}`);
+
+    return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
   }
 }
+
+
+
+ async function getCRMRecord(cliData) {
+
+    
+  let entityMetadata = await getEntityMetadata(cliData.target);
+
+  if (entityMetadata == null)
+    throw new Error("No entity found in crm that matches the Name. Please check the name and try again");
+
+  let entityFilter = getEntityFilter(entityMetadata, cliData);
+  if (IsEmpty(entityFilter))
+    throw new Error("Please provide parameters for the record to filter the entity.");
+
+  let retrieveMultipleRequest = {
+    collection: entityMetadata.LogicalCollectionName,
+    select: [
+      entityMetadata.PrimaryIdAttribute,
+      entityMetadata.PrimaryNameAttribute
+    ],
+    filter: entityFilter
+  };
+
+  let retrieveMultipleResponse = await retrieveMultiple(
+    retrieveMultipleRequest
+  );
+
+  let results = await retrieveMultipleResponse.value;
+
+  if (results == null || results.length === 0) throw new Error("No match found");
+
+  if (results.length > 1)
+    throw new Error("Multiple records found. Please refine the criteria and try again");
+
+  let entity = results[0];
+
+  return {
+    entityReference: {
+      id: entity[entityMetadata.PrimaryIdAttribute],
+      logicalname: entityMetadata.LogicalName,
+      name: entity[entityMetadata.PrimaryNameAttribute]
+    }
+  };
+}
+
+function getEntityFilter(entityMetadata, cliData) {
+
+
+  if (IsEmpty(cliData.actionParams) && IsEmpty(cliData.unnamedParam))
+    return null;
+
+  if (!IsEmpty(cliData.unnamedParam))
+    return (
+      entityMetadata.PrimaryNameAttribute + " eq '" + cliData.unnamedParam + "'"
+    );
+
+  let entityFilters = [];
+  cliData.actionParams.forEach(param => {
+    if (!IsEmpty(param.name) && !IsEmpty(param.value)) {
+      entityFilters.push(param.name + " eq '" + param.value + "'");
+    }
+  });
+
+  let entityFilter =
+    entityFilters.length > 0 ? entityFilters.join(" and ") : null;
+  return entityFilter;
+}
+
+
 
 function openRecord(entityreference) {
   const userUrl = getRecordUrl(entityreference.logicalname, entityreference.id);
