@@ -4,15 +4,19 @@ import { getCRMRecord } from "../CrmOpenRecordService";
 import { getCurrentOrgUrl } from "../../../helpers/webAPIClientHelper";
 import { openWindow } from "../../../helpers/util";
 import { getCliResponse } from "../../../helpers/crmutil";
-
+import { CliResponse } from "../../../interfaces/CliResponse";
 import {
   STR_NO_RECORDS_FOUND_FOR_CRITERIA,
   STR_ERROR_OCCURRED,
   STR_ONE_OR_MORE_RECORDS_FOUND_FOR_CRITERIA
 } from "../../../helpers/strings";
 
-export const handleCrmOpenActions = async cliData => {
-  let cliResponse = null;
+export const handleCrmOpenActions = async (cliData:any) :Promise<CliResponse> => {
+    let cliResponse: CliResponse = {
+    message: "",
+    success: false,
+    response: null
+  };
 
   const target = cliData.target;
 
@@ -26,7 +30,7 @@ export const handleCrmOpenActions = async cliData => {
       } needs to be performed`
     );
 
-    return;
+    return cliResponse;
   }
 
   switch (target.toLowerCase().trim()) {
@@ -54,7 +58,7 @@ export const handleCrmOpenActions = async cliData => {
   return cliResponse;
 };
 
-async function handleOpenRecordAction(cliData, onactionCompleteCallback) {
+async function handleOpenRecordAction(cliData : any) {
   try {
     let result = await getCRMRecord(cliData);
     let targetRecord = result.entityReference;
@@ -63,7 +67,7 @@ async function handleOpenRecordAction(cliData, onactionCompleteCallback) {
       "open",
       targetRecord,
       true,
-      `Record  ${ targetRecord.name} with id ${targetRecord.id} opened successfully!`
+      `Record  ${ (targetRecord!=null)?targetRecord.name:""} with id ${(targetRecord!=null)?targetRecord.id :""} opened successfully!`
     );
   } catch (error) {
        return getCliResponse(
@@ -74,12 +78,12 @@ async function handleOpenRecordAction(cliData, onactionCompleteCallback) {
   }
 }
 
-function openRecord(entityreference) {
+function openRecord(entityreference : any) {
   const userUrl = getRecordUrl(entityreference.logicalname, entityreference.id);
   openWindow(userUrl, true);
 }
 
-function getRecordUrl(logicalName, id) {
+function getRecordUrl(logicalName:any, id: any)  {
   const orgUrl = getCurrentOrgUrl();
   const recordUrl =
     orgUrl +

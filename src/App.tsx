@@ -1,14 +1,13 @@
-import React, { Component } from 'react';
-import { Route, Switch } from 'react-router-dom';
-import Home from './containers/Home/Home';
-import Auth from './containers/Auth/Auth';
-import Layout from './hoc/Layout/Layout';
-import GuidSearch from './containers/GuidSearch/GuidSearch';
-import CLI from './containers/CLI/CLI';
-import './App.css';
+import React, { Component } from "react";
+import { Route, Switch } from "react-router-dom";
+import Home from "./containers/Home/Home";
+import Auth from "./containers/Auth/Auth";
+import Layout from "./hoc/Layout/Layout";
+import GuidSearch from "./containers/GuidSearch/GuidSearch";
+import {CLI} from "./containers/CLI/CLI";
+import "./App.css";
 
-class App extends Component {
-  render() {
+const  App :React.FC=()=>{
     return (
       <div className="root-div">
         <Layout>
@@ -24,8 +23,7 @@ class App extends Component {
           </Switch>
         </Layout>
       </div>
-    );
-  }
+    ); 
 }
 
 export default App;

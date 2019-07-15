@@ -3,7 +3,7 @@ import { getEntityMetadata } from '../CrmMetadataService';
 
 import { retrieveMultiple } from '../../helpers/webAPIClientHelper';
 
-export async function getCRMRecord(cliData) {
+export async function getCRMRecord(cliData : any) {
 
 
     let entityMetadata = await getEntityMetadata(cliData.target);
@@ -46,7 +46,7 @@ export async function getCRMRecord(cliData) {
 }
 
 
-function getEntityFilter(entityMetadata, cliData) {
+function getEntityFilter(entityMetadata : any, cliData : any) {
 
     if (IsEmpty(cliData.actionParams) && IsEmpty(cliData.unnamedParam))
         return null;
@@ -56,8 +56,8 @@ function getEntityFilter(entityMetadata, cliData) {
         return entityMetadata.PrimaryNameAttribute + " eq '" + cliData.unnamedParam + "'";
 
 
-    let entityFilters = [];
-    cliData.actionParams.forEach(param => {
+    let entityFilters : Array<any> = [];
+    cliData.actionParams.forEach((param : any) => {
         if (!IsEmpty(param.name) && !IsEmpty(param.value)) {
             entityFilters.push(param.name + " eq '" + param.value + "'");
         }
