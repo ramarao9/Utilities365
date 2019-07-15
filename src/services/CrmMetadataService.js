@@ -1,14 +1,16 @@
-import { retrieveEntitites } from "../helpers/webAPIClientHelper";
+import {
+  retrieveEntitites,
+  retrieveAttributes
+} from "../helpers/webAPIClientHelper";
 
 import store from "../store/store";
 import * as actionTypes from "../store/actions";
 
 export const getEntityMetadata = async entityName => {
+  let entities = await getEntities();
 
-
-  let entities = await getEntities().value;
-
-  let entityMetadata = entities.filter(filterEntityByName, entityName);
+  let entityMetadata =
+    entities != null ? entities.filter(filterEntityByName, entityName) : null;
   return entityMetadata != null && entityMetadata.length == 1
     ? entityMetadata[0]
     : null;
@@ -25,14 +27,45 @@ export const getEntities = async () => {
       filter
     );
 
-    entities = await retrieveEntitiesResponse.value;
+    entities = retrieveEntitiesResponse.value;
 
     if (entities != null) {
       updateEntitiesInStore(entities);
     }
   }
-
   return entities;
+};
+
+export const getEntityAttributes = async entityName => {
+  let entityAttributes = getEntityAttributeCollectionFromStore(entityName);
+
+  if (entityAttributes == null || entityAttributes.length === 0) {
+    const attributeProperties = getAttributeProperties();
+
+    let retrieveAttributesResponse = await retrieveAttributes(
+      `LogicalName='${entityName}'`,
+      null,
+      attributeProperties,
+      null,
+      null
+    );
+
+    var s = 100;
+  }
+
+  return entityAttributes;
+};
+
+const getRetrieveAttributesRequest = entityName => {
+  const attributeProperties = getAttributeProperties();
+  var retrieveAttributesRequest = {
+    collection: "EntityDefinitions",
+    key: `LogicalName='${entityName}'`,
+    navigationProperty: "Attributes",
+    navigationPropertyKey: 'LogicalName="firstname"'
+  };
+
+  return retrieveAttributesRequest;
 };
 
 function filterEntityByName(entityMetadata, i, entities) {
@@ -52,8 +85,30 @@ function getEntitiesFromStore() {
   return currentState != null ? currentState.entities : null;
 }
 
+function getEntityAttributeCollectionFromStore(entityName) {
+  const currentState = store.getState();
+
+  let entityAttributes =
+    currentState != null ? currentState.entitiesAttributeCollection : null;
+
+  if (entityAttributes == null) return null;
+
+  let entityAttributeCollection = entityAttributes.find(
+    x => x.Logicalname === "entityName"
+  );
+
+  return entityAttributeCollection;
+}
+
 function updateEntitiesInStore(entities) {
   store.dispatch({ type: actionTypes.SET_ENTITIES, entities: entities });
+}
+
+function updateEntityAttributesInStore(entitiesAttributeCollection) {
+  store.dispatch({
+    type: actionTypes.SET_ENTITIES_ATTRIBUTE_COLLECTION,
+    entitiesAttributeCollection: entitiesAttributeCollection
+  });
 }
 
 function getEntityProperties() {
@@ -70,4 +125,15 @@ function getEntityProperties() {
   ];
 
   return entityProperties;
+}
+
+function getAttributeProperties() {
+  let attributeProperties = [
+    "DisplayName",
+    "AttributeTypeName",
+    "LogicalName",
+    "SchemaName"
+  ];
+
+  return attributeProperties;
 }

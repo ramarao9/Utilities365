@@ -1,37 +1,43 @@
-import React from 'react'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import './AnchorButton.css'
+import React from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import "./AnchorButton.css";
 
 const anchorButton = props => {
-  let icon = null
+  let icon = null;
 
   if (props.iconName) {
-    let iconClasses = ['icon']
+    let iconClasses = ["icon"];
     if (props.iconClasses) {
-      iconClasses = iconClasses.concat(props.iconClasses)
+      iconClasses = iconClasses.concat(props.iconClasses);
     }
+
     icon = (
-      <span className={iconClasses.join(' ')}>
+      <span className={iconClasses.join(" ")}>
         <FontAwesomeIcon icon={props.iconName} />
       </span>
-    )
+    );
   }
 
-  let buttonClasses = ['button', 'btnMrgn'];
+  let buttonClasses = ["button", "btnMrgn"];
+  if (props.label == null || props.label === "") {
+    buttonClasses.push("no-label");
+  }
+
   if (props.classes) {
-    buttonClasses = buttonClasses.concat(props.classes)
+    buttonClasses = buttonClasses.concat(props.classes);
   }
 
   return (
     <a
-      className={buttonClasses.join(' ')}
+      title={props.toolTip}
+      className={buttonClasses.join(" ")}
       disabled={props.disabled}
       onClick={props.clicked}
     >
       {icon}
       <span>{props.label}</span>
     </a>
-  )
-}
+  );
+};
 
-export default anchorButton
+export default anchorButton;

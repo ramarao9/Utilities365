@@ -1,6 +1,4 @@
 export function isValidToken(token) {
-
-
   return (
     token != null &&
     token.accessToken !== null &&
@@ -28,8 +26,10 @@ export function getCliResponse(type, response, success, error) {
   return cliResponse;
 }
 
+export const getRecordUrl = (orgUrl, logicalName, id) => {
+  return `${orgUrl}/main.aspx?etn=${logicalName}&id=${id}&pagetype=entityrecord`;
+};
 
 export function getCliErrorResponse(error) {
-return getCliResponse(null, null, false, error);
-
+  return getCliResponse(null, null, false, error);
 }
