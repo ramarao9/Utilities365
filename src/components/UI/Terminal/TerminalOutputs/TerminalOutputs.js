@@ -2,12 +2,7 @@ import React from 'react';
 import './TerminalOutputs.css';
 
 
-const terminaloutputs = (props) => (
-
-
-
-
-
+const terminaloutputs = (props) => {
     return(
     <div>
         {props.outputs.map(output => (
@@ -15,6 +10,6 @@ const terminaloutputs = (props) => (
         ))}
 
     </div>);
-);
+};
 
 export default terminaloutputs;

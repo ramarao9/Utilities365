@@ -8,7 +8,7 @@ import AnchorButton from "../../components/UI/AnchorButton/AnchorButton";
 import AdalNode from "adal-node";
 import Input from "../../components/UI/Input/Input";
 import Crypto from "crypto";
-
+import axios from "axios";
 import {
   saveConnection,
   getConnections,
@@ -52,7 +52,8 @@ class Auth extends Component {
         elementType: "input",
         elementConfig: {
           type: "text",
-          placeholder: "Provide the Azure AD Application Id"
+          placeholder:
+            "Provide the Azure AD Application Id e.g. 00000000-0000-0000-0000-000000000000"
         },
         value: ""
       },
@@ -65,12 +66,12 @@ class Auth extends Component {
         },
         value: ""
       },
-      authorizationEndpointUrl: {
-        label: "OAuth Authorization URL",
+      clientSecret: {
+        label: "Client Secret",
         elementType: "input",
         elementConfig: {
           type: "text",
-          placeholder: "Provide the OAuth 2.0 Authorization Endpoint"
+          placeholder: "Provide the secret for client credential grant or S2S"
         },
         value: ""
       },
@@ -109,12 +110,71 @@ class Auth extends Component {
     this.showOrHideNewConnectionUI(true);
   };
 
-  connectClick = event => {
+  connectClick = async event => {
     const connectionInfo = this.getNewConnectionInfo();
     //To do validation
 
-    var authorizationUrl = this.getAuthorizationUrl(connectionInfo);
-    this.requestAccessToken(authorizationUrl);
+    let authorizationUrl = await this.getAuthorizationUrlFromOrgUrl(
+      connectionInfo.orgUrl
+    );
+    connectionInfo.authorizationUrl = authorizationUrl;
+
+    if (connectionInfo.clientSecret != null) {
+      var authContext = new AdalNode.AuthenticationContext(
+        connectionInfo.authorizationUrl
+      );
+
+      authContext.acquireTokenWithClientCredentials(
+        connectionInfo.orgUrl,
+        connectionInfo.appId,
+        connectionInfo.clientSecret,
+        this.adalCallback
+      );
+    } else {
+      var authorizationUrlWithParams = this.getAuthorizationUrlWithParams(
+        connectionInfo
+      );
+      this.requestAccessToken(authorizationUrlWithParams);
+    }
+  };
+
+  getAuthorizationUrlFromOrgUrl = async orgUrl => {
+    let authorizationUrl = null;
+    try {
+      const response = await axios.get(`${orgUrl}/api/data`);
+    } catch (error) {
+      let response = error.response;
+      let responseHeaders = response.headers;
+
+      if (
+        responseHeaders != null &&
+        responseHeaders["www-authenticate"] != null
+      ) {
+        let authenticateHeader = responseHeaders["www-authenticate"];
+        authorizationUrl = this.getAuthorizationUrlFromAuthenticateHeader(
+          authenticateHeader
+        );
+      }
+    }
+
+    return authorizationUrl;
+  };
+
+  getAuthorizationUrlFromAuthenticateHeader = authenticateHeader => {
+    let authorizationUrl = null;
+    let authHeaders = authenticateHeader
+      .replace("Bearer", "")
+      .trim()
+      .split(",");
+
+    if (authHeaders.length === 2) {
+      authorizationUrl =
+        authHeaders[0] != null
+          ? authHeaders[0].replace("authorization_uri=", "")
+          : null;
+    }
+
+    return authorizationUrl;
   };
 
   requestAccessToken = authorizationUrl => {
@@ -173,7 +233,7 @@ class Auth extends Component {
     const orgUrl = newConnectionInfo.orgUrl.value;
     const appId = newConnectionInfo.applicationId.value;
     const replyUrl = newConnectionInfo.replyUrl.value;
-    const authorizationUrl = newConnectionInfo.authorizationEndpointUrl.value;
+    const clientSecret = newConnectionInfo.clientSecret.value;
     const saveConnection = newConnectionInfo.saveNewConnection.checked;
 
     const connectionInfo = {
@@ -181,7 +241,7 @@ class Auth extends Component {
       orgUrl: orgUrl,
       appId: appId,
       replyUrl: replyUrl,
-      authorizationUrl: authorizationUrl,
+      clientSecret: clientSecret,
       saveConnection: saveConnection
     };
 
@@ -226,7 +286,7 @@ class Auth extends Component {
     this.props.onuserUpdated(currentUserInfo);
   };
 
-  getAuthorizationUrl = connectionInfo => {
+  getAuthorizationUrlWithParams = connectionInfo => {
     var state = this.getStateForOAuth();
 
     var authorizationUrl =

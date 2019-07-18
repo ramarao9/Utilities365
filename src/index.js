@@ -11,7 +11,6 @@ import registerServiceWorker from "./registerServiceWorker";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {} from "@fortawesome/free-regular-svg-icons";
 import {
   faCopy,
   faTimes,

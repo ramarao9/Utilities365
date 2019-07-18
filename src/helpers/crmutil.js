@@ -1,3 +1,5 @@
+import CliResponse from '../interfaces/CliResponse';
+
 export function isValidToken(token) {
   return (
     token != null &&

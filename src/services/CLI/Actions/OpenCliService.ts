@@ -5,20 +5,19 @@ import { retrieveMultiple } from "../../../helpers/webAPIClientHelper";
 import { getErrorResponse, getTextResponse } from "../CliResponse";
 import { getCurrentOrgUrl } from "../../../helpers/webAPIClientHelper";
 import { openWindow } from "../../../helpers/util";
-<<<<<<< HEAD:src/services/CLI/Actions/OpenCliService.ts
 import { getCliResponse } from "../../../helpers/crmutil";
 import { CliResponse } from "../../../interfaces/CliResponse";
-=======
-
->>>>>>> 87a54bf566f747fab1c48202cc0b67a4535533ab:src/services/CLI/Actions/OpenCliService.js
+import { ActionParam } from "../../../interfaces/CliData";
 import {
   STR_NO_RECORDS_FOUND_FOR_CRITERIA,
   STR_ERROR_OCCURRED,
   STR_ONE_OR_MORE_RECORDS_FOUND_FOR_CRITERIA
 } from "../../../helpers/strings";
 
-export const handleCrmOpenActions = async (cliData:any) :Promise<CliResponse> => {
-    let cliResponse: CliResponse = {
+export const handleCrmOpenActions = async (
+  cliData: any
+): Promise<CliResponse> => {
+  let cliResponse: CliResponse = {
     message: "",
     success: false,
     response: null
@@ -26,7 +25,6 @@ export const handleCrmOpenActions = async (cliData:any) :Promise<CliResponse> =>
 
   const target = cliData.target;
 
-<<<<<<< HEAD:src/services/CLI/Actions/OpenCliService.ts
   if (IsEmpty(target)) {
     return getCliResponse(
       "message",
@@ -40,11 +38,7 @@ export const handleCrmOpenActions = async (cliData:any) :Promise<CliResponse> =>
     return cliResponse;
   }
 
-=======
->>>>>>> 87a54bf566f747fab1c48202cc0b67a4535533ab:src/services/CLI/Actions/OpenCliService.js
   switch (target.toLowerCase().trim()) {
-
-
     case "advfind":
     case "advancedfind":
     case "search":
@@ -59,48 +53,40 @@ export const handleCrmOpenActions = async (cliData:any) :Promise<CliResponse> =>
   return cliResponse;
 };
 
-async function handleOpenRecordAction(cliData : any) {
+async function handleOpenRecordAction(cliData: any): Promise<CliResponse> {
   try {
     let result = await getCRMRecord(cliData);
     let targetRecord = result.entityReference;
 
-<<<<<<< HEAD:src/services/CLI/Actions/OpenCliService.ts
-     return getCliResponse(
+    return getCliResponse(
       "open",
       targetRecord,
       true,
-      `Record  ${ (targetRecord!=null)?targetRecord.name:""} with id ${(targetRecord!=null)?targetRecord.id :""} opened successfully!`
-=======
-    openRecord(targetRecord);
-
-    return getTextResponse(
-      `Record  ${targetRecord.name} with id ${
-        targetRecord.id
+      `Record  ${targetRecord != null ? targetRecord.name : ""} with id ${
+        targetRecord != null ? targetRecord.id : ""
       } opened successfully!`
->>>>>>> 87a54bf566f747fab1c48202cc0b67a4535533ab:src/services/CLI/Actions/OpenCliService.js
     );
   } catch (error) {
-
-    return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
+    return {
+      message: `${STR_ERROR_OCCURRED} ${error.message}`,
+      success: false
+    };
   }
 }
 
-<<<<<<< HEAD:src/services/CLI/Actions/OpenCliService.ts
-function openRecord(entityreference : any) {
-=======
-
-
- async function getCRMRecord(cliData) {
-
-    
+async function getCRMRecord(cliData: any) {
   let entityMetadata = await getEntityMetadata(cliData.target);
 
   if (entityMetadata == null)
-    throw new Error("No entity found in crm that matches the Name. Please check the name and try again");
+    throw new Error(
+      "No entity found in crm that matches the Name. Please check the name and try again"
+    );
 
   let entityFilter = getEntityFilter(entityMetadata, cliData);
   if (IsEmpty(entityFilter))
-    throw new Error("Please provide parameters for the record to filter the entity.");
+    throw new Error(
+      "Please provide parameters for the record to filter the entity."
+    );
 
   let retrieveMultipleRequest = {
     collection: entityMetadata.LogicalCollectionName,
@@ -117,10 +103,13 @@ function openRecord(entityreference : any) {
 
   let results = await retrieveMultipleResponse.value;
 
-  if (results == null || results.length === 0) throw new Error("No match found");
+  if (results == null || results.length === 0)
+    throw new Error("No match found");
 
   if (results.length > 1)
-    throw new Error("Multiple records found. Please refine the criteria and try again");
+    throw new Error(
+      "Multiple records found. Please refine the criteria and try again"
+    );
 
   let entity = results[0];
 
@@ -133,9 +122,7 @@ function openRecord(entityreference : any) {
   };
 }
 
-function getEntityFilter(entityMetadata, cliData) {
-
-
+function getEntityFilter(entityMetadata: any, cliData: any) {
   if (IsEmpty(cliData.actionParams) && IsEmpty(cliData.unnamedParam))
     return null;
 
@@ -144,8 +131,8 @@ function getEntityFilter(entityMetadata, cliData) {
       entityMetadata.PrimaryNameAttribute + " eq '" + cliData.unnamedParam + "'"
     );
 
-  let entityFilters = [];
-  cliData.actionParams.forEach(param => {
+  let entityFilters = Array<string>();
+  cliData.actionParams.forEach((param: ActionParam) => {
     if (!IsEmpty(param.name) && !IsEmpty(param.value)) {
       entityFilters.push(param.name + " eq '" + param.value + "'");
     }
@@ -156,15 +143,12 @@ function getEntityFilter(entityMetadata, cliData) {
   return entityFilter;
 }
 
-
-
-function openRecord(entityreference) {
->>>>>>> 87a54bf566f747fab1c48202cc0b67a4535533ab:src/services/CLI/Actions/OpenCliService.js
+function openRecord(entityreference : any) {
   const userUrl = getRecordUrl(entityreference.logicalname, entityreference.id);
   openWindow(userUrl, true);
 }
 
-function getRecordUrl(logicalName:any, id: any)  {
+function getRecordUrl(logicalName: any, id: any) {
   const orgUrl = getCurrentOrgUrl();
   const recordUrl =
     orgUrl +
