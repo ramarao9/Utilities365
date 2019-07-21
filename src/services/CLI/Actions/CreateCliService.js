@@ -6,16 +6,16 @@ import {
 
 export const handleCrmCreateActions = async cliData => {
   let cliResponse = null;
-
+ 
   await createRecord(cliData);
 
   return cliResponse;
 };
 
+//
 const createRecord = async cliData => {
   let createRequest = await getCreateRequestBody(cliData);
 
-let s=100;
 };
 
 const getCreateRequestBody = async cliData => {

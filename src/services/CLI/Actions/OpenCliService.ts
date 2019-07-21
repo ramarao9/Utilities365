@@ -2,12 +2,13 @@ import IsEmpty from "is-empty";
 import { getEntityMetadata } from "../../CrmMetadataService";
 import { retrieveMultiple } from "../../../helpers/webAPIClientHelper";
 
-import { getErrorResponse, getTextResponse } from "../CliResponse";
+import { getErrorResponse, getTextResponse } from "../CliResponseUtil";
 import { getCurrentOrgUrl } from "../../../helpers/webAPIClientHelper";
 import { openWindow } from "../../../helpers/util";
-import { getCliResponse } from "../../../helpers/crmutil";
 import { CliResponse } from "../../../interfaces/CliResponse";
 import { ActionParam } from "../../../interfaces/CliData";
+
+import { EntityReference } from "../../../interfaces/EntityReference";
 import {
   STR_NO_RECORDS_FOUND_FOR_CRITERIA,
   STR_ERROR_OCCURRED,
@@ -18,6 +19,7 @@ export const handleCrmOpenActions = async (
   cliData: any
 ): Promise<CliResponse> => {
   let cliResponse: CliResponse = {
+    type:"",
     message: "",
     success: false,
     response: null
@@ -26,10 +28,7 @@ export const handleCrmOpenActions = async (
   const target = cliData.target;
 
   if (IsEmpty(target)) {
-    return getCliResponse(
-      "message",
-      null,
-      "false",
+    return getErrorResponse(
       `Unable to determine the target on which ${
         cliData.action
       } needs to be performed`
@@ -58,19 +57,16 @@ async function handleOpenRecordAction(cliData: any): Promise<CliResponse> {
     let result = await getCRMRecord(cliData);
     let targetRecord = result.entityReference;
 
-    return getCliResponse(
-      "open",
-      targetRecord,
-      true,
+    openRecord(targetRecord);
+
+    return getTextResponse(
       `Record  ${targetRecord != null ? targetRecord.name : ""} with id ${
         targetRecord != null ? targetRecord.id : ""
-      } opened successfully!`
+      } opened successfully!`,
+      targetRecord
     );
   } catch (error) {
-    return {
-      message: `${STR_ERROR_OCCURRED} ${error.message}`,
-      success: false
-    };
+    return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
   }
 }
 
@@ -143,7 +139,7 @@ function getEntityFilter(entityMetadata: any, cliData: any) {
   return entityFilter;
 }
 
-function openRecord(entityreference : any) {
+function openRecord(entityreference: EntityReference) {
   const userUrl = getRecordUrl(entityreference.logicalname, entityreference.id);
   openWindow(userUrl, true);
 }

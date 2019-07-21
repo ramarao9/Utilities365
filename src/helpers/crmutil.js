@@ -7,17 +7,18 @@ export function isValidToken(token) {
     token.accessToken !== undefined
   );
 }
+ 
 
 export function getAuthorizationEndpoint(tenantId) {
   let authUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/authorize`;
   return authUrl;
 }
 
-export function getCliResponse(type, response, success, error) {
+export function getCliResponse(type,message, response, success) {
   var cliResponse = {
     type: type,
     response: response,
-    message: error,
+    message: message,
     success: false
   };
 
@@ -33,5 +34,5 @@ export const getRecordUrl = (orgUrl, logicalName, id) => {
 };
 
 export function getCliErrorResponse(error) {
-  return getCliResponse(null, null, false, error);
+  return getCliResponse("error",error,null, false);
 }

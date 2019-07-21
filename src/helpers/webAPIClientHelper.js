@@ -25,9 +25,35 @@ export function executeUnboundAction(
     });
 }
 
-export const retrieveAttributes = async (entityName,attributeType,attributeProperties,attributeFilter) => {
+export const retrieveAttributes = async (
+  entityName,
+  attributeType,
+  attributeProperties,
+  attributeFilter
+) => {
   let dynamicsWebAPIClient = getWebAPIClient(true);
-  return dynamicsWebAPIClient.retrieveAttributes(entityName,attributeType,attributeProperties,attributeFilter,null);
+  return dynamicsWebAPIClient.retrieveAttributes(
+    entityName,
+    attributeType,
+    attributeProperties,
+    attributeFilter,
+    null
+  );
+};
+
+export const retrieve = async (key, entityCollectionName, select, expand) => {
+  let dynamicsWebAPIClient = getWebAPIClient(true);
+  return dynamicsWebAPIClient.retrieve(
+    key,
+    entityCollectionName,
+    select,
+    expand
+  );
+};
+
+export const retrieveAll = async (entityCollectionName, select, filter) => {
+  let dynamicsWebAPIClient = getWebAPIClient(true);
+  return dynamicsWebAPIClient.retrieveAll(entityCollectionName, select, filter);
 };
 
 export const retrieveRequest = async request => {
@@ -98,22 +124,39 @@ function acquireTokenForRefresh(dynamicsWebApiCallback) {
     }
   }
 
-  var authorizationEndpointUri = crmUtil.getAuthorizationEndpoint(
-    tokenData.tenantId
-  );
+  let tenantId = tokenData.tenantId;
+  let authorizationEndpointUri = "";
+  if (tenantId) {
+    authorizationEndpointUri = crmUtil.getAuthorizationEndpoint(
+      tokenData.tenantId
+    );
+  } else {
+    authorizationEndpointUri = tokenData._authority;
+  }
+
   var authContext = new AdalNode.AuthenticationContext(
     authorizationEndpointUri
   );
 
   let connectionInfo = getConnection(tokenData.resource);
 
-  authContext.acquireTokenWithRefreshToken(
-    tokenData.refreshToken,
-    connectionInfo.appId,
-    null,
-    tokenData.resource,
-    adalCallback
-  );
+  if (tokenData.refreshToken) {
+    authContext.acquireTokenWithRefreshToken(
+      tokenData.refreshToken,
+      connectionInfo.appId,
+      null,
+      tokenData.resource,
+      adalCallback
+    );
+  } else {
+      authContext.acquireTokenWithClientCredentials(
+        connectionInfo.orgUrl,
+        connectionInfo.appId,
+        connectionInfo.clientSecret,
+        adalCallback
+      );
+
+  }
 }
 
 function setTokenOnRequestIfValid(request) {

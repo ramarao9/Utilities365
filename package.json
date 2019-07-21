@@ -38,7 +38,6 @@
     "react-router-dom": "^4.3.1",
     "react-scripts": "^2.1.8",
     "redux": "^4.0.1",
-    "typescript": "^3.5.2",
     "url": "^0.11.0",
     "wait-on": "^3.2.0"
   },
@@ -60,7 +59,9 @@
     "electron": "^4.0.8",
     "electron-builder": "^20.39.0",
     "electron-packager": "^13.1.1",
-    "standard": "^12.0.1"
+    "standard": "^12.0.1",
+    "typescript": "^3.5.3",
+    "typescript-tslint-plugin": "^0.5.4"
   },
   "build": {
     "appId": "com.electron.utilities365",

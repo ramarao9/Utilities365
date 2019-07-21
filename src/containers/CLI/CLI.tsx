@@ -3,13 +3,12 @@ import { Redirect } from "react-router";
 import store from "../../store/store";
 import * as crmUtil from "../../helpers/crmutil";
 import * as actionTypes from "../../store/actions";
-import { Terminal } from "../../components/UI/Terminal/Terminal";
 import IsEmpty from "is-empty";
 import { getCliData } from "../../services/CliParsingService";
 import { PerformCrmAction } from "../../services/CLI/CrmCliService";
-
+import { Terminal } from "../../components/UI/Terminal/Terminal";
 import { CliResponse } from "../../interfaces/CliResponse";
-
+import { TerminalOut } from "../../interfaces/TerminalOut";
 export const CLI: React.FC = () => {
   const [inputText, setInputText] = useState<string>("");
   const [outputs, setOutputs] = useState<Array<any>>([]);
@@ -18,7 +17,7 @@ export const CLI: React.FC = () => {
     if (ev.keyCode !== 13) return;
 
     const cliData = getCliData(inputText);
-    let cliResponse: CliResponse = { success: false, message: "" };
+    let cliResponse: CliResponse = { type: "", success: false, message: "" };
 
     cliResponse = await PerformCrmAction(cliData);
 
@@ -33,14 +32,22 @@ export const CLI: React.FC = () => {
 
   const showActionResult = (cliResponse: CliResponse) => {
     const updatedOutputs = [...outputs];
-    updatedOutputs.push(">" + inputText);
-    updatedOutputs.push(cliResponse.message);
+
+    var commandOut: TerminalOut = { type: "text", message: ">" + inputText };
+    var commandResultOut: TerminalOut = {
+      type: cliResponse.type,
+      data: cliResponse.response,
+      message: cliResponse.message
+    };
+
+    updatedOutputs.push(commandOut);
+    updatedOutputs.push(commandResultOut);
 
     setInputText("");
     setOutputs(updatedOutputs);
   };
 
-  const addTextToOutput = (outputText :string) => {
+  const addTextToOutput = (outputText: string) => {
     const updatedOutputs = [...outputs];
     updatedOutputs.push(outputText);
     setOutputs(updatedOutputs);
@@ -62,7 +69,7 @@ export const CLI: React.FC = () => {
       <div className="terminalContainer">
         <Terminal
           outputs={outputs}
-          terminalInputChange={(event:any) => onTerminalInputChanged(event)}
+          terminalInputChange={(event: any) => onTerminalInputChanged(event)}
           terminalInputKeyUp={onTerminalInputKeyUp}
           inputText={inputText}
         />

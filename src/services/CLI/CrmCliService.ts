@@ -5,6 +5,7 @@ import { CliResponse } from "../../interfaces/CliResponse";
 
 export const PerformCrmAction = async (cliData: any): Promise<CliResponse> => {
   let cliResponse: CliResponse = {
+    type:"",
     message: "",
     success: false,
     response: null

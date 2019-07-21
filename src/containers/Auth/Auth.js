@@ -15,6 +15,8 @@ import {
   getConnection,
   removeConnection
 } from "../../services/LocalStorageService";
+
+import { retrieveAll } from "../../helpers/webAPIClientHelper";
 import * as actionTypes from "../../store/actions";
 import * as crmUtil from "../../helpers/crmutil";
 import "./Auth.css";
@@ -253,20 +255,22 @@ class Auth extends Component {
     return stateOAuth;
   };
 
-  adalCallback = (error, tokenObj) => {
+  adalCallback = async (error, tokenObj) => {
     let connectionInfo = this.getNewConnectionInfo();
     if (tokenObj != null) {
       this.props.onTokenGenerated(tokenObj);
 
       let orgName = connectionInfo.name;
-
-      this.setUserInfo(tokenObj, orgName);
-
       if (connectionInfo.saveConnection) {
         delete connectionInfo.saveConnection;
         connectionInfo["accessToken"] = tokenObj;
+        connectionInfo.authorizationUrl = await this.getAuthorizationUrlFromOrgUrl(
+          connectionInfo.orgUrl
+        );
         saveConnection(connectionInfo);
       }
+
+      await this.setUserInfo(tokenObj, orgName);
     } else {
       let errMsg =
         "Error occured while retrieving the Token: " + error.message + "\n";
@@ -274,9 +278,17 @@ class Auth extends Component {
     }
   };
 
-  setUserInfo = (token, orgName) => {
-    let userFullName = token.givenName + " " + token.familyName;
+  setUserInfo = async (token, orgName) => {
     let userId = token.isUserIdDisplayable ? token.userId : "";
+    let userFullName = "";
+    if (!token.givenName) {
+      let user = await this.getUser(token._clientId.trim());
+      userFullName = user.fullname;
+      userId = user.domainname;
+    } else {
+      userFullName = token.givenName + " " + token.familyName;
+    }
+
     let currentUserInfo = {
       name: userFullName,
       orgName: orgName,
@@ -284,6 +296,20 @@ class Auth extends Component {
     };
 
     this.props.onuserUpdated(currentUserInfo);
+  };
+
+  getUser = async applicationId => {
+    let user = {};
+    let users = await retrieveAll(
+      "systemusers",
+      ["fullname","domainname"],
+      `applicationid eq '${applicationId}'`
+    );
+
+    if (users != null && users.value != null && users.value.length === 1) {
+      user = users.value[0];
+    }
+    return user;
   };
 
   getAuthorizationUrlWithParams = connectionInfo => {
@@ -368,16 +394,26 @@ class Auth extends Component {
     var authContext = new AdalNode.AuthenticationContext(
       connection.authorizationUrl
     );
-    authContext.acquireTokenWithRefreshToken(
-      connection.accessToken.refreshToken,
-      connection.appId,
-      null,
-      connection.accessToken.resource,
-      this.connectToExistingOrgCallback
-    );
+
+    if (connection.accessToken.refreshToken) {
+      authContext.acquireTokenWithRefreshToken(
+        connection.accessToken.refreshToken,
+        connection.appId,
+        null,
+        connection.accessToken.resource,
+        this.connectToExistingOrgCallback
+      );
+    } else {
+      authContext.acquireTokenWithClientCredentials(
+        connection.orgUrl,
+        connection.appId,
+        connection.clientSecret,
+        this.connectToExistingOrgCallback
+      );
+    }
   };
 
-  connectToExistingOrgCallback = (error, token) => {
+  connectToExistingOrgCallback = async (error, token) => {
     if (!error) {
       let connection = getConnection(token.resource);
 
@@ -387,9 +423,9 @@ class Auth extends Component {
 
       let orgName = connection.name;
 
-      this.setUserInfo(token, orgName);
-
       this.props.onTokenGenerated(token);
+
+      await this.setUserInfo(token, orgName);
 
       this.props.history.push("/");
     } else {

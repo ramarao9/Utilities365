@@ -1,21 +1,12 @@
 import { getCliResponse } from "../../../helpers/crmutil";
-import { openWindow } from "../../../helpers/util";
-import * as actionTypes from "../../../store/actions";
+import { STR_ERROR_OCCURRED, STR_NO_RECORDS_FOUND_FOR_CRITERIA } from "../../../helpers/strings";
+import { retrieveMultiple } from "../../../helpers/webAPIClientHelper";
+import { CliData } from "../../../interfaces/CliData";
 import { CliResponse } from "../../../interfaces/CliResponse";
-import { CliData, ActionParam } from "../../../interfaces/CliData";
-
-import {
-  STR_NO_RECORDS_FOUND_FOR_CRITERIA,
-  STR_ERROR_OCCURRED,
-  STR_ONE_OR_MORE_RECORDS_FOUND_FOR_CRITERIA
-} from "../../../helpers/strings";
-
+import * as actionTypes from "../../../store/actions";
 import store from "../../../store/store";
-import {
-  retrieveMultiple,
-  executeUnboundAction,
-  getCurrentOrgUrl
-} from "../../../helpers/webAPIClientHelper";
+
+
 
 export const handleCrmOpenUserActions = async (
   cliData: CliData
@@ -23,6 +14,7 @@ export const handleCrmOpenUserActions = async (
   var hasNoparameters = !cliData.actionParams;
 
   let cliResponse: CliResponse = {
+    type: "",
     message: "",
     success: false,
     response: null
@@ -30,23 +22,18 @@ export const handleCrmOpenUserActions = async (
 
 
   if (hasNoparameters && !cliData.unnamedParam) {
-    
   } else if (cliData.unnamedParam) {
-    
   } else {
     cliResponse = await handleUserActionWithNamedParams(cliData);
   }
   return cliResponse;
 };
 
-
-
-
-
 export const handleUserActionWithNamedParams = async (
   cliData: CliData
 ): Promise<CliResponse> => {
   let cliResponse: CliResponse = {
+    type: "",
     message: "",
     success: false,
     response: null
@@ -127,7 +114,6 @@ function generateFilterString(actionParams: any) {
   return filter;
 }
 
-
 function getDefaultAttributesForSelect() {
   return [
     "fullname",
@@ -140,7 +126,7 @@ function getDefaultAttributesForSelect() {
 }
 
 const getUsersFromCRM = async (
-  cliData : CliData,
+  cliData: CliData,
   selectColumns: Array<string>,
   filter: string,
   onCliActionCompleteCallback: any
@@ -155,14 +141,11 @@ const getUsersFromCRM = async (
   return retrieveUsersResponse;
 };
 
-
-
-
-function updateStoreWithUserData(users : any) {
+function updateStoreWithUserData(users: any) {
   store.dispatch({ type: actionTypes.GET_CRM_USERS, crmUsers: users });
 }
 
-function updateStoreWithUserId(userId : string) {
+function updateStoreWithUserId(userId: string) {
   store.dispatch({
     type: actionTypes.GET_CURRENT_USER_ID,
     currentUserId: userId
