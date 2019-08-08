@@ -7,6 +7,12 @@ import { getConnection, updateToken } from "../services/LocalStorageService";
 import AdalNode from "adal-node";
 const isDev = window.require("electron-is-dev");
 
+export const create = async (createRequest, collectionOrLogicalName) => {
+  let dynamicsWebAPIClient = getWebAPIClient(true);
+  return dynamicsWebAPIClient.create(createRequest, collectionOrLogicalName);
+}
+
+
 export function executeUnboundAction(
   functionName,
   successCallback,
@@ -17,10 +23,10 @@ export function executeUnboundAction(
   let dynamicsWebAPIClient = getWebAPIClient(true);
   dynamicsWebAPIClient
     .executeUnboundFunction(functionName)
-    .then(function(response) {
+    .then(function (response) {
       successCallback(response, passThroughCallback, passThroughObj);
     })
-    .catch(function(error) {
+    .catch(function (error) {
       errorCallback(error, passThroughCallback, passThroughObj);
     });
 }
@@ -149,12 +155,12 @@ function acquireTokenForRefresh(dynamicsWebApiCallback) {
       adalCallback
     );
   } else {
-      authContext.acquireTokenWithClientCredentials(
-        connectionInfo.orgUrl,
-        connectionInfo.appId,
-        connectionInfo.clientSecret,
-        adalCallback
-      );
+    authContext.acquireTokenWithClientCredentials(
+      connectionInfo.orgUrl,
+      connectionInfo.appId,
+      connectionInfo.clientSecret,
+      adalCallback
+    );
 
   }
 }

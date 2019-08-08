@@ -34,7 +34,7 @@ export const handleCrmOpenActions = async (
       } needs to be performed`
     );
 
-    return cliResponse;
+   
   }
 
   switch (target.toLowerCase().trim()) {

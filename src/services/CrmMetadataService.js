@@ -37,9 +37,13 @@ export const getEntities = async () => {
 };
 
 export const getEntityAttributes = async entityName => {
-  let entityAttributes = getEntityAttributeCollectionFromStore(entityName);
+  let entitiesAttributes = getEntitiesAttributeCollectionFromStore(entityName);
 
-  if (entityAttributes == null || entityAttributes.length === 0) {
+  let entityAttributeCollection = entitiesAttributes != null ? entitiesAttributes.find(
+    x => x.Logicalname === entityName
+  ) : null;
+
+  if (entityAttributeCollection == null || entityAttributeCollection.Attributes == null || entityAttributeCollection.Attributes.length === 0) {
     const attributeProperties = getAttributeProperties();
 
     let retrieveAttributesResponse = await retrieveAttributes(
@@ -50,10 +54,28 @@ export const getEntityAttributes = async entityName => {
       null
     );
 
-    var s = 100;
+    var attributes = retrieveAttributesResponse.value;
+
+
+    let entityMetadata = await getEntityMetadata(entityName);
+
+
+    entityAttributeCollection = {
+      LogicalName: entityName,
+      Attributes: attributes,
+      LogicalCollectionName: entityMetadata.LogicalCollectionName,
+      ObjectTypeCode:entityMetadata.ObjectTypeCode,
+      SchemaName:entityMetadata.SchemaName
+    };
+
+    if (entitiesAttributes == null) {
+      entitiesAttributes = [];
+    }
+    entitiesAttributes.push(entityAttributeCollection);
+    updateEntitiesAttributesInStore(entitiesAttributes);
   }
 
-  return entityAttributes;
+  return entityAttributeCollection;
 };
 
 const getRetrieveAttributesRequest = entityName => {
@@ -75,7 +97,7 @@ function filterEntityByName(entityMetadata, i, entities) {
     (entityMetadata.DisplayName.UserLocalizedLabel != null &&
       entityMetadata.DisplayName.UserLocalizedLabel.Label != null &&
       entityMetadata.DisplayName.UserLocalizedLabel.Label.toLowerCase() ===
-        entityToFilterBy)
+      entityToFilterBy)
   );
 }
 
@@ -85,26 +107,21 @@ function getEntitiesFromStore() {
   return currentState != null ? currentState.entities : null;
 }
 
-function getEntityAttributeCollectionFromStore(entityName) {
+function getEntitiesAttributeCollectionFromStore(entityName) {
   const currentState = store.getState();
 
-  let entityAttributes =
+  let entitiesAttributeCollection =
     currentState != null ? currentState.entitiesAttributeCollection : null;
 
-  if (entityAttributes == null) return null;
 
-  let entityAttributeCollection = entityAttributes.find(
-    x => x.Logicalname === "entityName"
-  );
-
-  return entityAttributeCollection;
+  return entitiesAttributeCollection;
 }
 
 function updateEntitiesInStore(entities) {
   store.dispatch({ type: actionTypes.SET_ENTITIES, entities: entities });
 }
 
-function updateEntityAttributesInStore(entitiesAttributeCollection) {
+function updateEntitiesAttributesInStore(entitiesAttributeCollection) {
   store.dispatch({
     type: actionTypes.SET_ENTITIES_ATTRIBUTE_COLLECTION,
     entitiesAttributeCollection: entitiesAttributeCollection
