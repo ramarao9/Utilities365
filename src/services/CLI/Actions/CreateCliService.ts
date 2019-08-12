@@ -12,6 +12,7 @@ import {
 import {
   STR_ERROR_OCCURRED
 } from "../../../helpers/strings";
+import { string } from "prop-types";
 
 export const handleCrmCreateActions = async (cliData: CliData) => {
   let cliResponse: CliResponse = { message: "", success: false, type: "" };
@@ -60,30 +61,43 @@ const getCreateRequestBody = (targetEntityMetadata: EntityMetadata, cliData: Cli
         let attributeMetadata = attributesMetadata.find(x => x.LogicalName === attributeLogicalName);
         if (attributeMetadata != null) {
 
-          let attributeType: string = attributeMetadata["AttributeTypeName"].Value;
+          let attributeType: string = attributeMetadata["AttributeType"];
 
           switch (attributeType.toLowerCase()) {
 
-            case "datetimetype":
+            case "datetime": let isValid: boolean = isValidDate(attributeValue);
+              if (!isValid) {
+                throw new Error(`Invalid Date format for ${attributeLogicalName}. Please specify it in a valid format and try again.`);
+              }
+              let dateTimeBehavior: string = attributeMetadata.DateTimeBehavior.Value;
+              if (dateTimeBehavior.toLowerCase() === "dateonly") {
+                createRequest[attributeLogicalName] = formatDate(attributeValue);
+              }
+              else {
+                createRequest[attributeLogicalName] = (new Date(attributeValue)).toISOString();
+              }
 
               break;
 
-            case "integertype":
-            case "doubletype":
-            case "moneytype":
+            case "integer":
+            case "double":
+            case "money":
               break;
 
-            case "picklisttype":
-              //To do: should parse string value
+            case "picklist": let selectedCode = selectedPickList(attributeMetadata, attributeValue);
+              if (selectedCode === -1) {
+                throw new Error(`Invalid Picklist value for ${attributeLogicalName}. Please specify one of the following values and try again.`);
+              }
+              createRequest[attributeLogicalName] = selectedCode;
               break;
 
-            case "booleantype": createRequest[attributeLogicalName] =
+            case "boolean": createRequest[attributeLogicalName] =
               (attributeValue.toLowerCase() === "y" ||
                 attributeValue.toLowerCase() === "true" ||
                 attributeValue.toLowerCase() === "1")
               break;
 
-            case "lookuptype":
+            case "lookup":
               //should match lookups on string value
               break;
 
@@ -102,7 +116,35 @@ const getCreateRequestBody = (targetEntityMetadata: EntityMetadata, cliData: Cli
   return createRequest;
 };
 
+//Formats date to yyyy-MM-dd
+const formatDate = (date: string) => {
+  var d = new Date(date),
+    month = '' + (d.getMonth() + 1),
+    day = '' + d.getDate(),
+    year = d.getFullYear();
 
+  if (month.length < 2) month = '0' + month;
+  if (day.length < 2) day = '0' + day;
+
+  return [year, month, day].join('-');
+}
+
+const isValidDate = (dateStr: string): boolean => {
+  var parsedDate = Date.parse(dateStr);
+  return !isNaN(parsedDate);
+}
+
+
+const selectedPickList = (attributeMetadata: any, value: string): number => {
+
+  let selectedCode: number = -1;
+
+  //check on the interger values
+
+  //If no match found check for the matching string values
+
+  return selectedCode;
+}
 
 
 export default handleCrmCreateActions;

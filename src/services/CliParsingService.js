@@ -85,7 +85,7 @@ function getActionParams(actionParamsStr) {
     actionsParams = actionParamsSplit.map(paramStr => {
         const indexOfFirstSpace = paramStr.indexOf(EMPTY_SPACE);
         const paramName = getFirstSubStringbyDelimiter(EMPTY_SPACE, paramStr);
-        const paramval = paramStr.substring(indexOfFirstSpace).trim();
+        const paramval = paramStr.substring(indexOfFirstSpace).replace(/['"]+/g, '').trim();
         return new ActionParam(paramName, paramval);
     }
     );

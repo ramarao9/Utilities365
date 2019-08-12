@@ -44,12 +44,10 @@ export const getEntityAttributes = async entityName => {
   ) : null;
 
   if (entityAttributeCollection == null || entityAttributeCollection.Attributes == null || entityAttributeCollection.Attributes.length === 0) {
-    const attributeProperties = getAttributeProperties();
-
     let retrieveAttributesResponse = await retrieveAttributes(
       `LogicalName='${entityName}'`,
       null,
-      attributeProperties,
+      null,
       null,
       null
     );
@@ -149,7 +147,8 @@ function getAttributeProperties() {
     "DisplayName",
     "AttributeTypeName",
     "LogicalName",
-    "SchemaName"
+    "SchemaName",
+    "DateTimeBehavior.Value"
   ];
 
   return attributeProperties;
