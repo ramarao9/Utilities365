@@ -2,7 +2,7 @@ import IsEmpty from "is-empty";
 import { create } from "../../../helpers/webAPIClientHelper"
 import { CliData } from "../../../interfaces/CliData"
 import { CliResponse } from "../../../interfaces/CliResponse"
-import { EntityMetadata } from "../../../interfaces/EntityMetadata"
+import { EntityMetadata, PicklistMetadata, Option, OptionData } from "../../../interfaces/EntityMetadata"
 import { getErrorResponse, getTextResponse } from "../CliResponseUtil";
 import {
   getEntityMetadata,
@@ -51,6 +51,8 @@ const getCreateRequestBody = (targetEntityMetadata: EntityMetadata, cliData: Cli
 
   let attributesMetadata = targetEntityMetadata.Attributes;
 
+  let picklistAttributes = targetEntityMetadata.PicklistAttributes;
+
   if (cliData.actionParams != null) {
 
     cliData.actionParams.forEach(param => {
@@ -59,54 +61,60 @@ const getCreateRequestBody = (targetEntityMetadata: EntityMetadata, cliData: Cli
         let attributeValue: string = param.value;
         let attributeLogicalName: string = param.name.toLowerCase();
         let attributeMetadata = attributesMetadata.find(x => x.LogicalName === attributeLogicalName);
-        if (attributeMetadata != null) {
-
-          let attributeType: string = attributeMetadata["AttributeType"];
-
-          switch (attributeType.toLowerCase()) {
-
-            case "datetime": let isValid: boolean = isValidDate(attributeValue);
-              if (!isValid) {
-                throw new Error(`Invalid Date format for ${attributeLogicalName}. Please specify it in a valid format and try again.`);
-              }
-              let dateTimeBehavior: string = attributeMetadata.DateTimeBehavior.Value;
-              if (dateTimeBehavior.toLowerCase() === "dateonly") {
-                createRequest[attributeLogicalName] = formatDate(attributeValue);
-              }
-              else {
-                createRequest[attributeLogicalName] = (new Date(attributeValue)).toISOString();
-              }
-
-              break;
-
-            case "integer":
-            case "double":
-            case "money":
-              break;
-
-            case "picklist": let selectedCode = selectedPickList(attributeMetadata, attributeValue);
-              if (selectedCode === -1) {
-                throw new Error(`Invalid Picklist value for ${attributeLogicalName}. Please specify one of the following values and try again.`);
-              }
-              createRequest[attributeLogicalName] = selectedCode;
-              break;
-
-            case "boolean": createRequest[attributeLogicalName] =
-              (attributeValue.toLowerCase() === "y" ||
-                attributeValue.toLowerCase() === "true" ||
-                attributeValue.toLowerCase() === "1")
-              break;
-
-            case "lookup":
-              //should match lookups on string value
-              break;
-
-            default: createRequest[attributeLogicalName] = attributeValue;
-              break;
-          }
 
 
+        if (attributeMetadata == null)
+          throw new Error(`Invalid attribute ${attributeLogicalName}. Please check the attribute and try again`);
+
+        let attributeType: string = attributeMetadata["AttributeType"];
+
+        switch (attributeType.toLowerCase()) {
+
+          case "datetime": let isValid: boolean = isValidDate(attributeValue);
+            if (!isValid) {
+              throw new Error(`Invalid Date format for ${attributeLogicalName}. Please specify it in a valid format and try again.`);
+            }
+            let dateTimeBehavior: string = attributeMetadata.DateTimeBehavior.Value;
+            if (dateTimeBehavior.toLowerCase() === "dateonly") {
+              createRequest[attributeLogicalName] = formatDate(attributeValue);
+            }
+            else {
+              createRequest[attributeLogicalName] = (new Date(attributeValue)).toISOString();
+            }
+
+            break;
+
+          case "integer":
+          case "double":
+          case "money":
+            break;
+
+          case "picklist":
+            let attributePicklistmetadata = picklistAttributes.find(x => x.LogicalName === attributeLogicalName);
+            let selectedCode = selectedPickList(attributePicklistmetadata!!, attributeValue);
+            if (selectedCode === -1) {
+              let availableOptionsJSON = getAvailableOptionsJSON(attributePicklistmetadata!!);
+              throw new Error(`Invalid Picklist value for ${attributeLogicalName}. Please specify one of the following values ${availableOptionsJSON} and try again.`);
+            }
+            createRequest[attributeLogicalName] = selectedCode;
+            break;
+
+          case "boolean": createRequest[attributeLogicalName] =
+            (attributeValue.toLowerCase() === "y" ||
+              attributeValue.toLowerCase() === "true" ||
+              attributeValue.toLowerCase() === "1")
+            break;
+
+          case "lookup":
+            //should match lookups on string value
+            break;
+
+          default: createRequest[attributeLogicalName] = attributeValue;
+            break;
         }
+
+
+
 
 
       }
@@ -135,16 +143,41 @@ const isValidDate = (dateStr: string): boolean => {
 }
 
 
-const selectedPickList = (attributeMetadata: any, value: string): number => {
+const selectedPickList = (attributePicklistmetadata: PicklistMetadata, value: string): number => {
 
   let selectedCode: number = -1;
 
-  //check on the interger values
+  let options: Array<Option> = attributePicklistmetadata.OptionSet.Options;
 
-  //If no match found check for the matching string values
+  let optionSetCode = parseInt(value);
+
+  if (isNaN(optionSetCode)) {
+    let option = options.find(x => x.Label.UserLocalizedLabel.Label.toLowerCase() === value.toLowerCase());
+    if (option != null) {
+      selectedCode = option.Value;
+    }
+  }
+  else {
+
+    let option = options.find(x => x.Value === optionSetCode);
+    if (option != null) {
+      selectedCode = optionSetCode;
+    }
+
+  }
 
   return selectedCode;
 }
 
+
+const getAvailableOptionsJSON = (attributePicklistmetadata: PicklistMetadata): string => {
+  let availableOptions = Array<OptionData>();
+  attributePicklistmetadata.OptionSet.Options.forEach(option => {
+    let optionData = { Label: option.Label.UserLocalizedLabel.Label, Value: option.Value };
+    availableOptions.push(optionData);
+  });
+  let optionsJSON: string = JSON.stringify(availableOptions);
+  return optionsJSON;
+}
 
 export default handleCrmCreateActions;

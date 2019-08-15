@@ -35,7 +35,8 @@ export const retrieveAttributes = async (
   entityName,
   attributeType,
   attributeProperties,
-  attributeFilter
+  attributeFilter,
+  attributeExpand
 ) => {
   let dynamicsWebAPIClient = getWebAPIClient(true);
   return dynamicsWebAPIClient.retrieveAttributes(
@@ -43,7 +44,7 @@ export const retrieveAttributes = async (
     attributeType,
     attributeProperties,
     attributeFilter,
-    null
+    attributeExpand
   );
 };
 

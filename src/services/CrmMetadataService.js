@@ -57,13 +57,21 @@ export const getEntityAttributes = async entityName => {
 
     let entityMetadata = await getEntityMetadata(entityName);
 
+    let retrievePicklistResponse = await retrieveAttributes(`LogicalName='${entityName}'`,
+      "Microsoft.Dynamics.CRM.PicklistAttributeMetadata",
+      ["LogicalName"], null,
+      "OptionSet");
+
+    let entityPicklistAttributes = retrievePicklistResponse.value;
+
 
     entityAttributeCollection = {
       LogicalName: entityName,
       Attributes: attributes,
       LogicalCollectionName: entityMetadata.LogicalCollectionName,
-      ObjectTypeCode:entityMetadata.ObjectTypeCode,
-      SchemaName:entityMetadata.SchemaName
+      ObjectTypeCode: entityMetadata.ObjectTypeCode,
+      SchemaName: entityMetadata.SchemaName,
+      PicklistAttributes: entityPicklistAttributes
     };
 
     if (entitiesAttributes == null) {
