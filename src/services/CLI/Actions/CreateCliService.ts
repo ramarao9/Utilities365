@@ -2,7 +2,7 @@ import IsEmpty from "is-empty";
 import { create } from "../../../helpers/webAPIClientHelper"
 import { CliData } from "../../../interfaces/CliData"
 import { CliResponse } from "../../../interfaces/CliResponse"
-import { EntityMetadata, PicklistMetadata, Option, OptionData } from "../../../interfaces/EntityMetadata"
+import { EntityMetadata, PicklistMetadata, Option, OptionData, AttributeMetadata } from "../../../interfaces/EntityMetadata"
 import { getErrorResponse, getTextResponse } from "../CliResponseUtil";
 import {
   getEntityMetadata,
@@ -72,7 +72,7 @@ const getCreateRequestBody = (targetEntityMetadata: EntityMetadata, cliData: Cli
 
           case "datetime": let isValid: boolean = isValidDate(attributeValue);
             if (!isValid) {
-              throw new Error(`Invalid Date format for ${attributeLogicalName}. Please specify it in a valid format and try again.`);
+              throw new Error(`Invalid date format for ${attributeLogicalName}. Please specify it in a valid format and try again.`);
             }
             let dateTimeBehavior: string = attributeMetadata.DateTimeBehavior.Value;
             if (dateTimeBehavior.toLowerCase() === "dateonly") {
@@ -84,9 +84,19 @@ const getCreateRequestBody = (targetEntityMetadata: EntityMetadata, cliData: Cli
 
             break;
 
-          case "integer":
+          case "integer": let attNumberVal = getIntegerIfValid(attributeValue)
+            if (attributeValue != null && attNumberVal == null) {
+              throw new Error(`Invalid integer format for ${attributeLogicalName}. Please specify it in a valid format and try again.`);
+            }
+            createRequest[attributeLogicalName] = attNumberVal;
+            break;
+
           case "double":
-          case "money":
+          case "money": let floatVal = getFloatIfValid(attributeValue);
+            if (attributeValue != null && floatVal == null) {
+              throw new Error(`Invalid ${attributeType} format for ${attributeLogicalName}. Please specify it in a valid format and try again.`);
+            }
+            createRequest[attributeLogicalName] = floatVal;
             break;
 
           case "picklist":
@@ -105,7 +115,10 @@ const getCreateRequestBody = (targetEntityMetadata: EntityMetadata, cliData: Cli
               attributeValue.toLowerCase() === "1")
             break;
 
-          case "lookup":
+          case "lookup": let targetLookupEntity = attributeMetadata.Targets[0];
+
+            let targetEntityMetadataValue = getEntityMetadata(targetLookupEntity);
+           
             //should match lookups on string value
             break;
 
@@ -142,6 +155,22 @@ const isValidDate = (dateStr: string): boolean => {
   return !isNaN(parsedDate);
 }
 
+const getIntegerIfValid = (numberStr: string) => {
+
+  let numberVal = parseInt(numberStr);
+
+  if (isNaN(numberVal)) {
+    return null;
+  }
+
+  return numberVal
+
+}
+
+const getFloatIfValid = (floatStr: string) => {
+  let floatVal = parseFloat(floatStr);
+  return isNaN(floatVal) ? null : floatVal;
+}
 
 const selectedPickList = (attributePicklistmetadata: PicklistMetadata, value: string): number => {
 
