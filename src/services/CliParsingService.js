@@ -1,7 +1,7 @@
 
 import IsEmpty from 'is-empty';
 const EMPTY_SPACE = " ";
-const ACTION_PARAM_DELIMITER = "--";
+const ACTION_PARAM_DELIMITER = "-";
 
 function CliData(action, target, unnamedParam, actionParams) {
     this.action = action;//action like open, create, update etc.
@@ -24,7 +24,7 @@ export function getCliData(userInput) {
 
     userInput = userInput.trim();
 
-    const action = getFirstSubStringbyDelimiter(EMPTY_SPACE, userInput);
+    let action = getFirstSubStringbyDelimiter(EMPTY_SPACE, userInput);
 
     const indexOfFirstSpace = userInput.indexOf(EMPTY_SPACE);
     const userInputWithoutAction = userInput.substr(indexOfFirstSpace).trim();
@@ -33,7 +33,7 @@ export function getCliData(userInput) {
     let actionParams = null;
     let unnamedParam = null;
     if (actionTarget === null) {
-        actionTarget = userInputWithoutAction // since there are no parameters
+        action = userInputWithoutAction // since there are no parameters
     }
     else {
         const indexOfSecondSpace = userInputWithoutAction.indexOf(EMPTY_SPACE);
@@ -85,7 +85,8 @@ function getActionParams(actionParamsStr) {
     actionsParams = actionParamsSplit.map(paramStr => {
         const indexOfFirstSpace = paramStr.indexOf(EMPTY_SPACE);
         const paramName = getFirstSubStringbyDelimiter(EMPTY_SPACE, paramStr);
-        const paramval = paramStr.substring(indexOfFirstSpace).replace(/['"]+/g, '').trim();
+        const paramval = paramStr.substring(indexOfFirstSpace).replace(/["]+/g, "").trim();
+       // const paramval = paramStr.substring(indexOfFirstSpace).trim();
         return new ActionParam(paramName, paramval);
     }
     );

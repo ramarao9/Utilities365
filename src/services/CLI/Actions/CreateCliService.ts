@@ -1,5 +1,5 @@
 import IsEmpty from "is-empty";
-import { create } from "../../../helpers/webAPIClientHelper"
+import { create, retrieveAll } from "../../../helpers/webAPIClientHelper"
 import { CliData } from "../../../interfaces/CliData"
 import { CliResponse } from "../../../interfaces/CliResponse"
 import { EntityMetadata, PicklistMetadata, Option, OptionData, AttributeMetadata } from "../../../interfaces/EntityMetadata"
@@ -34,28 +34,25 @@ export const handleCrmCreateActions = async (cliData: CliData) => {
 //
 const createRecord = async (cliData: CliData) => {
 
-
-
   let targetEntityMetadata: EntityMetadata = await getEntityAttributes(cliData.target);
 
-  let createRequest = getCreateRequestBody(targetEntityMetadata, cliData);
+  let createRequest = await getCreateRequestBody(targetEntityMetadata, cliData);
 
   let createResponse = await create(createRequest, targetEntityMetadata.LogicalCollectionName);
 
-
-
 };
 
-const getCreateRequestBody = (targetEntityMetadata: EntityMetadata, cliData: CliData) => {
+const getCreateRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: CliData) => {
   var createRequest: any = {};
 
   let attributesMetadata = targetEntityMetadata.Attributes;
 
+
   let picklistAttributes = targetEntityMetadata.PicklistAttributes;
 
   if (cliData.actionParams != null) {
-
-    cliData.actionParams.forEach(param => {
+    for (let i = 0; i < cliData.actionParams.length; i++) {
+      let param = cliData.actionParams[i];
       if (param != null && param.name != null && param.value != null) {
 
         let attributeValue: string = param.value;
@@ -115,30 +112,51 @@ const getCreateRequestBody = (targetEntityMetadata: EntityMetadata, cliData: Cli
               attributeValue.toLowerCase() === "1")
             break;
 
-          case "lookup": let targetLookupEntity = attributeMetadata.Targets[0];
+          case "lookup":
+            let targetLookupEntity = attributeMetadata.Targets[0];
 
-            let targetEntityMetadataValue = getEntityMetadata(targetLookupEntity);
-           
-            //should match lookups on string value
+            let targetLookupEntityMetadata = await getEntityMetadata(targetLookupEntity) as EntityMetadata;
+            let targetEntityPrimaryIdAttribute = targetLookupEntityMetadata.PrimaryIdAttribute;
+            let targetEntityPrimaryNameAttribute = targetLookupEntityMetadata.PrimaryNameAttribute;
+            let targetEntityCollectionName = targetLookupEntityMetadata.LogicalCollectionName;
+
+
+            let targetGuid = null;
+            let guidIsValid = isValidGuid(attributeValue);
+            if (!guidIsValid) {
+              let filter: string = `${targetEntityPrimaryNameAttribute} eq '${attributeValue}'`;
+              if (attributeValue.indexOf("$filter") != -1) {
+                filter = attributeValue.replace("$filter=","");
+              }
+              let retrieveResp = await retrieveAll(targetEntityCollectionName, [targetEntityPrimaryIdAttribute], filter);
+              if (retrieveResp.value != null && retrieveResp.value.length === 1) {
+                let targetEnt = retrieveResp.value[0];
+                targetGuid = targetEnt[targetEntityPrimaryIdAttribute];
+              }
+            }
+            else {
+              targetGuid = attributeValue;
+            }
+            if (targetGuid != null) {
+              createRequest[`${attributeLogicalName}@odata.bind`] = `${targetEntityCollectionName}(${targetGuid})`;
+            }
+            break;
+
+          case "customer"://Todo :-Not supported at this time, might need to revisit in the future
             break;
 
           default: createRequest[attributeLogicalName] = attributeValue;
             break;
         }
-
-
-
-
-
       }
-    });
+    }
   }
 
   return createRequest;
 };
 
 //Formats date to yyyy-MM-dd
-const formatDate = (date: string) => {
+function formatDate(date: string) {
   var d = new Date(date),
     month = '' + (d.getMonth() + 1),
     day = '' + d.getDate(),
@@ -150,12 +168,12 @@ const formatDate = (date: string) => {
   return [year, month, day].join('-');
 }
 
-const isValidDate = (dateStr: string): boolean => {
+function isValidDate(dateStr: string): boolean {
   var parsedDate = Date.parse(dateStr);
   return !isNaN(parsedDate);
 }
 
-const getIntegerIfValid = (numberStr: string) => {
+function getIntegerIfValid(numberStr: string) {
 
   let numberVal = parseInt(numberStr);
 
@@ -167,12 +185,12 @@ const getIntegerIfValid = (numberStr: string) => {
 
 }
 
-const getFloatIfValid = (floatStr: string) => {
+function getFloatIfValid(floatStr: string) {
   let floatVal = parseFloat(floatStr);
   return isNaN(floatVal) ? null : floatVal;
 }
 
-const selectedPickList = (attributePicklistmetadata: PicklistMetadata, value: string): number => {
+function selectedPickList(attributePicklistmetadata: PicklistMetadata, value: string): number {
 
   let selectedCode: number = -1;
 
@@ -199,7 +217,7 @@ const selectedPickList = (attributePicklistmetadata: PicklistMetadata, value: st
 }
 
 
-const getAvailableOptionsJSON = (attributePicklistmetadata: PicklistMetadata): string => {
+function getAvailableOptionsJSON(attributePicklistmetadata: PicklistMetadata): string {
   let availableOptions = Array<OptionData>();
   attributePicklistmetadata.OptionSet.Options.forEach(option => {
     let optionData = { Label: option.Label.UserLocalizedLabel.Label, Value: option.Value };
@@ -207,6 +225,11 @@ const getAvailableOptionsJSON = (attributePicklistmetadata: PicklistMetadata): s
   });
   let optionsJSON: string = JSON.stringify(availableOptions);
   return optionsJSON;
+}
+
+function isValidGuid(id: string): boolean {
+  let isValid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+  return isValid;
 }
 
 export default handleCrmCreateActions;

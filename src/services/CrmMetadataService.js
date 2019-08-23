@@ -37,13 +37,13 @@ export const getEntities = async () => {
 };
 
 export const getEntityAttributes = async entityName => {
-  let entitiesAttributes = getEntitiesAttributeCollectionFromStore(entityName);
+  let entitiesAttributeMetadata = getEntitiesAttributeCollectionFromStore(entityName);
 
-  let entityAttributeCollection = entitiesAttributes != null ? entitiesAttributes.find(
-    x => x.Logicalname === entityName
+  let entityMetadata = entitiesAttributeMetadata != null ? entitiesAttributeMetadata.find(
+    x => x.LogicalName === entityName
   ) : null;
 
-  if (entityAttributeCollection == null || entityAttributeCollection.Attributes == null || entityAttributeCollection.Attributes.length === 0) {
+  if (entityMetadata == null || entityMetadata.Attributes == null || entityMetadata.Attributes.length === 0) {
     let retrieveAttributesResponse = await retrieveAttributes(
       `LogicalName='${entityName}'`,
       null,
@@ -55,7 +55,7 @@ export const getEntityAttributes = async entityName => {
     var attributes = retrieveAttributesResponse.value;
 
 
-    let entityMetadata = await getEntityMetadata(entityName);
+    entityMetadata = await getEntityMetadata(entityName);
 
     let retrievePicklistResponse = await retrieveAttributes(`LogicalName='${entityName}'`,
       "Microsoft.Dynamics.CRM.PicklistAttributeMetadata",
@@ -64,24 +64,17 @@ export const getEntityAttributes = async entityName => {
 
     let entityPicklistAttributes = retrievePicklistResponse.value;
 
+    entityMetadata.Attributes = attributes;
+    entityMetadata.PicklistAttributes = entityPicklistAttributes;
 
-    entityAttributeCollection = {
-      LogicalName: entityName,
-      Attributes: attributes,
-      LogicalCollectionName: entityMetadata.LogicalCollectionName,
-      ObjectTypeCode: entityMetadata.ObjectTypeCode,
-      SchemaName: entityMetadata.SchemaName,
-      PicklistAttributes: entityPicklistAttributes
-    };
-
-    if (entitiesAttributes == null) {
-      entitiesAttributes = [];
+    if (entitiesAttributeMetadata == null) {
+      entitiesAttributeMetadata = [];
     }
-    entitiesAttributes.push(entityAttributeCollection);
-    updateEntitiesAttributesInStore(entitiesAttributes);
+    entitiesAttributeMetadata.push(entityMetadata);
+    updateEntitiesAttributesInStore(entitiesAttributeMetadata);
   }
 
-  return entityAttributeCollection;
+  return entityMetadata;
 };
 
 const getRetrieveAttributesRequest = entityName => {
