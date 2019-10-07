@@ -7,7 +7,7 @@ import { terminalOutput as TerminalOutput } from "./TerminalOutput/TerminalOutpu
 interface TerminalProp {
   outputs: Array<TerminalOut>;
   terminalInputChange: any;
-  terminalInputKeyUp: any;
+  terminalInputKeyDown: any;
   inputText: string;
 }
 
@@ -24,7 +24,7 @@ export const Terminal: React.FC<TerminalProp> = (terminalProp: TerminalProp) => 
       {terminalOutputs}
       <TerminalInput
         onInputChange={terminalProp.terminalInputChange}
-        onInputKeyUp={terminalProp.terminalInputKeyUp}
+        onInputKeyDown={terminalProp.terminalInputKeyDown}
         terminalInputText={terminalProp.inputText}
       />
     </div>

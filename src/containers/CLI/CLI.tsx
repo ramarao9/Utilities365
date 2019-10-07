@@ -17,12 +17,13 @@ const KEYCODE_ENTER = 13;
 
 
 export const CLI: React.FC = () => {
+  const [variables, setVariables] = useState<any>({});
   const [inputText, setInputText] = useState<string>("");
   const [outputs, setOutputs] = useState<Array<any>>([]);
-  const [commandsHistoryCurrentIndex, setCommandsHistoryCurrentIndex] = useState<number>(0);
+  const [commandsHistoryCurrentIndex, setCommandsHistoryCurrentIndex] = useState<number>(-1);
   const [commandsHistory, setCommandsHistory] = useState<Array<string>>([]);
 
-  const onTerminalInputKeyUp = async (ev: any) => {
+  const onTerminalInputKeyDown = async (ev: any) => {
 
     if (ev.keyCode === KEYCODE_UP || ev.keyCode === KEYCODE_DOWN) {
       setCurrentCommandFromHistory(ev.keyCode);
@@ -41,32 +42,38 @@ export const CLI: React.FC = () => {
         case "clear": clearTerminal();
           return;
 
+
+
       }
     }
 
     cliResponse = await PerformCrmAction(cliDataVal);
-    showActionResult(cliResponse);
+    showActionResult(cliResponse, cliDataVal);
   };
 
 
 
   const setCurrentCommandFromHistory = (keyCode: number) => {
 
-    if (commandsHistory.length === 0)
+    let commandsHistoryArrLength = commandsHistory.length;
+
+    if (commandsHistoryArrLength === 0)
       return;
 
     let updatedCommandsHistoryCurrentIndex = commandsHistoryCurrentIndex;
-    if (keyCode == KEYCODE_UP) {
-      updatedCommandsHistoryCurrentIndex = commandsHistory.length > 1 ? ++updatedCommandsHistoryCurrentIndex : 0;
+    if (keyCode === KEYCODE_DOWN) {
+      updatedCommandsHistoryCurrentIndex = (updatedCommandsHistoryCurrentIndex + 1 >= commandsHistoryArrLength) ?
+        commandsHistoryArrLength - 1 :
+        ++updatedCommandsHistoryCurrentIndex;
     }
-    else if (keyCode === KEYCODE_DOWN) {
-      updatedCommandsHistoryCurrentIndex = commandsHistory.length > 1 ? --updatedCommandsHistoryCurrentIndex : 0;
+    else if (keyCode === KEYCODE_UP) {
+      updatedCommandsHistoryCurrentIndex = (inputText === "") ? commandsHistoryArrLength - 1 :
+        ((updatedCommandsHistoryCurrentIndex === 0) ? 0 : --updatedCommandsHistoryCurrentIndex);
     }
 
     let updatedInputText = commandsHistory[updatedCommandsHistoryCurrentIndex];
     setInputText(updatedInputText);
     setCommandsHistoryCurrentIndex(updatedCommandsHistoryCurrentIndex);
-
   }
 
 
@@ -77,10 +84,10 @@ export const CLI: React.FC = () => {
   const clearTerminal = () => {
     setInputText("");
     setOutputs([]);
-
+    setVariables({});
   }
 
-  const showActionResult = (cliResponse: CliResponse) => {
+  const showActionResult = (cliResponse: CliResponse, cliData: CliData) => {
     const updatedOutputs = [...outputs];
     const updatedCommandsHistory = [...commandsHistory];
 
@@ -91,13 +98,33 @@ export const CLI: React.FC = () => {
       message: cliResponse.message
     };
 
+    if (cliData.cliOutput != null && cliData.cliOutput.render) {
+      commandResultOut.type = cliData.cliOutput.format;
+    }
+
+
+    let updatedVariables = { ...variables };
+    if (cliData.outputVariable) {
+      updatedVariables[cliData.outputVariable] = cliResponse.response;
+    }
+    else {
+      updatedVariables["result"] = cliResponse.response;
+    }
+
+
+
+
     updatedOutputs.push(commandOut);
     updatedOutputs.push(commandResultOut);
     updatedCommandsHistory.push(inputText);
 
+
     setInputText("");
     setOutputs(updatedOutputs);
+    setVariables(updatedVariables);
     setCommandsHistory(updatedCommandsHistory);
+    setCommandsHistoryCurrentIndex(updatedCommandsHistory.length - 1);
+
   };
 
 
@@ -122,16 +149,14 @@ export const CLI: React.FC = () => {
 
   return (
     <div>
-      <h2>CLI</h2>
-
-      <div className="terminalContainer">
-        <Terminal
+    <h2>CLI </h2>
+    <div className="terminalContainer">
+      <Terminal
           outputs={outputs}
-          terminalInputChange={(event: any) => onTerminalInputChanged(event)}
-          terminalInputKeyUp={onTerminalInputKeyUp}
-          inputText={inputText}
-        />
-      </div>
-    </div>
+  terminalInputChange={(event: any) => onTerminalInputChanged(event)}
+terminalInputKeyDown={onTerminalInputKeyDown}
+inputText={inputText} />
+  </div>
+  </div>
   );
 };

@@ -1,5 +1,6 @@
 import { handleCrmOpenActions } from "../CLI/Actions/OpenCliService";
 import { handleCrmCreateActions } from "../CLI/Actions/CreateCliService";
+import {handleCrmGetActions} from "../CLI/Actions/GetCliService";
 import IsEmpty from "is-empty";
 
 import { CliResponse } from "../../interfaces/CliResponse";
@@ -25,6 +26,9 @@ export const PerformCrmAction = async (cliData: any): Promise<CliResponse> => {
     case "create":
       cliResponse = await handleCrmCreateActions(cliData);
       break;
+
+    case "get":
+      cliResponse = await handleCrmGetActions(cliData);
   }
 
   return cliResponse;

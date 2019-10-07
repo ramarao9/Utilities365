@@ -3,11 +3,13 @@ import IsEmpty from 'is-empty';
 const EMPTY_SPACE = " ";
 const ACTION_PARAM_DELIMITER = "-";
 
-function CliData(action, target, unnamedParam, actionParams) {
+function CliData(action, target, unnamedParam, actionParams, outputVariable, cliOutput) {
     this.action = action;//action like open, create, update etc.
     this.target = target;//Specify the Target component ex: entity, control etc.
     this.unnamedParam = unnamedParam;
     this.actionParams = actionParams;//Parameters needed for the action on the target
+    this.outputVariable = outputVariable;
+    this.cliOutput = cliOutput;
 }
 
 function ActionParam(name, value) {
@@ -23,6 +25,17 @@ export function getCliData(userInput) {
         return null;
 
     userInput = userInput.trim();
+
+    let outputVariableName = null;
+    if (userInput.startsWith("$")) {//Let's assume if the userinput is $record=create account --name "ABC Corporation" we want to get the value into a variable called record.
+        let indexOfEqualTo = userInput.indexOf("=");
+        if (indexOfEqualTo != -1) {
+            outputVariableName = userInput.subStr(0, indexOfEqualTo);
+            userInput = userInput.replace(`${outputVariableName}=`, "");//in the above example this would remove the '$record=' from the string
+            outputVariableName = outputVariableName.replace("$");//in the above example it would be record
+        }
+    }
+
 
     let action = getFirstSubStringbyDelimiter(EMPTY_SPACE, userInput);
 
@@ -50,7 +63,19 @@ export function getCliData(userInput) {
 
     }
 
-    const cliData = new CliData(action, actionTarget, unnamedParam, actionParams);
+    let cliOutput = null;
+    if (actionParams != null) {
+        let indexOfOutputParam = actionParams.findIndex(x => x.name != null && x.name.toLowerCase() === "output");
+        if (indexOfOutputParam != -1) {
+            let outputParam = actionParams[indexOfOutputParam];
+            cliOutput = { render: true };
+            cliOutput.format = outputParam.value != null ? outputParam.value : "json";
+            actionParams.splice(indexOfOutputParam, 1);
+        }
+    }
+
+
+    const cliData = new CliData(action, actionTarget, unnamedParam, actionParams,outputVariableName, cliOutput);
     return cliData;
 }
 
@@ -86,7 +111,7 @@ function getActionParams(actionParamsStr) {
         const indexOfFirstSpace = paramStr.indexOf(EMPTY_SPACE);
         const paramName = getFirstSubStringbyDelimiter(EMPTY_SPACE, paramStr);
         const paramval = paramStr.substring(indexOfFirstSpace).replace(/["]+/g, "").trim();
-       // const paramval = paramStr.substring(indexOfFirstSpace).trim();
+        // const paramval = paramStr.substring(indexOfFirstSpace).trim();
         return new ActionParam(paramName, paramval);
     }
     );

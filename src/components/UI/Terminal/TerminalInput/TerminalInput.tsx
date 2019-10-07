@@ -3,7 +3,7 @@ import "./TerminalInput.css";
 
 interface TerminalInp {
   terminalInputText: string;
-  onInputKeyUp(e: any): void;
+  onInputKeyDown(e: any): void;
   onInputChange(e: any): void;
 }
 
@@ -17,7 +17,7 @@ export const TerminalInput: React.FC<TerminalInp> = (terminalInpProp: TerminalIn
       <input
         type="text"
         autoFocus
-        onKeyUp={terminalInpProp.onInputKeyUp}
+        onKeyDown={terminalInpProp.onInputKeyDown}
         onChange={terminalInpProp.onInputChange}
         value={terminalInpProp.terminalInputText}
         className="terminal-main-input"

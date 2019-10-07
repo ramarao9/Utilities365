@@ -18,9 +18,10 @@ export const handleCrmCreateActions = async (cliData: CliData) => {
   let cliResponse: CliResponse = { message: "", success: false, type: "" };
 
   try {
-    await createRecord(cliData);
+    let createResponse=await createRecord(cliData);
     cliResponse.success = true;
     cliResponse.message = "Record created successfully!";
+    cliResponse.response=createResponse;
   }
   catch (error) {
     console.log(error);
@@ -39,6 +40,8 @@ const createRecord = async (cliData: CliData) => {
   let createRequest = await getCreateRequestBody(targetEntityMetadata, cliData);
 
   let createResponse = await create(createRequest, targetEntityMetadata.LogicalCollectionName);
+
+  return createResponse.value;
 
 };
 

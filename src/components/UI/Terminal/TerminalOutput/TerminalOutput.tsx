@@ -13,6 +13,13 @@ export const terminalOutput: React.FC<TerminalOut> = (
     case "table":
       break;
 
+     case "json":
+         let jsonString=JSON.stringify(terminalOutputProps,null,2);
+         output = (
+           <pre className="terminal-output-line">{jsonString}</pre>
+           );
+       break;
+
     case "error":
       output = (
         <pre className="terminal-output-line error">
