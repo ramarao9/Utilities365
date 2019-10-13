@@ -15,7 +15,7 @@ export const handleCrmGetActions = async (cliData: CliData) => {
       let retrieveResponse=await getRecords(cliData);
       cliResponse.success = true;
       cliResponse.message = "";
-      cliResponse.response=retrieveResponse;
+      cliResponse.response={primaryidattribute:getPrimaryIdAttribute(cliData.target),data:retrieveResponse};
     }
     catch (error) {
       console.log(error);
@@ -75,4 +75,15 @@ const getRequestBody = (cliData: CliData): any => {
 const getActionParam = (parameterName: string, actionParams: Array<ActionParam>): ActionParam => {
     let match: ActionParam = actionParams.find(x => x.name != null && x.name.toLowerCase() === parameterName) as ActionParam;
     return match;
+}
+
+
+const getPrimaryIdAttribute=(collectionName: string): string=>{
+
+
+  if(collectionName==null)
+  return "";
+
+  return `${collectionName.slice(0,-1).toLowerCase()}id`;
+
 }

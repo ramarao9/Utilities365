@@ -18,9 +18,9 @@ class Home extends Component {
         }
 
         return (
-            <Aux>
+            <React.Fragment>
                 <h1>Welcome to Utilities365!</h1>
-            </Aux>
+            </React.Fragment>
         );
     }
 

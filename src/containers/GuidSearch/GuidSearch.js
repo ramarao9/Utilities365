@@ -376,7 +376,7 @@ const GuidSearch = () => {
   }
 
   return (
-    <Aux>
+    <React.Fragment>
       <div className="columns is-desktop">
         <div className="column is-half">
           <div className="buttons">
@@ -431,7 +431,7 @@ const GuidSearch = () => {
         </div>
       </div>
       {matchedRecordUI}
-    </Aux>
+    </React.Fragment>
   );
 };
 

@@ -1,0 +1,4 @@
+.terminalContainer {
+    height: calc(100% - 24px);
+    overflow: auto;
+}

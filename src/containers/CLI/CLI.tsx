@@ -10,6 +10,7 @@ import { Terminal } from "../../components/UI/Terminal/Terminal";
 import { CliResponse } from "../../interfaces/CliResponse";
 import { CliData } from "../../interfaces/CliData";
 import { TerminalOut } from "../../interfaces/TerminalOut";
+import "./CLI.css";
 import { number } from "prop-types";
 const KEYCODE_UP = 38;
 const KEYCODE_DOWN = 40;
@@ -148,7 +149,7 @@ export const CLI: React.FC = () => {
   }
 
   return (
-    <div>
+    <React.Fragment>
     <h2>CLI </h2>
     <div className="terminalContainer">
       <Terminal
@@ -157,6 +158,6 @@ export const CLI: React.FC = () => {
 terminalInputKeyDown={onTerminalInputKeyDown}
 inputText={inputText} />
   </div>
-  </div>
+  </React.Fragment>
   );
 };

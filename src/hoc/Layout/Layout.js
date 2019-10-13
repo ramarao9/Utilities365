@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 
-import Aux from '../_Aux/_Aux';
 import classes from './Layout.css';
 import Toolbar from '../../components/Navigation/Toolbar/Toolbar';
 
@@ -15,13 +14,13 @@ class Layout extends Component {
     //
     render () {
         return (
-            <Aux>
+            <React.Fragment>
                 <Toolbar drawerToggleClicked={this.sideDrawerToggleHandler} />
 
                 <main className="Content">
                     {this.props.children}
                 </main>
-            </Aux>
+            </React.Fragment>
         )
     }
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import pickerMore from "./picker_more.svg";
+import pickerMore from "./more-16.png";
 import "./MoreButton.css";
 
 const MoreButton = ({ clicked, actions, contextObj }) => {

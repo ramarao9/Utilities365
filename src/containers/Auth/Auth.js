@@ -568,7 +568,7 @@ class Auth extends Component {
       </div>
     );
 
-    return <div>{newOrg}</div>;
+    return    <React.Fragment>{newOrg}</React.Fragment>
   }
 }
 
