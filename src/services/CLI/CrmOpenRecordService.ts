@@ -1,12 +1,12 @@
 import IsEmpty from 'is-empty';
-import { getEntityMetadata } from '../CrmMetadataService';
+import { getEntityMetadataBasic } from '../CrmMetadataService';
 
 import { retrieveMultiple } from '../../helpers/webAPIClientHelper';
 
 export async function getCRMRecord(cliData : any) {
 
 
-    let entityMetadata = await getEntityMetadata(cliData.target);
+    let entityMetadata = await getEntityMetadataBasic(cliData.target);
 
 
     if (entityMetadata == null)

@@ -1,16 +1,18 @@
 import {
   retrieveEntitites,
-  retrieveAttributes
+  retrieveAttributes,
+  retrieveEntity
 } from "../helpers/webAPIClientHelper";
 
 import store from "../store/store";
 import * as actionTypes from "../store/actions";
 
-export const getEntityMetadata = async entityName => {
+//Retrieves only the Basic Metadata details on the Entity
+export const getEntityMetadataBasic = async entityName => {
   let entities = await getEntities();
 
   let entityMetadata =
-    entities != null ? entities.filter(filterEntityByName, entityName) : null;
+    entities != null ? entities.filter(filterEntityByName, entityName.toLowerCase().trim()) : null;
   return entityMetadata != null && entityMetadata.length == 1
     ? entityMetadata[0]
     : null;
@@ -20,7 +22,7 @@ export const getEntities = async () => {
   let entities = getEntitiesFromStore();
 
   if (entities == null || entities.length === 0) {
-    let filter = "IsValidForAdvancedFind eq true";
+    let filter = "IsValidForAdvancedFind eq true or ObjectTypeCode lt 10000";
     let entityProperties = getEntityProperties();
     let retrieveEntitiesResponse = await retrieveEntitites(
       entityProperties,
@@ -36,7 +38,8 @@ export const getEntities = async () => {
   return entities;
 };
 
-export const getEntityAttributes = async entityName => {
+//Returns the complete information including the Attributes, Relationships etc.
+export const getEntity = async entityName => {
   let entitiesAttributeMetadata = getEntitiesAttributeCollectionFromStore(entityName);
 
   let entityMetadata = entitiesAttributeMetadata != null ? entitiesAttributeMetadata.find(
@@ -55,7 +58,7 @@ export const getEntityAttributes = async entityName => {
     var attributes = retrieveAttributesResponse.value;
 
 
-    entityMetadata = await getEntityMetadata(entityName);
+    entityMetadata = await getEntityMetadataBasic(entityName);
 
     let retrievePicklistResponse = await retrieveAttributes(`LogicalName='${entityName}'`,
       "Microsoft.Dynamics.CRM.PicklistAttributeMetadata",
@@ -67,15 +70,32 @@ export const getEntityAttributes = async entityName => {
     entityMetadata.Attributes = attributes;
     entityMetadata.PicklistAttributes = entityPicklistAttributes;
 
+    let relationships = await getRelationships(entityName);
+    entityMetadata.ManyToOneRelationships = relationships.ManyToOneRelationships;
+
     if (entitiesAttributeMetadata == null) {
       entitiesAttributeMetadata = [];
     }
+
     entitiesAttributeMetadata.push(entityMetadata);
     updateEntitiesAttributesInStore(entitiesAttributeMetadata);
   }
 
   return entityMetadata;
 };
+
+
+export const getRelationships = async (entityName) => {
+
+
+  let entityRelationships = await retrieveEntity(`LogicalName='${entityName}'`, ["LogicalName"], [{ property: "ManyToOneRelationships" }]);
+
+  var s = 100;
+
+
+  return entityRelationships;
+
+}
 
 const getRetrieveAttributesRequest = entityName => {
   const attributeProperties = getAttributeProperties();
@@ -92,7 +112,9 @@ const getRetrieveAttributesRequest = entityName => {
 function filterEntityByName(entityMetadata, i, entities) {
   let entityToFilterBy = this;
   return (
+
     entityMetadata.LogicalName.toLowerCase() === entityToFilterBy ||
+    (entityMetadata.LogicalCollectionName && entityMetadata.LogicalCollectionName.toLowerCase() === entityToFilterBy) ||
     (entityMetadata.DisplayName.UserLocalizedLabel != null &&
       entityMetadata.DisplayName.UserLocalizedLabel.Label != null &&
       entityMetadata.DisplayName.UserLocalizedLabel.Label.toLowerCase() ===
@@ -154,3 +176,6 @@ function getAttributeProperties() {
 
   return attributeProperties;
 }
+
+
+

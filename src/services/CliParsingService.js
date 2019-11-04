@@ -1,7 +1,7 @@
 
 import IsEmpty from 'is-empty';
 const EMPTY_SPACE = " ";
-const ACTION_PARAM_DELIMITER = "-";
+const ACTION_PARAM_DELIMITER = "--";
 
 function CliData(action, target, unnamedParam, actionParams, outputVariable, cliOutput) {
     this.action = action;//action like open, create, update etc.
@@ -38,44 +38,50 @@ export function getCliData(userInput) {
 
 
     let action = getFirstSubStringbyDelimiter(EMPTY_SPACE, userInput);
+    if (action == null) {
+        action = userInput;
+    }
 
-    const indexOfFirstSpace = userInput.indexOf(EMPTY_SPACE);
-    const userInputWithoutAction = userInput.substr(indexOfFirstSpace).trim();
-
-    let actionTarget = getFirstSubStringbyDelimiter(EMPTY_SPACE, userInputWithoutAction);
     let actionParams = null;
     let unnamedParam = null;
-    if (actionTarget === null) {
-        action = userInputWithoutAction // since there are no parameters
-    }
-    else {
-        const indexOfSecondSpace = userInputWithoutAction.indexOf(EMPTY_SPACE);
-        const actionParamsStr = userInputWithoutAction.substr(indexOfSecondSpace).trim();
+    let cliOutput = null;
+    let actionTarget=null;
+    const indexOfFirstSpace = userInput.indexOf(EMPTY_SPACE);
+    if (indexOfFirstSpace != -1) {
+        const userInputWithoutAction = userInput.substr(indexOfFirstSpace).trim();
+        actionTarget = getFirstSubStringbyDelimiter(EMPTY_SPACE, userInputWithoutAction);
 
-        const actionParamsDelimiter = actionParamsStr.indexOf(ACTION_PARAM_DELIMITER);
-        if (actionParamsDelimiter == -1)//When only one single parameter is passed
-        {
-            unnamedParam = actionParamsStr;
+        if (actionTarget === null) {
+            actionTarget = userInputWithoutAction // since there are no parameters
         }
         else {
-            actionParams = getActionParams(actionParamsStr);
+            const indexOfSecondSpace = userInputWithoutAction.indexOf(EMPTY_SPACE);
+            const actionParamsStr = userInputWithoutAction.substr(indexOfSecondSpace).trim();
+
+            const actionParamsDelimiter = actionParamsStr.indexOf(ACTION_PARAM_DELIMITER);
+            if (actionParamsDelimiter == -1)//When only one single parameter is passed
+            {
+                unnamedParam = actionParamsStr;
+            }
+            else {
+                actionParams = getActionParams(actionParamsStr);
+            }
+
+        }
+
+  
+        if (actionParams != null) {
+            let indexOfOutputParam = actionParams.findIndex(x => x.name != null && x.name.toLowerCase() === "output");
+            if (indexOfOutputParam != -1) {
+                let outputParam = actionParams[indexOfOutputParam];
+                cliOutput = { render: true };
+                cliOutput.format = outputParam.value != null ? outputParam.value : "json";
+                actionParams.splice(indexOfOutputParam, 1);
+            }
         }
 
     }
-
-    let cliOutput = null;
-    if (actionParams != null) {
-        let indexOfOutputParam = actionParams.findIndex(x => x.name != null && x.name.toLowerCase() === "output");
-        if (indexOfOutputParam != -1) {
-            let outputParam = actionParams[indexOfOutputParam];
-            cliOutput = { render: true };
-            cliOutput.format = outputParam.value != null ? outputParam.value : "json";
-            actionParams.splice(indexOfOutputParam, 1);
-        }
-    }
-
-
-    const cliData = new CliData(action, actionTarget, unnamedParam, actionParams,outputVariableName, cliOutput);
+    const cliData = new CliData(action, actionTarget, unnamedParam, actionParams, outputVariableName, cliOutput);
     return cliData;
 }
 
@@ -96,9 +102,6 @@ function getFirstSubStringbyDelimiter(delimiter, strText) {
 function getActionParams(actionParamsStr) {
 
     let actionsParams = [];
-
-
-
     actionParamsStr = actionParamsStr.trim();
 
     let actionParamsSplit = actionParamsStr.split(ACTION_PARAM_DELIMITER);

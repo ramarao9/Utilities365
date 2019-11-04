@@ -6,6 +6,7 @@ import Layout from "./hoc/Layout/Layout";
 import GuidSearch from "./containers/GuidSearch/GuidSearch";
 import { CLI } from "./containers/CLI/CLI";
 import "./App.css";
+import "./css/appstyles.css";
 
 export const App: React.FC = () => {
   return (

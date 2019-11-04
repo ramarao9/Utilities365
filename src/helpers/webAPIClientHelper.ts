@@ -3,22 +3,29 @@ import store from "../store/store";
 import * as actionTypes from "../store/actions";
 import * as crmUtil from "./crmutil";
 import { getConnection, updateToken } from "../services/LocalStorageService";
-
+import { expand } from "../interfaces/expand";
 import AdalNode from "adal-node";
-const isDev = window.require("electron-is-dev");
 
-export const create = async (createRequest, collectionOrLogicalName) => {
+
+
+export const create = async (createRequest: any, collectionOrLogicalName: string) => {
   let dynamicsWebAPIClient = getWebAPIClient(true);
   return dynamicsWebAPIClient.create(createRequest, collectionOrLogicalName);
 }
 
 
+export const update = async (key :string,updateRequest: any, collectionOrLogicalName: string, prefer?: string | string[] | undefined,select?: string[] | undefined) => {
+  let dynamicsWebAPIClient = getWebAPIClient(true);
+  return dynamicsWebAPIClient.update(key,collectionOrLogicalName, updateRequest,prefer, select);
+}
+
+
 export function executeUnboundAction(
-  functionName,
-  successCallback,
-  errorCallback,
-  passThroughCallback,
-  passThroughObj
+  functionName: string,
+  successCallback: any,
+  errorCallback: any,
+  passThroughCallback: any,
+  passThroughObj: any
 ) {
   let dynamicsWebAPIClient = getWebAPIClient(true);
   dynamicsWebAPIClient
@@ -31,12 +38,28 @@ export function executeUnboundAction(
     });
 }
 
+export const retrieveEntitites = async (properties?: Array<string>, filter?: string) => {
+  let dynamicsWebAPIClient = getWebAPIClient(true);
+  return dynamicsWebAPIClient.retrieveEntities(properties, filter);
+};
+
+export const retrieveEntity = async (entityKey: string, select?: Array<string>, expand?: Array<expand>) => {
+  let dynamicsWebAPIClient = getWebAPIClient(true);
+  return dynamicsWebAPIClient.retrieveEntity(entityKey, select, expand);
+}
+
+export const retrieveAttribute = async (entityKey: string, attributeKey: string, attributeType: string | undefined, select?: Array<string>, expand?: Array<expand>) => {
+  let dynamicsWebAPIClient = getWebAPIClient(true);
+  return dynamicsWebAPIClient.retrieveAttribute(entityKey, attributeKey, attributeType, select, expand);
+}
+
+
 export const retrieveAttributes = async (
-  entityName,
-  attributeType,
-  attributeProperties,
-  attributeFilter,
-  attributeExpand
+  entityName: string,
+  attributeType?: string,
+  attributeProperties?: Array<string>,
+  attributeFilter?: string,
+  attributeExpand?: any
 ) => {
   let dynamicsWebAPIClient = getWebAPIClient(true);
   return dynamicsWebAPIClient.retrieveAttributes(
@@ -48,31 +71,31 @@ export const retrieveAttributes = async (
   );
 };
 
-export const retrieve = async (key, entityCollectionName, select, expand) => {
+export const retrieve = async (key: string, entityCollectionName: string, select?: Array<string>, expandArr?: Array<expand>) => {
   let dynamicsWebAPIClient = getWebAPIClient(true);
   return dynamicsWebAPIClient.retrieve(
     key,
     entityCollectionName,
     select,
-    expand
+    expandArr
   );
 };
 
-export const retrieveAll = async (entityCollectionName, select, filter) => {
+export const retrieveAll = async (entityCollectionName: string, select?: Array<string>, filter?: string) => {
   let dynamicsWebAPIClient = getWebAPIClient(true);
   return dynamicsWebAPIClient.retrieveAll(entityCollectionName, select, filter);
 };
 
-export const retrieveRequest = async request => {
-  let dynamicsWebAPIClient = getWebAPIClient();
+export const retrieveRequest = async (request: any) => {
+  let dynamicsWebAPIClient = getWebAPIClient(false);
   return dynamicsWebAPIClient.retrieveRequest(request);
 };
 
-export const batchRetrieveMultipleRequests = async retrieveMultipleRequests => {
+export const batchRetrieveMultipleRequests = async (retrieveMultipleRequests: any) => {
   let dynamicsWebAPIClient = getWebAPIClient(true);
 
   dynamicsWebAPIClient.startBatch();
-  retrieveMultipleRequests.forEach(requestObj => {
+  retrieveMultipleRequests.forEach((requestObj: any) => {
     dynamicsWebAPIClient.retrieveMultipleRequest(requestObj);
   });
 
@@ -80,28 +103,25 @@ export const batchRetrieveMultipleRequests = async retrieveMultipleRequests => {
   return executeBatchPromise;
 };
 
-export const retrieveMultiple = async request => {
+export const retrieveMultiple = async (request: any) => {
   request = setTokenOnRequestIfValid(request);
-  let dynamicsWebAPIClient = getWebAPIClient();
+  let dynamicsWebAPIClient = getWebAPIClient(false);
   let retrieveMultipleResponse = dynamicsWebAPIClient.retrieveMultipleRequest(
     request
   );
   return retrieveMultipleResponse;
 };
 
-export const retrieveEntitites = async (properties, filter) => {
-  let dynamicsWebAPIClient = getWebAPIClient(true);
-  return dynamicsWebAPIClient.retrieveEntities(properties, filter);
-};
+
 
 export const getCurrentOrgUrl = () => {
   let token = getTokenFromStore();
   return token.resource;
 };
 
-function getWebAPIClient(useTokenRefresh) {
+function getWebAPIClient(useTokenRefresh: Boolean) {
   const currentToken = getTokenFromStore();
-  var webApiConfig = { webApiUrl: currentToken.resource + "/api/data/v9.1/" };
+  var webApiConfig: any = { webApiUrl: currentToken.resource + "/api/data/v9.1/" };
 
   const tokenExpired = hasTokenExpired();
 
@@ -115,10 +135,10 @@ function getWebAPIClient(useTokenRefresh) {
   return dynamicsWebAPIClient;
 }
 
-function acquireTokenForRefresh(dynamicsWebApiCallback) {
+function acquireTokenForRefresh(dynamicsWebApiCallback: any) {
   //check the token from the store
   const tokenData = getTokenFromStore();
-  function adalCallback(error, token) {
+  function adalCallback(error: any, token: any) {
     if (!error) {
       //call DynamicsWebApi callback only when a token has been retrieved
       dynamicsWebApiCallback(token);
@@ -151,7 +171,7 @@ function acquireTokenForRefresh(dynamicsWebApiCallback) {
     authContext.acquireTokenWithRefreshToken(
       tokenData.refreshToken,
       connectionInfo.appId,
-      null,
+      "",
       tokenData.resource,
       adalCallback
     );
@@ -166,7 +186,7 @@ function acquireTokenForRefresh(dynamicsWebApiCallback) {
   }
 }
 
-function setTokenOnRequestIfValid(request) {
+function setTokenOnRequestIfValid(request: any) {
   const tokenData = getTokenFromStore();
   const tokenExpired = hasTokenExpired();
   if (!tokenExpired) {
@@ -187,6 +207,6 @@ function getTokenFromStore() {
   return currentState != null ? currentState.tokenData : null;
 }
 
-function updateTokenInStore(tokenData) {
+function updateTokenInStore(tokenData: any) {
   store.dispatch({ type: actionTypes.SET_ACCESS_TOKEN, token: tokenData });
 }

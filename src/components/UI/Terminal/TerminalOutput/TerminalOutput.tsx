@@ -1,7 +1,10 @@
 import React from "react";
+import JSONTree from 'react-json-tree'
 import { TerminalOut } from "../../../../interfaces/TerminalOut";
 import "./TerminalOutput.css";
 import { object } from "prop-types";
+import {getJSONTreeTheme} from "../../../../helpers/common";
+import {Table} from "../../Table/Table";
 
 export const terminalOutput: React.FC<TerminalOut> = (
   terminalOutputProps: TerminalOut
@@ -13,7 +16,7 @@ export const terminalOutput: React.FC<TerminalOut> = (
   switch (terminalOutputProps.type) {
     case "table":
     let responseData=terminalOutputProps.data;
-    let primaryIdAttribute=responseData.primaryidattribute as string;
+    let uniqueidAttribute=responseData.uniqueidattribute as string;
     let tableData=responseData.data as Array<any>;
     let tableProperties : Array<string>=(tableData!=null &&tableData.length>0)?Object.keys(tableData[0]):[];
 
@@ -24,47 +27,23 @@ export const terminalOutput: React.FC<TerminalOut> = (
     );
     }
     else{
-      let tableHeaders=(
-                  <tr>
-                  {tableProperties.map(tableProp=>(
-                    <th key={tableProp}>{tableProp}</th>
-                  ))}
-                  </tr>
-      );
-
-
-      let tableBdy=(
-        tableData.map((record:any)=>(        
-          <tr key={record[primaryIdAttribute]}>
-          {tableProperties.map((tableProp:string)=>(
-            <td key={`${record[primaryIdAttribute]+tableProp}`}>{`${record[tableProp]}`}</td>
-             ))}
-          </tr>
-      ))
-      );
-    
-
       output=(
-        <div className="table-container">
-        <table className="table">
-        <thead>
-          {tableHeaders}
-          </thead>
-           <tbody>
-           {tableBdy}
-           </tbody>
-        </table>
-      </div>);
-      }
+        <Table UniqueIdKey={uniqueidAttribute} HeaderColumns={tableProperties} RowData={tableData} />
+      );
+    }
 
 
       break;
 
      case "json":
-         let jsonString=JSON.stringify(terminalOutputProps.data,null,2);
-         output = (
-           <pre className="terminal-output-line">{jsonString}</pre>
-           );
+        //  let jsonString=JSON.stringify(terminalOutputProps.data,null,3);
+        //  output = (
+        //    <pre className="terminal-output-line">{jsonString}</pre>
+        //    );
+
+        let treeTheme=getJSONTreeTheme();
+        let jsonData=terminalOutputProps.data;
+        output = (<JSONTree data={jsonData} theme={treeTheme} invertTheme={false}  />);
        break;
 
     case "error":

@@ -98,6 +98,9 @@ export interface EntityMetadata {
     IsReadOnlyInMobileClient: IsReadOnlyInMobileClient;
     IsOfflineInMobileClient: IsOfflineInMobileClient;
     Privileges: Privilege[];
+    OneToManyRelationships:  Relationship[];
+    ManyToOneRelationships:  Relationship[];
+    ManyToManyRelationships: ManyToManyRelationship[];
 }
 
 
@@ -283,48 +286,6 @@ export interface CanChangeDateTimeBehavior {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     export interface DisplayCollectionName {
         LocalizedLabels: LocalizedLabel[];
         UserLocalizedLabel: UserLocalizedLabel;
@@ -493,3 +454,139 @@ export interface CanChangeDateTimeBehavior {
 
 
 
+    export interface ManyToManyRelationship {
+        MetadataId:                         string;
+        HasChanged:                         null;
+        IsCustomRelationship:               boolean;
+        IsValidForAdvancedFind:             boolean;
+        SchemaName:                         string;
+        SecurityTypes:                      ManyToManyRelationshipSecurityTypes;
+        IsManaged:                          boolean;
+        RelationshipType:                   ManyToManyRelationshipRelationshipType;
+        IntroducedVersion:                  IntroducedVersion;
+        Entity1LogicalName:                 string;
+        Entity2LogicalName:                 string;
+        IntersectEntityName:                string;
+        Entity1IntersectAttribute:          string;
+        Entity2IntersectAttribute:          string;
+        Entity1NavigationPropertyName:      string;
+        Entity2NavigationPropertyName:      string;
+        IsCustomizable:                     IsCustomizable;
+        Entity1AssociatedMenuConfiguration: AssociatedMenuConfiguration;
+        Entity2AssociatedMenuConfiguration: AssociatedMenuConfiguration;
+    }
+    
+    export interface AssociatedMenuConfiguration {
+        Behavior:         Behavior;
+        Group:            Group;
+        Order:            number | null;
+        IsCustomizable:   boolean;
+        Icon:             any | null;
+        ViewId:           string;
+        AvailableOffline: boolean;
+        MenuId:           null | string;
+        QueryApi:         null | string;
+        Label:            LabelClass;
+    }
+    
+    export enum Behavior {
+        DoNotDisplay = "DoNotDisplay",
+        UseCollectionName = "UseCollectionName",
+        UseLabel = "UseLabel",
+    }
+    
+    export enum Group {
+        Details = "Details",
+        Marketing = "Marketing",
+        Sales = "Sales",
+        Service = "Service",
+    }
+    
+ 
+    
+    export interface LabelClass {
+        LocalizedLabels:    LocalizedLabel[];
+        UserLocalizedLabel: LocalizedLabel | null;
+    }
+    
+
+    
+    export enum LabelEnum {
+        BillingAccount = "Billing Account",
+        Empty = "",
+        VendorContact = "Vendor Contact",
+    }
+    
+    export enum IntroducedVersion {
+        The5000 = "5.0.0.0",
+        The6100 = "6.1.0.0",
+        The9000 = "9.0.0.0",
+    }
+    
+    export interface IsCustomizable {
+        Value:                      boolean;
+        CanBeChanged:               boolean;
+        ManagedPropertyLogicalName: string;
+    }
+    
+  
+    
+    export enum ManyToManyRelationshipRelationshipType {
+        ManyToManyRelationship = "ManyToManyRelationship",
+    }
+    
+    export enum ManyToManyRelationshipSecurityTypes {
+        None = "None",
+        ParentChild = "ParentChild",
+        Pointer = "Pointer",
+    }
+    
+    export interface Relationship {
+        MetadataId:                              string;
+        HasChanged:                              null;
+        IsCustomRelationship:                    boolean;
+        IsValidForAdvancedFind:                  boolean;
+        SchemaName:                              string;
+        SecurityTypes:                           ManyToOneRelationshipSecurityTypes;
+        IsManaged:                               boolean;
+        RelationshipType:                        ManyToOneRelationshipRelationshipType;
+        IntroducedVersion:                       string;
+        ReferencedAttribute:                     string;
+        ReferencedEntity:                        string;
+        ReferencingAttribute:                    string;
+        ReferencingEntity:                       string;
+        IsHierarchical:                          boolean;
+        ReferencedEntityNavigationPropertyName:  string;
+        ReferencingEntityNavigationPropertyName: string;
+        IsCustomizable:                          IsCustomizable;
+        AssociatedMenuConfiguration:             AssociatedMenuConfiguration;
+        CascadeConfiguration:                    CascadeConfiguration;
+    }
+    
+    export interface CascadeConfiguration {
+        Assign:     Assign;
+        Delete:     Assign;
+        Merge:      Assign;
+        Reparent:   Assign;
+        Share:      Assign;
+        Unshare:    Assign;
+        RollupView: Assign;
+    }
+    
+    export enum Assign {
+        Cascade = "Cascade",
+        NoCascade = "NoCascade",
+        RemoveLink = "RemoveLink",
+        Restrict = "Restrict",
+    }
+    
+    export enum ManyToOneRelationshipRelationshipType {
+        OneToManyRelationship = "OneToManyRelationship",
+    }
+    
+    export enum ManyToOneRelationshipSecurityTypes {
+        Append = "Append",
+        None = "None",
+        ParentChild = "ParentChild",
+    }
+    

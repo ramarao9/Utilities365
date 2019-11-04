@@ -1,12 +1,13 @@
 import IsEmpty from "is-empty";
-import { create, retrieveAll } from "../../../helpers/webAPIClientHelper"
+import { create, update, retrieveAll } from "../../../helpers/webAPIClientHelper"
 import { CliData } from "../../../interfaces/CliData"
 import { CliResponse } from "../../../interfaces/CliResponse"
 import { EntityMetadata, PicklistMetadata, Option, OptionData, AttributeMetadata } from "../../../interfaces/EntityMetadata"
 import { getErrorResponse, getTextResponse } from "../CliResponseUtil";
+import { getActionParam, removeActionParam, getArrayFromCSV, hasActionParam, getReferencingEntityNavPropertyName } from "../../../helpers/common";
 import {
-  getEntityMetadata,
-  getEntityAttributes
+  getEntityMetadataBasic,
+  getEntity
 } from "../../CrmMetadataService";
 
 import {
@@ -18,10 +19,10 @@ export const handleCrmCreateActions = async (cliData: CliData) => {
   let cliResponse: CliResponse = { message: "", success: false, type: "" };
 
   try {
-    let createResponse=await createRecord(cliData);
+    let createResponse = await createRecord(cliData);
     cliResponse.success = true;
     cliResponse.message = "Record created successfully!";
-    cliResponse.response=createResponse;
+    cliResponse.response = createResponse;
   }
   catch (error) {
     console.log(error);
@@ -32,12 +33,40 @@ export const handleCrmCreateActions = async (cliData: CliData) => {
   return cliResponse;
 };
 
-//
+
+export const handleCrmUpdateActions = async (cliData: CliData) => {
+
+  let cliResponse: CliResponse = { message: "", success: false, type: "" };
+
+  try {
+
+    let hasSelectParam = hasActionParam("select", cliData.actionParams);
+
+
+    let updateResponse = await updateRecord(cliData);
+    cliResponse.success = true;
+    cliResponse.message = "Record updated successfully!";
+    cliResponse.response = updateResponse;
+
+    if (hasSelectParam) {
+      cliResponse.type = "json";
+    }
+  }
+  catch (error) {
+    console.log(error);
+    return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
+  }
+
+
+  return cliResponse;
+
+}
+
 const createRecord = async (cliData: CliData) => {
 
-  let targetEntityMetadata: EntityMetadata = await getEntityAttributes(cliData.target);
+  let targetEntityMetadata: EntityMetadata = await getEntity(cliData.target);
 
-  let createRequest = await getCreateRequestBody(targetEntityMetadata, cliData);
+  let createRequest = await getRequestBody(targetEntityMetadata, cliData);
 
   let createResponse = await create(createRequest, targetEntityMetadata.LogicalCollectionName);
 
@@ -45,7 +74,43 @@ const createRecord = async (cliData: CliData) => {
 
 };
 
-const getCreateRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: CliData) => {
+
+const updateRecord = async (cliData: CliData) => {
+
+  let targetEntityMetadata: EntityMetadata = await getEntity(cliData.target);
+
+  if (!cliData.actionParams)
+    throw new Error(`Please provide the attributes that needed to be updated and try again.`);
+
+  let idParam = getActionParam("id", cliData.actionParams);
+  if (!idParam)
+    throw new Error("Please provide the id parameter for the record that needs to be updated");
+
+  cliData.actionParams = removeActionParam("id", cliData.actionParams);
+  if (cliData.actionParams.length === 0)
+    throw new Error("Please provide one or more attributes that need to be updated.");
+
+
+  let prefer;
+  let selectAttributes;
+  let selectParam = getActionParam("select", cliData.actionParams);
+  if (selectParam) {
+    cliData.actionParams = removeActionParam("select", cliData.actionParams);//remove the select parameter so the update request doesn't include this
+
+    selectAttributes = getArrayFromCSV(selectParam.value);
+    prefer = "return=representation";
+  }
+
+  let updateRequest = await getRequestBody(targetEntityMetadata, cliData);
+  let updateResponse = await update(idParam.value, updateRequest, targetEntityMetadata.LogicalCollectionName, prefer, selectAttributes);
+
+  return updateResponse.value;
+
+}
+
+
+
+const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: CliData) => {
   var createRequest: any = {};
 
   let attributesMetadata = targetEntityMetadata.Attributes;
@@ -118,7 +183,7 @@ const getCreateRequestBody = async (targetEntityMetadata: EntityMetadata, cliDat
           case "lookup":
             let targetLookupEntity = attributeMetadata.Targets[0];
 
-            let targetLookupEntityMetadata = await getEntityMetadata(targetLookupEntity) as EntityMetadata;
+            let targetLookupEntityMetadata = await getEntityMetadataBasic(targetLookupEntity) as EntityMetadata;
             let targetEntityPrimaryIdAttribute = targetLookupEntityMetadata.PrimaryIdAttribute;
             let targetEntityPrimaryNameAttribute = targetLookupEntityMetadata.PrimaryNameAttribute;
             let targetEntityCollectionName = targetLookupEntityMetadata.LogicalCollectionName;
@@ -129,7 +194,7 @@ const getCreateRequestBody = async (targetEntityMetadata: EntityMetadata, cliDat
             if (!guidIsValid) {
               let filter: string = `${targetEntityPrimaryNameAttribute} eq '${attributeValue}'`;
               if (attributeValue.indexOf("$filter") != -1) {
-                filter = attributeValue.replace("$filter=","");
+                filter = attributeValue.replace("$filter=", "");
               }
               let retrieveResp = await retrieveAll(targetEntityCollectionName, [targetEntityPrimaryIdAttribute], filter);
               if (retrieveResp.value != null && retrieveResp.value.length === 1) {
@@ -141,7 +206,8 @@ const getCreateRequestBody = async (targetEntityMetadata: EntityMetadata, cliDat
               targetGuid = attributeValue;
             }
             if (targetGuid != null) {
-              createRequest[`${attributeLogicalName}@odata.bind`] = `${targetEntityCollectionName}(${targetGuid})`;
+              let navigationProperty = getReferencingEntityNavPropertyName(attributeLogicalName, targetEntityMetadata.ManyToOneRelationships);
+              createRequest[`${navigationProperty}@odata.bind`] = `${targetEntityCollectionName}(${targetGuid})`;
             }
             break;
 
