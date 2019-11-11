@@ -214,7 +214,7 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
           case "customer"://Todo :-Not supported at this time, might need to revisit in the future
             break;
 
-          default: createRequest[attributeLogicalName] = attributeValue;
+          default: createRequest[attributeLogicalName] = attributeValue === "null" ? null : attributeValue;
             break;
         }
       }

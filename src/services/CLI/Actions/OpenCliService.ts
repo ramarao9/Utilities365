@@ -1,6 +1,7 @@
 import IsEmpty from "is-empty";
 import { getEntityMetadataBasic } from "../../CrmMetadataService";
 import { retrieveMultiple } from "../../../helpers/webAPIClientHelper";
+import { isValidGuid } from "../../../helpers/common";
 
 import { getErrorResponse, getTextResponse } from "../CliResponseUtil";
 import { getCurrentOrgUrl } from "../../../helpers/webAPIClientHelper";
@@ -69,7 +70,7 @@ const openAdvFind = () => {
 
 const openEntity = async (cliData: CliData) => {
   try {
-    
+
 
     let name = undefined;
     if (cliData.unnamedParam) {
@@ -77,12 +78,11 @@ const openEntity = async (cliData: CliData) => {
     }
     else {
       let actionParams = cliData.actionParams;
-      if(actionParams)
-      {
+      if (actionParams) {
         let nameParam = getActionParam("name", actionParams);
         name = nameParam ? nameParam.value as string : undefined;
       }
-      
+
     }
 
     if (!name)
@@ -194,6 +194,13 @@ async function getCRMRecord(cliData: any) {
 function getEntityFilter(entityMetadata: any, cliData: any) {
   if (IsEmpty(cliData.actionParams) && IsEmpty(cliData.unnamedParam))
     return null;
+
+
+  let isValidId = isValidGuid(cliData.unnamedParam);
+  if (isValidId) {
+    return `${entityMetadata.PrimaryIdAttribute} eq ${cliData.unnamedParam}`;
+  }
+
 
   if (!IsEmpty(cliData.unnamedParam))
     return (

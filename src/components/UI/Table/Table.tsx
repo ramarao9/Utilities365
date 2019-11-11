@@ -1,6 +1,5 @@
 import React from "react";
-
-
+import "./Table.css";
 
 interface TableData{
     UniqueIdKey:string;
@@ -24,7 +23,7 @@ let tableBdy=(
 tableProps.RowData.map((record:any)=>(        
 <tr key={record[tableProps.UniqueIdKey]}>
 {tableProps.HeaderColumns.map((tableProp:string)=>(
-  <td key={`${record[tableProps.UniqueIdKey]+tableProp}`}>{`${record[tableProp]}`}</td>
+  <td className="tdWs" key={`${record[tableProps.UniqueIdKey]+tableProp}`}>{`${record[tableProp]}`}</td>
    ))}
 </tr>
 ))

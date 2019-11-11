@@ -43,7 +43,7 @@ export const terminalOutput: React.FC<TerminalOut> = (
 
         let treeTheme=getJSONTreeTheme();
         let jsonData=terminalOutputProps.data;
-        output = (<JSONTree data={jsonData} theme={treeTheme} invertTheme={false}  />);
+        output = (<JSONTree data={jsonData} theme={treeTheme} invertTheme={false} shouldExpandNode={(keyName, data, level)=>level<2} />);
        break;
 
     case "error":

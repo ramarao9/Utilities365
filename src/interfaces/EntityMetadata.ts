@@ -129,7 +129,7 @@ export interface OptionSet {
 
 export interface Description {
     LocalizedLabels: LocalizedLabel[];
-    UserLocalizedLabel: UserLocalizedLabel;
+    UserLocalizedLabel: LocalizedLabel;
 }
 
 export interface LocalizedLabel {
@@ -140,18 +140,11 @@ export interface LocalizedLabel {
     HasChanged?: boolean;
 }
 
-export interface UserLocalizedLabel {
-    Label: string;
-    LanguageCode: number;
-    IsManaged: boolean;
-    MetadataId: string;
-    HasChanged?: boolean;
-}
 
 
 export interface DisplayName {
     LocalizedLabels: LocalizedLabel[];
-    UserLocalizedLabel: UserLocalizedLabel;
+    UserLocalizedLabel: LocalizedLabel;
 }
 
 export interface IsCustomizable {
@@ -164,7 +157,7 @@ export interface IsCustomizable {
 
 export interface Label {
     LocalizedLabels: LocalizedLabel[];
-    UserLocalizedLabel: UserLocalizedLabel;
+    UserLocalizedLabel: LocalizedLabel;
 }
 
 export interface Option {
@@ -288,7 +281,7 @@ export interface CanChangeDateTimeBehavior {
 
     export interface DisplayCollectionName {
         LocalizedLabels: LocalizedLabel[];
-        UserLocalizedLabel: UserLocalizedLabel;
+        UserLocalizedLabel: LocalizedLabel;
     }
 
 

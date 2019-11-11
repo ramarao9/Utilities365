@@ -1,7 +1,7 @@
 import { ActionParam } from "../interfaces/CliData";
-import { Relationship } from "../interfaces/EntityMetadata";
+import { Relationship, LocalizedLabel } from "../interfaces/EntityMetadata";
 import { Action } from "history";
-import {JSONTreeTheme} from "../interfaces/JSONTreeTheme";
+import { JSONTreeTheme } from "../interfaces/JSONTreeTheme";
 
 
 export const getArrayFromCSV = (csv?: string): Array<string> | undefined => {
@@ -13,7 +13,7 @@ export const getArrayFromCSV = (csv?: string): Array<string> | undefined => {
 }
 
 
-export const getParamVal = (param: ActionParam): string | undefined => {
+export const getParamVal = (param: ActionParam | undefined): string | undefined => {
     let paramVal = param ? param.value : undefined;
     return paramVal;
 }
@@ -46,28 +46,30 @@ export const getRelationship = (referencingAttribute: string, relationships: Arr
 }
 
 
-export const getAttributeMetadataName = (attributeTypeShort:string): string => {
+export const getAttributeMetadataName = (attributeTypeShort: string): string => {
 
     switch (attributeTypeShort.toLowerCase()) {
 
         case "datetime": return "DateTime";
-      
+
         case "bigint": return "BigInt";
 
-        default:return capitalizeFirstLetter(attributeTypeShort.toLowerCase());
+        case "optionset":return "Picklist"
+
+        default: return capitalizeFirstLetter(attributeTypeShort.toLowerCase());
     }
 
 }
 
-export const capitalizeFirstLetter = (s:string) => { 
+export const capitalizeFirstLetter = (s: string) => {
     return s.charAt(0).toUpperCase() + s.slice(1)
-  }
+}
 
 
 
-  export const getJSONTreeTheme=() : JSONTreeTheme=>{
+export const getJSONTreeTheme = (): JSONTreeTheme => {
 
-    const theme= {
+    const theme = {
         scheme: 'eighties',
         author: 'chris kempson (http://chriskempson.com)',
         base00: '#000',
@@ -86,7 +88,37 @@ export const capitalizeFirstLetter = (s:string) => {
         base0D: '#9cdcfe',
         base0E: '#cc99cc',
         base0F: '#d27b53'
-      };
+    };
 
-      return theme;
-  }
+    return theme;
+}
+
+
+export const getFirstLabelFromLocalizedLabels = (labels: Array<LocalizedLabel> | undefined): string => {
+
+    let label = "";
+
+    if (labels && labels.length > 0) {
+        let locLabel = labels[0];
+        return locLabel.Label;
+    }
+
+    return label;
+
+
+}
+
+
+export const isValidGuid = (id: string | undefined): boolean => {
+
+    if (!id)
+        return false;
+
+    let isValid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+
+
+    if (!isValid) {
+        isValid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id);
+    }
+    return isValid;
+}

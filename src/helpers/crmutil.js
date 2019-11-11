@@ -36,3 +36,6 @@ export const getRecordUrl = (orgUrl, logicalName, id) => {
 export function getCliErrorResponse(error) {
   return getCliResponse("error",error,null, false);
 }
+
+
+

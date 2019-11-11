@@ -3,14 +3,19 @@ import { CliData, ActionParam } from "../../../interfaces/CliData"
 import { CliResponse } from "../../../interfaces/CliResponse"
 import { retrieveMultiple, retrieveEntitites, retrieveEntity, retrieveAttribute, retrieveAttributes } from "../../../helpers/webAPIClientHelper"
 import { getErrorResponse } from "../CliResponseUtil";
-import { getArrayFromCSV, getParamVal, getAttributeMetadataName } from "../../../helpers/common";
-import { getEntityMetadataBasic } from "../../CrmMetadataService"
+import { getArrayFromCSV, getParamVal, getAttributeMetadataName, getFirstLabelFromLocalizedLabels, isValidGuid } from "../../../helpers/common";
+import { getEntityMetadataBasic, getEntity as getEntityMetadata } from "../../CrmMetadataService"
 import {
   STR_ERROR_OCCURRED
 } from "../../../helpers/strings";
 import { async } from "q";
 import { expand } from "../../../interfaces/expand";
 import { EntityMetadata } from "../../../interfaces/EntityMetadata";
+
+import {
+  getTypeQueryParam, getExpandQueryParam, getAlternateKey, getActionParam,
+  getPrimaryIdAttribute, getFilterWhenAttributes, getOptionSetLabelValues
+} from "../../../helpers/QueryHelper";
 
 export const handleCrmGetActions = async (cliData: CliData) => {
   let cliResponse: CliResponse = { message: "", success: false, type: "json" };
@@ -26,12 +31,21 @@ export const handleCrmGetActions = async (cliData: CliData) => {
         break;
 
       case "entities": responseData = await getEntities(cliData);
-        cliResponse.response = responseData;
+        cliResponse.type = "table";
+        cliResponse.response = cleanEntitiesData(responseData);
         break;
 
       case "attribute":
       case "attributes": responseData = await getAttributeData(cliData);
-        cliResponse.response = responseData;
+
+        if (cliData.target.toLowerCase() === "attributes") {
+          cliResponse.response = cleanAttributesData(responseData);
+          cliResponse.type = "table";
+        }
+        else {
+          cliResponse.response = responseData;
+        }
+
         break;
 
 
@@ -61,12 +75,12 @@ const getEntity = async (cliData: CliData) => {
   if (actionParams == null)
     throw new Error("Please specify the parameters and try again.");
 
-  let nameParam: ActionParam = getActionParam("name", actionParams);
-  let propertiesParam: ActionParam = getActionParam("properties", actionParams);
-  let expandParam: ActionParam = getActionParam("expand", actionParams);
+  let nameParam = getActionParam("entity", actionParams);
+  let propertiesParam = getActionParam("properties", actionParams);
+  let expandParam = getActionParam("expand", actionParams);
 
   if (nameParam == undefined)
-    throw new Error(`Name parameter to specify the entity cannot be empty. Please provide the parameter and try again`);
+    throw new Error(`Entity parameter to specify the entity cannot be empty. Please provide the parameter and try again`);
 
   let attributes = propertiesParam ? getArrayFromCSV(propertiesParam.value) : undefined;
   let retrieveEntityResponse = await retrieveEntity(`LogicalName='${nameParam.value}'`, attributes, undefined);
@@ -78,30 +92,29 @@ const getEntity = async (cliData: CliData) => {
 
 const getEntities = async (cliData: CliData) => {
   let actionParams = cliData.actionParams;
-  if (actionParams == null)
-    throw new Error("Please specify the parameters and try again.");
+  // if (actionParams == null)
+  //   throw new Error("Please specify the parameters and try again.");
 
 
-  let namesParam: ActionParam = getActionParam("names", actionParams);
-  let propertiesParam: ActionParam = getActionParam("properties", actionParams);
-  let filterParam: ActionParam = getActionParam("filter", actionParams);
+  let namesParam = getActionParam("entities", actionParams);
+  let propertiesParam = getActionParam("properties", actionParams);
+  let filterParam = getActionParam("filter", actionParams);
 
 
   let properties = propertiesParam ? getArrayFromCSV(propertiesParam.value) : getDefaultEntityAttributes();
-  let names = namesParam ? getArrayFromCSV(namesParam.value) : undefined;
-  let filter = filterParam ? filterParam.value : undefined;
-  if (names) {
-    filter = "";
-    for (let i = 0; i < names.length; i++) {
-      let entityMetadata = await getEntityMetadataBasic(names[i]) as EntityMetadata;
+  let entities = namesParam ? getArrayFromCSV(namesParam.value) : undefined;
+  let filter = filterParam ? filterParam.value : "";
+  if (entities) {
+    for (let i = 0; i < entities.length; i++) {
+      let entityMetadata = await getEntityMetadataBasic(entities[i]) as EntityMetadata;
       filter += `LogicalName eq '${entityMetadata.LogicalName}' or `;
     }
     filter = filter.slice(0, -4);//removes the or condition for the last statement
   }
 
-  if (!filter) {
-    throw new Error(`Filter parameter cannot be empty when the Names parameter is not specified. Please provide the parameter and try again or specify the Names parameter using CSV of Entity logical names.`);
-  }
+  // if (!filter) {
+  //   throw new Error(`Filter parameter cannot be empty when the Names parameter is not specified. Please provide the parameter and try again or specify the Names parameter using CSV of Entity logical names.`);
+  // }
 
   let retrieveEntitiesResponse = await retrieveEntitites(properties, filter);
 
@@ -110,43 +123,28 @@ const getEntities = async (cliData: CliData) => {
 }
 
 const getAttributeData = async (cliData: CliData) => {
+
   let actionParams = cliData.actionParams;
   if (actionParams == null)
     throw new Error("Please specify the parameters and try again.");
 
-  let entityParam: ActionParam = getActionParam("entity", actionParams);
-  let attributeParam: ActionParam = getActionParam("attribute", actionParams);
-  let typeParam: ActionParam = getActionParam("type", actionParams);
-  let propertiesParam: ActionParam = getActionParam("properties", actionParams);
-  let expandParam: ActionParam = getActionParam("expand", actionParams);
-  let filterParam: ActionParam = getActionParam("filter", actionParams);
+  let entityParam = getActionParam("entity", actionParams);
+  let attributeParam = getActionParam("attribute", actionParams);
+  let attributesParam = getActionParam("attributes", actionParams);
+  let typeParam = getActionParam("type", actionParams);
+  let propertiesParam = getActionParam("properties", actionParams);
+  let expandParam = getActionParam("expand", actionParams);
+  let filterParam = getActionParam("filter", actionParams);
 
-  if (entityParam == undefined)
+  if (!entityParam || !entityParam.value)
     throw new Error(`Entity parameter required. Please provide both the parameter and try again.`);
 
-  let properties = propertiesParam ? getArrayFromCSV(propertiesParam.value) : undefined;
-
-  let expandArr: expand[] = Array<expand>();
-  if (expandParam) {
-    let expandAtts = expandParam ? getArrayFromCSV(expandParam.value) : undefined;
-
-    if (expandAtts && expandAtts.length > 0) {
-      //to do
-    }
-
-  }
-
-  let type = typeParam ? typeParam.value as string : undefined;
-
-  if (type) {
-    if (!type.startsWith("Microsoft.Dynamics.CRM.") && !type.endsWith("AttributeMetadata")) {
-      let attributeMetadataName = getAttributeMetadataName(type);
-      type = `Microsoft.Dynamics.CRM.${attributeMetadataName}AttributeMetadata`;
-    }
-  }
+  let properties = propertiesParam ? getArrayFromCSV(propertiesParam.value) : getDefaultAttributeProperties();
+  let type = getTypeQueryParam(typeParam);
+  let expandQueryParam = getExpandQueryParam(expandParam, type);
 
   if (cliData.target.toLowerCase() === "attribute") {
-    if (attributeParam == undefined)
+    if (!attributeParam)
       throw new Error(`Attribute parameter required. Please provide both the parameter and try again.`);
 
     let retrieveAttributeResponse = await retrieveAttribute(
@@ -154,18 +152,32 @@ const getAttributeData = async (cliData: CliData) => {
       getAlternateKey(attributeParam.value),
       type,
       properties,
-      undefined
+      expandQueryParam
     );
+
     return retrieveAttributeResponse;
   }
   else {
+
+    let currentFilter = getParamVal(filterParam);
+    if (attributesParam && attributesParam.value) {
+      currentFilter = getFilterWhenAttributes(attributesParam.value, currentFilter);
+    }
+
     let retrieveAttributesResponse = await retrieveAttributes(
       getAlternateKey(entityParam.value),
       type,
       properties,
-      getParamVal(filterParam),
-      getParamVal(expandParam)
+      currentFilter,
+      expandQueryParam
     );
+
+
+    // if (!type || type.indexOf("Picklist") != -1) {
+    //   let entityMetadata: EntityMetadata = await getEntityMetadata(entityParam.value);
+    //   let picklistValues = entityMetadata.PicklistAttributes;    
+    // }
+
     return retrieveAttributesResponse;
 
   }
@@ -173,7 +185,46 @@ const getAttributeData = async (cliData: CliData) => {
 
 }
 
+const cleanEntitiesData= (responseData: any): any => {
 
+  let data: Array<any> = responseData.value.map((x: any) => {
+
+    if (x.hasOwnProperty("DisplayName")) {
+      let localizedLabels = x["DisplayName"].LocalizedLabels;
+      let label = getFirstLabelFromLocalizedLabels(localizedLabels);
+      x["DisplayName"] = label;
+    }
+    return x;
+  });
+
+  let cleanedData = { uniqueidattribute: "MetadataId", data: data };
+  return cleanedData;
+
+}
+
+
+const cleanAttributesData = (responseData: any): any => {
+
+  let data: Array<any> = responseData.value.map((x: any) => {
+
+    if (x.hasOwnProperty("DisplayName")) {
+      let localizedLabels = x["DisplayName"].LocalizedLabels;
+      let label = getFirstLabelFromLocalizedLabels(localizedLabels);
+      x["DisplayName"] = label;
+    }
+
+    if (x.hasOwnProperty("OptionSet")) {
+      let options = x["OptionSet"].Options;
+      let optionSetLabelValues = getOptionSetLabelValues(options);
+      x["OptionSet"] = optionSetLabelValues;
+    }
+    return x;
+  });
+
+  let cleanedData = { uniqueidattribute: "MetadataId", data: data };
+  return cleanedData;
+
+}
 
 const getRecords = async (cliData: CliData) => {
 
@@ -192,34 +243,37 @@ const getRecords = async (cliData: CliData) => {
 };
 
 
-const getAlternateKey = (keyVal: string): string => {
-  keyVal = keyVal.trim();
-  return `LogicalName='${keyVal}'`;
-}
 
 
-
+//Returns the request body need to search Entity records
 const getRequestBody = async (cliData: CliData) => {
 
 
   let actionParams = cliData.actionParams;
-  if (actionParams == null)
-    return null;
-
-  let filterParam: ActionParam = getActionParam("filter", actionParams);
-  let selectParam: ActionParam = getActionParam("select", actionParams);
-  let topParam: ActionParam = getActionParam("top", actionParams);
-
+  if (actionParams == null && !cliData.unnamedParam)
+    throw new Error(`Provide either the id, name or parameters to filter the records for retrieval.`);
 
 
   let entityMetadata = await getEntityMetadataBasic(cliData.target) as EntityMetadata;
+
+  let isValidId = isValidGuid(cliData.unnamedParam);
+
+
+  let filterParam = getActionParam("filter", actionParams);
+  let selectParam = getActionParam("select", actionParams);
+  let topParam = getActionParam("top", actionParams);
 
   let retrieveMultipleRequest: any = {};
   retrieveMultipleRequest.collection = entityMetadata.EntitySetName;
 
 
-
-  if (filterParam != null && filterParam.value != null) {
+  if (isValidId) {
+    retrieveMultipleRequest.filter = `${entityMetadata.PrimaryIdAttribute} eq ${cliData.unnamedParam}`;
+  }
+  else if (cliData.unnamedParam) {
+    retrieveMultipleRequest.filter = `${entityMetadata.PrimaryNameAttribute} eq '${cliData.unnamedParam}'`;
+  }
+  else if (filterParam != null && filterParam.value != null) {
     retrieveMultipleRequest.filter = filterParam.value;
   }
 
@@ -232,7 +286,7 @@ const getRequestBody = async (cliData: CliData) => {
     retrieveMultipleRequest.select = [entityMetadata.PrimaryNameAttribute];
   }
 
-  if (topParam != null && topParam.value != null) {
+  if (!isValidId && topParam != null && topParam.value != null) {
     retrieveMultipleRequest.top = topParam.value;
   }
 
@@ -242,21 +296,7 @@ const getRequestBody = async (cliData: CliData) => {
 }
 
 
-const getActionParam = (parameterName: string, actionParams: Array<ActionParam>): ActionParam => {
-  let match: ActionParam = actionParams.find(x => x.name != null && x.name.toLowerCase().trim() === parameterName.trim().toLowerCase()) as ActionParam;
-  return match;
-}
 
-
-const getPrimaryIdAttribute = (collectionName: string): string => {
-
-
-  if (collectionName == null)
-    return "";
-
-  return `${collectionName.slice(0, -1).toLowerCase()}id`;
-
-}
 
 
 const getDefaultEntityAttributes = (): Array<string> => {
@@ -274,3 +314,13 @@ const getDefaultEntityAttributes = (): Array<string> => {
     "PrimaryIdAttribute"];
 
 }
+
+
+
+const getDefaultAttributeProperties = (): Array<string> => {
+
+
+  return ["DisplayName", "LogicalName", "AttributeType", "SchemaName"];
+
+}
+
