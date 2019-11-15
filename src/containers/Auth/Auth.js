@@ -20,6 +20,7 @@ import { retrieveAll } from "../../helpers/webAPIClientHelper";
 import * as actionTypes from "../../store/actions";
 import * as crmUtil from "../../helpers/crmutil";
 import "./Auth.css";
+import isEmpty from "is-empty";
 const isDev = window.require("electron-is-dev");
 const { BrowserWindow } = window.require("electron").remote;
 
@@ -72,7 +73,7 @@ class Auth extends Component {
         label: "Client Secret",
         elementType: "input",
         elementConfig: {
-          type: "text",
+          type: "password",
           placeholder: "Provide the secret for client credential grant or S2S"
         },
         value: ""
@@ -121,7 +122,7 @@ class Auth extends Component {
     );
     connectionInfo.authorizationUrl = authorizationUrl;
 
-    if (connectionInfo.clientSecret != null) {
+    if (!isEmpty(connectionInfo.clientSecret)) {
       var authContext = new AdalNode.AuthenticationContext(
         connectionInfo.authorizationUrl
       );
@@ -136,7 +137,7 @@ class Auth extends Component {
       var authorizationUrlWithParams = this.getAuthorizationUrlWithParams(
         connectionInfo
       );
-      this.requestAccessToken(authorizationUrlWithParams);
+      this.requestAccessToken(authorizationUrlWithParams,authorizationUrl);
     }
   };
 
@@ -179,7 +180,7 @@ class Auth extends Component {
     return authorizationUrl;
   };
 
-  requestAccessToken = authorizationUrl => {
+  requestAccessToken =(authorizationUrlWithParams, authorizationUrl) => {
     let authWindow = new BrowserWindow({
       width: 800,
       height: 600,
@@ -189,11 +190,11 @@ class Auth extends Component {
     if (isDev) {
       authWindow.webPreferences = { webSecurity: false };
     }
-    authWindow.loadURL(authorizationUrl);
+    authWindow.loadURL(authorizationUrlWithParams);
     authWindow.show();
 
     authWindow.webContents.on("will-redirect", (event, newUrl) => {
-      this.onNavigateToAAD(newUrl, authWindow);
+      this.onNavigateToAAD(newUrl, authWindow, authorizationUrl);
     });
 
     authWindow.on("closed", () => {
@@ -201,7 +202,7 @@ class Auth extends Component {
     });
   };
 
-  onNavigateToAAD = (newUrl, authWndw) => {
+  onNavigateToAAD = (newUrl, authWndw,authorizationUrl) => {
     const connectionInfo = this.getNewConnectionInfo();
 
     var queryParams = newUrl.substr(newUrl.indexOf("?"));
@@ -212,7 +213,7 @@ class Auth extends Component {
     if (code == null || code === "") return;
 
     var authContext = new AdalNode.AuthenticationContext(
-      connectionInfo.authorizationUrl
+      authorizationUrl
     );
 
     authContext.acquireTokenWithAuthorizationCode(

@@ -20,7 +20,10 @@ export const getExpandQueryParam = (expandParam: ActionParam | undefined, type: 
     if (expandParam) {
         let expandAtts = expandParam ? getArrayFromCSV(expandParam.value) : undefined;
         if (expandAtts && expandAtts.length > 0) {
-            //to do
+            expandArr = expandAtts.map((val: string, index: number, arr: string[]) => {
+                let expandProp: expand = { property: val };
+                return expandProp;
+            });
         }
     }
     else if (type && type.indexOf("Picklist") != -1) {
@@ -36,6 +39,16 @@ export const getAlternateKey = (keyVal: string): string => {
     return `LogicalName='${keyVal}'`;
 }
 
+
+export const hasActionParamVal = (name: string, actionParams: Array<ActionParam> | undefined): boolean => {
+
+    if (!actionParams)
+        return false;
+
+    let matchedActionParam = actionParams.find(x => x.value && x.value.toLowerCase().trim() === name.trim().toLowerCase());
+    return (matchedActionParam != undefined);
+
+}
 
 export const getActionParam = (parameterName: string, actionParams: Array<ActionParam> | undefined): ActionParam | undefined => {
     if (!actionParams)
@@ -83,7 +96,7 @@ export const getFilterWhenAttributes = (attributes: string, existingFilter: stri
 
 export const getOptionSetLabelValues = (options: Array<Option>): string => {
 
-    let optionSetLabelValues= options.reduce((prevValue: string | undefined, currValue: Option, currentIndex: number, arr: Option[]): string => {
+    let optionSetLabelValues = options.reduce((prevValue: string | undefined, currValue: Option, currentIndex: number, arr: Option[]): string => {
 
         let label = currValue.Label && currValue.Label.LocalizedLabels ? getFirstLabelFromLocalizedLabels(currValue.Label.LocalizedLabels) : "";
 
@@ -102,8 +115,7 @@ ${labelValue}`;
 
     }, undefined);
 
-    if(!optionSetLabelValues)
-    {
+    if (!optionSetLabelValues) {
         return "";
     }
 

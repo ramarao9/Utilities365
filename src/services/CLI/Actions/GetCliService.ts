@@ -14,7 +14,8 @@ import { EntityMetadata } from "../../../interfaces/EntityMetadata";
 
 import {
   getTypeQueryParam, getExpandQueryParam, getAlternateKey, getActionParam,
-  getPrimaryIdAttribute, getFilterWhenAttributes, getOptionSetLabelValues
+  getPrimaryIdAttribute, getFilterWhenAttributes, getOptionSetLabelValues,
+  hasActionParamVal
 } from "../../../helpers/QueryHelper";
 
 export const handleCrmGetActions = async (cliData: CliData) => {
@@ -73,20 +74,22 @@ const getEntity = async (cliData: CliData) => {
 
   let actionParams = cliData.actionParams;
   if (actionParams == null)
-    throw new Error("Please specify the parameters and try again.");
+    throw new Error("Please specify the parameters and try again. Entity parameter must be provided at a minimum.");
 
-  let nameParam = getActionParam("entity", actionParams);
+  let entityParam = getActionParam("entity", actionParams);
   let propertiesParam = getActionParam("properties", actionParams);
   let expandParam = getActionParam("expand", actionParams);
 
-  if (nameParam == undefined)
+  if (!entityParam || !entityParam.value)
     throw new Error(`Entity parameter to specify the entity cannot be empty. Please provide the parameter and try again`);
 
-  let attributes = propertiesParam ? getArrayFromCSV(propertiesParam.value) : undefined;
-  let retrieveEntityResponse = await retrieveEntity(`LogicalName='${nameParam.value}'`, attributes, undefined);
+  let entityName = entityParam.value;
+  let entityMetadata = await getEntityMetadataBasic(entityName) as EntityMetadata;
+  let expandQueryParam = getExpandQueryParam(expandParam, undefined);
 
+  let properties = propertiesParam ? getArrayFromCSV(propertiesParam.value) : undefined;
+  let retrieveEntityResponse = await retrieveEntity(`LogicalName='${entityMetadata.LogicalName}'`, properties, expandQueryParam);
   return retrieveEntityResponse;
-
 }
 
 
@@ -133,19 +136,28 @@ const getAttributeData = async (cliData: CliData) => {
   let attributesParam = getActionParam("attributes", actionParams);
   let typeParam = getActionParam("type", actionParams);
   let propertiesParam = getActionParam("properties", actionParams);
+  let retrieveAllProperties = hasActionParamVal("all", actionParams);
   let expandParam = getActionParam("expand", actionParams);
   let filterParam = getActionParam("filter", actionParams);
 
   if (!entityParam || !entityParam.value)
     throw new Error(`Entity parameter required. Please provide both the parameter and try again.`);
 
-  let properties = propertiesParam ? getArrayFromCSV(propertiesParam.value) : getDefaultAttributeProperties();
+  let propertiesCSV = propertiesParam ? propertiesParam.value : undefined;
+  let properties = propertiesParam ? getArrayFromCSV(propertiesCSV) : getDefaultAttributeProperties();
   let type = getTypeQueryParam(typeParam);
   let expandQueryParam = getExpandQueryParam(expandParam, type);
+
+  if (retrieveAllProperties) {
+    properties=undefined;//will return everything
+  }
 
   if (cliData.target.toLowerCase() === "attribute") {
     if (!attributeParam)
       throw new Error(`Attribute parameter required. Please provide both the parameter and try again.`);
+
+
+
 
     let retrieveAttributeResponse = await retrieveAttribute(
       getAlternateKey(entityParam.value),
@@ -185,7 +197,7 @@ const getAttributeData = async (cliData: CliData) => {
 
 }
 
-const cleanEntitiesData= (responseData: any): any => {
+const cleanEntitiesData = (responseData: any): any => {
 
   let data: Array<any> = responseData.value.map((x: any) => {
 
@@ -302,16 +314,11 @@ const getRequestBody = async (cliData: CliData) => {
 const getDefaultEntityAttributes = (): Array<string> => {
 
 
-  return ["ObjectTypeCode",
-    "OwnershipType",
-    "LogicalName",
-    "SchemaName",
-    "LogicalCollectionName",
-    "EntitySetName",
-    "CollectionSchemaName",
+  return [
     "DisplayName",
-    "PrimaryNameAttribute",
-    "PrimaryIdAttribute"];
+    "LogicalName",
+    "ObjectTypeCode",
+    "PrimaryNameAttribute"];
 
 }
 
