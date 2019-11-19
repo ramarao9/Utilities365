@@ -9,6 +9,7 @@ import { PerformCrmAction } from "../../services/CLI/CrmCliService";
 import { Terminal } from "../../components/UI/Terminal/Terminal";
 import { CliResponse } from "../../interfaces/CliResponse";
 import { CliData } from "../../interfaces/CliData";
+import {Spinner} from "../../interfaces/Spinner";
 import { TerminalOut } from "../../interfaces/TerminalOut";
 import "./CLI.css";
 import { number } from "prop-types";
@@ -19,6 +20,7 @@ const KEYCODE_ENTER = 13;
 
 export const CLI: React.FC = () => {
   const [variables, setVariables] = useState<any>({});
+  const [spinnerInfo,setSpinner]=useState<Spinner>({show:false});
   const [inputText, setInputText] = useState<string>("");
   const [outputs, setOutputs] = useState<Array<any>>([]);
   const [commandsHistoryCurrentIndex, setCommandsHistoryCurrentIndex] = useState<number>(-1);
@@ -48,11 +50,22 @@ export const CLI: React.FC = () => {
       }
     }
 
+    showProgressSpinner();
     cliResponse = await PerformCrmAction(cliDataVal);
     showActionResult(cliResponse, cliDataVal);
+    hideProgressSpinner();
   };
 
 
+  const showProgressSpinner=()=>
+  {   
+    setSpinner({ show:true});
+  }
+
+  const hideProgressSpinner=()=>
+  {   
+    setSpinner({ show:false});
+  }
 
   const setCurrentCommandFromHistory = (keyCode: number) => {
 
@@ -156,7 +169,7 @@ export const CLI: React.FC = () => {
           outputs={outputs}
   terminalInputChange={(event: any) => onTerminalInputChanged(event)}
 terminalInputKeyDown={onTerminalInputKeyDown}
-inputText={inputText} />
+inputText={inputText} spinner={spinnerInfo} />
   </div>
   </React.Fragment>
   );

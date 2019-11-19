@@ -54,6 +54,8 @@ export const terminalOutput: React.FC<TerminalOut> = (
       );
       break;
 
+
+
     default:
       output = (
         <pre className="terminal-output-line">{terminalOutputProps.message}</pre>

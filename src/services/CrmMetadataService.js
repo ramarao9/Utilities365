@@ -13,7 +13,7 @@ export const getEntityMetadataBasic = async entityName => {
 
   let entityMetadata =
     entities != null ? entities.filter(filterEntityByName, entityName.toLowerCase().trim()) : null;
-  return entityMetadata != null && entityMetadata.length == 1
+  return entityMetadata != null && entityMetadata.length === 1
     ? entityMetadata[0]
     : null;
 };
@@ -90,24 +90,11 @@ export const getRelationships = async (entityName) => {
 
   let entityRelationships = await retrieveEntity(`LogicalName='${entityName}'`, ["LogicalName"], [{ property: "ManyToOneRelationships" }]);
 
-  var s = 100;
-
-
   return entityRelationships;
 
 }
 
-const getRetrieveAttributesRequest = entityName => {
-  const attributeProperties = getAttributeProperties();
-  var retrieveAttributesRequest = {
-    collection: "EntityDefinitions",
-    key: `LogicalName='${entityName}'`,
-    navigationProperty: "Attributes",
-    navigationPropertyKey: 'LogicalName="firstname"'
-  };
 
-  return retrieveAttributesRequest;
-};
 
 function filterEntityByName(entityMetadata, i, entities) {
   let entityToFilterBy = this;
@@ -163,18 +150,6 @@ function getEntityProperties() {
   ];
 
   return entityProperties;
-}
-
-function getAttributeProperties() {
-  let attributeProperties = [
-    "DisplayName",
-    "AttributeTypeName",
-    "LogicalName",
-    "SchemaName",
-    "DateTimeBehavior.Value"
-  ];
-
-  return attributeProperties;
 }
 
 

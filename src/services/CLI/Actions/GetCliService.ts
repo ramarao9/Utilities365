@@ -15,7 +15,7 @@ import { EntityMetadata } from "../../../interfaces/EntityMetadata";
 import {
   getTypeQueryParam, getExpandQueryParam, getAlternateKey, getActionParam,
   getPrimaryIdAttribute, getFilterWhenAttributes, getOptionSetLabelValues,
-  hasActionParamVal
+  hasActionParamVal,parseQueryFunctionInFilterIfAny
 } from "../../../helpers/QueryHelper";
 
 export const handleCrmGetActions = async (cliData: CliData) => {
@@ -286,7 +286,8 @@ const getRequestBody = async (cliData: CliData) => {
     retrieveMultipleRequest.filter = `${entityMetadata.PrimaryNameAttribute} eq '${cliData.unnamedParam}'`;
   }
   else if (filterParam != null && filterParam.value != null) {
-    retrieveMultipleRequest.filter = filterParam.value;
+    let parsedFilter=parseQueryFunctionInFilterIfAny(filterParam.value);
+    retrieveMultipleRequest.filter = parsedFilter;
   }
 
   if (selectParam != null && selectParam.value != null) {

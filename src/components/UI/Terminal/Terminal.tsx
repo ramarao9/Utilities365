@@ -3,12 +3,14 @@ import "./Terminal.css";
 import { TerminalInput } from "./TerminalInput/TerminalInput";
 import { TerminalOut } from "../../../interfaces/TerminalOut";
 import { terminalOutput as TerminalOutput } from "./TerminalOutput/TerminalOutput";
-
+import { Spinner } from "../../../interfaces/Spinner";
+import {SpinIcon} from "../SpinIcon/SpinIcon";
 interface TerminalProp {
   outputs: Array<TerminalOut>;
   terminalInputChange: any;
   terminalInputKeyDown: any;
   inputText: string;
+  spinner: Spinner
 }
 
 export const Terminal: React.FC<TerminalProp> = (terminalProp: TerminalProp) => {
@@ -19,6 +21,12 @@ export const Terminal: React.FC<TerminalProp> = (terminalProp: TerminalProp) => 
     ));
   }
 
+let spinnerControl=null;
+if(terminalProp.spinner && terminalProp.spinner.show)
+{
+  spinnerControl=(<SpinIcon show={terminalProp.spinner.show}/>);
+}
+
   return (
     <div className="terminal-main">
       {terminalOutputs}
@@ -27,6 +35,7 @@ export const Terminal: React.FC<TerminalProp> = (terminalProp: TerminalProp) => 
         onInputKeyDown={terminalProp.terminalInputKeyDown}
         terminalInputText={terminalProp.inputText}
       />
+      {spinnerControl}
     </div>
   );
 };

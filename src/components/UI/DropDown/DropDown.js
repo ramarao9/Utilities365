@@ -16,7 +16,7 @@ const dropDown = props => {
     document.addEventListener("mousedown", closeDropDownWhenClickedOutside);
 
     if (
-      (currentDropdownOptions == null || currentDropdownOptions.length == 0) &&
+      (currentDropdownOptions == null || currentDropdownOptions.length === 0) &&
       props.options != null &&
       props.options.length > 0
     ) {

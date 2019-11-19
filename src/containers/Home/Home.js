@@ -10,16 +10,14 @@ class Home extends Component {
 
     }
 
-
     render() {
-
         if (!crmUtil.isValidToken(this.props.tokenData)) {
             return <Redirect to='/Auth' />
         }
 
         return (
             <React.Fragment>
-                <h1>Welcome to Utilities365!</h1>
+                <h1>Welcome to Utilities 365!</h1>
             </React.Fragment>
         );
     }

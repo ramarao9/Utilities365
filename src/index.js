@@ -10,7 +10,7 @@ import {App} from "./App";
 import registerServiceWorker from "./registerServiceWorker";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import {
   faCopy,
   faTimes,
@@ -19,6 +19,7 @@ import {
   faPlus,
   faPencilAlt,
   faEraser,
+  faSlash,
   faAngleDown
 } from "@fortawesome/free-solid-svg-icons";
 library.add(
@@ -29,7 +30,8 @@ library.add(
   faPencilAlt,
   faTrashAlt,
   faPlus,
-  faCopy
+  faCopy,
+  faSlash
 );
 
 const app = (

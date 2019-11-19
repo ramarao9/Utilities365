@@ -1,14 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Redirect } from "react-router";
 import store from "../../store/store";
-import DynamicsWebApi from "dynamics-web-api";
 import * as crmUtil from "../../helpers/crmutil";
-import * as actionTypes from "../../store/actions";
 import Input from "../../components/UI/Input/Input";
 import ProgressBar from "../../components/UI/ProgressBar/ProgressBar";
 import Notification from "../../components/UI/Notification/Notification";
 import EntityMultiSelect from "../../components/CRM/EntityMultiSelect/EntityMultiSelect";
-import Aux from "../../hoc/_Aux/_Aux";
 import IsEmpty from "is-empty";
 import AnchorButton from "../../components/UI/AnchorButton/AnchorButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

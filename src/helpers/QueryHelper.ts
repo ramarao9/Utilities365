@@ -2,6 +2,7 @@ import { Option, OptionData } from "../interfaces/EntityMetadata";
 import { CliData, ActionParam } from "../interfaces/CliData"
 import { expand } from "../interfaces/expand";
 import { getArrayFromCSV, getParamVal, getAttributeMetadataName, getFirstLabelFromLocalizedLabels } from "../helpers/common";
+import { QueryFunction, FunctionParameter, FunctionReturnType } from "../interfaces/QueryFunction";
 
 export const getTypeQueryParam = (typeParam: ActionParam | undefined): string | undefined => {
 
@@ -122,4 +123,369 @@ ${labelValue}`;
     return optionSetLabelValues;
 
 
+}
+
+
+
+export const parseQueryFunctionInFilterIfAny = (filter: string): string => {
+
+    let parsedFilter = filter;
+    let queryFunctions = getQueryFunctionMetadataList();
+
+    let runningFilterLowerCase = filter.toLowerCase();
+    queryFunctions.forEach(queryFunction => {
+
+        let functionNameLC = queryFunction.Name.toLowerCase();
+
+        while (runningFilterLowerCase.indexOf(functionNameLC) != -1) {
+
+            let indexOfCurrentFunction = runningFilterLowerCase.indexOf(functionNameLC);
+            let substrFromCurrentFunctionIndex = parsedFilter.substr(indexOfCurrentFunction);
+            let indexOfFunctionClosingBracket = substrFromCurrentFunctionIndex.indexOf(")");
+
+
+            let queryFuncData = substrFromCurrentFunctionIndex.substr(0, indexOfFunctionClosingBracket + 1);
+            let indexOfFuncStartBracket = queryFuncData.indexOf("(");
+            let funcParamInfo = queryFuncData.substr(indexOfFuncStartBracket).replace("(", "").replace(")", "");
+            let functionParams = (funcParamInfo !== "") ? funcParamInfo.split(",") : [];
+
+            let formattedFunctionDeclaration = queryFunction.DeclarationTemplate;
+            if (functionParams.length > 0) {
+                let propertyName = `'${functionParams[0].replace(/'/g, '').replace(/"/g, '')}'`;
+                functionParams.shift();
+
+
+
+                formattedFunctionDeclaration = formattedFunctionDeclaration.replace("@p1", propertyName);
+                if (functionParams && functionParams.length > 0) {
+                    let parameterType = queryFunction.Parameters[1].Type;
+                    let parameterValue = functionParams[0];
+                    switch (parameterType) {
+
+                        case "Collection(Edm.String)": parameterValue = parameterValue.replace(/"/g, "'");
+                            break;
+
+                        case "Edm.Int64": parameterValue = replaceQuotes(parameterValue);
+                            break;
+
+                        case "Edm.String": parameterValue = replaceQuotes(parameterValue);
+                            parameterValue = `'${parameterValue}'`;
+                            break;
+                    }
+
+                    formattedFunctionDeclaration = formattedFunctionDeclaration.replace("@p2", parameterValue);
+
+                    if (functionParams.length === 2) {
+                        let parameterValue2 = replaceQuotes(functionParams[1]);
+                        formattedFunctionDeclaration = formattedFunctionDeclaration.replace("@p3", parameterValue2);
+                    }
+                }
+            }
+            parsedFilter = parsedFilter.replace(queryFuncData, formattedFunctionDeclaration);
+            runningFilterLowerCase = runningFilterLowerCase.replace(queryFuncData.toLowerCase(), "");
+        }
+
+    });
+
+
+
+
+    return parsedFilter;
+}
+
+
+const replaceQuotes = (stText: string): string => {
+
+    return stText.replace(/'/g, '').replace(/"/g, '');
+
+}
+
+
+const getQueryFunctionMetadataList = (): QueryFunction[] => {
+    let queryFunctions = Array<QueryFunction>();
+    let queryFunctionNames = getAvilableQueryFunctionNames();
+
+    (queryFunctionNames).forEach(functionName => {
+        let funcDefinition = getFunctionDefinition(functionName);
+        if (funcDefinition) {
+            queryFunctions.push(funcDefinition);
+        }
+    });
+    return queryFunctions;
+}
+
+
+const getAvilableQueryFunctionNames = (): string[] => {
+
+
+    let queryFunctionNames: Array<string> = [
+        "Above",
+        "AboveOrEqual",
+        "Between",
+        "Contains",
+        "ContainValues",
+        "DoesNotContainValues",
+        "EqualBusinessId",
+        "EqualUserId",
+        "EqualUserLanguage",
+        "EqualUserOrUserHierarchy",
+        "EqualUserOrUserHierarchyAndTeams",
+        "EqualUserOrUserTeams",
+        "EqualUserTeams",
+        "In",
+        "InFiscalPeriod",
+        "InFiscalPeriodAndYear",
+        "InFiscalYear",
+        "InOrAfterFiscalPeriodAndYear",
+        "InOrBeforeFiscalPeriodAndYear",
+        "Last7Days",
+        "LastFiscalPeriod",
+        "LastFiscalYear",
+        "LastMonth",
+        "LastWeek",
+        "LastXDays",
+        "LastXFiscalPeriods",
+        "LastXFiscalYears",
+        "LastXHours",
+        "LastXMonths",
+        "LastXWeeks",
+        "LastXYears",
+        "LastYear",
+        "Next7Days",
+        "NextFiscalPeriod",
+        "NextFiscalYear",
+        "NextMonth",
+        "NextWeek",
+        "NextXDays",
+        "NextXFiscalPeriods",
+        "NextXFiscalYears",
+        "NextXHours",
+        "NextXMonths",
+        "NextXWeeks",
+        "NextXYears",
+        "NextYear",
+        "NotBetween",
+        "NotEqualBusinessId",
+        "NotEqualUserId",
+        "NotIn",
+        "NotUnder",
+        "OlderThanXDays",
+        "OlderThanXHours",
+        "OlderThanXMinutes",
+        "OlderThanXMonths",
+        "OlderThanXWeeks",
+        "OlderThanXYears",
+        "On",
+        "OnOrAfter",
+        "OnOrBefore",
+        "ThisFiscalPeriod",
+        "ThisFiscalYear",
+        "ThisMonth",
+        "ThisWeek",
+        "ThisYear",
+        "Today",
+        "Tomorrow",
+        "Under",
+        "UnderOrEqual",
+        "Yesterday"
+    ];
+
+    return queryFunctionNames;
+
+}
+
+
+const getFunctionDefinition = (functionName: string): QueryFunction | undefined => {
+
+    let functionDefinition;
+
+    switch (functionName) {
+
+        case "Contains":
+        case "Above":
+        case "AboveOrEqual":
+        case "NotUnder":
+        case "UnderOrEqual":
+        case "Under":
+        case "On":
+        case "OnOrAfter":
+        case "OnOrBefore":
+            functionDefinition = {
+                Name: functionName,
+                Parameters: [{
+                    Name: "PropertyName",
+                    Type: "Edm.String",
+                    Nullable: false,
+                    Unicode: false
+                },
+                {
+                    Name: "PropertyValue",
+                    Type: "Edm.String",
+                    Nullable: false,
+                    Unicode: false
+                }],
+                ReturnInfo: { Type: "Edm.Boolean", Nullable: false },
+                DeclarationTemplate: `Microsoft.Dynamics.CRM.${functionName}(PropertyName=@p1,PropertyValue=@p2)`
+            };
+            break;
+
+
+
+        case "ContainValues":
+        case "DoesNotContainValues":
+        case "Between":
+        case "NotBetween":
+        case "NotIn": functionDefinition = {
+            Name: functionName,
+            Parameters: [{
+                Name: "PropertyName",
+                Type: "Edm.String",
+                Nullable: false,
+                Unicode: false
+            },
+            {
+                Name: "PropertyValues",
+                Type: "Collection(Edm.String)",
+                Nullable: false,
+                Unicode: false
+            }],
+            ReturnInfo: { Type: "Edm.Boolean", Nullable: false },
+            DeclarationTemplate: `Microsoft.Dynamics.CRM.${functionName}(PropertyName=@p1,PropertyValues=@p2)`
+        };
+            break;
+
+
+
+
+        case "EqualBusinessId":
+        case "NotEqualBusinessId":
+        case "EqualUserId":
+        case "NotEqualUserId":
+        case "EqualUserLanguage":
+        case "EqualUserOrUserHierarchy":
+        case "EqualUserOrUserHierarchyAndTeams":
+        case "EqualUserTeams":
+        case "EqualUserOrUserTeams": functionDefinition = {
+            Name: functionName,
+            Parameters: [{
+                Name: "PropertyName",
+                Type: "Edm.String",
+                Nullable: false,
+                Unicode: false
+            }],
+            ReturnInfo: { Type: "Edm.Boolean", Nullable: false },
+            DeclarationTemplate: `Microsoft.Dynamics.CRM.${functionName}(PropertyName=@p1)`
+        };
+            break;
+
+
+        case "InFiscalYear":
+        case "InFiscalPeriod":
+        case "LastXFiscalPeriods":
+        case "LastXFiscalYears":
+        case "NextXDays":
+        case "NextXFiscalPeriods":
+        case "NextXFiscalYears":
+        case "NextXHours":
+        case "NextXMonths":
+        case "NextXWeeks":
+        case "NextXYears":
+        case "LastXHours":
+        case "LastXMonths":
+        case "LastXWeeks":
+        case "LastXYears":
+        case "LastXDays":
+        case "OlderThanXDays":
+        case "OlderThanXHours":
+        case "OlderThanXMinutes":
+        case "OlderThanXMonths":
+        case "OlderThanXWeeks":
+        case "OlderThanXYears":
+            functionDefinition = {
+                Name: functionName,
+                Parameters: [{
+                    Name: "PropertyName",
+                    Type: "Edm.String",
+                    Nullable: false,
+                    Unicode: false
+                },
+                {
+                    Name: "PropertyValue",
+                    Type: "Edm.Int64",
+                    Nullable: false,
+                    Unicode: false
+                }],
+                ReturnInfo: { Type: "Edm.Boolean", Nullable: false },
+                DeclarationTemplate: `Microsoft.Dynamics.CRM.${functionName}(PropertyName=@p1,PropertyValue=@p2)`
+            };
+            break;
+
+
+        case "InFiscalPeriodAndYear":
+        case "InOrAfterFiscalPeriodAndYear":
+        case "InOrBeforeFiscalPeriodAndYear":
+            functionDefinition = {
+                Name: functionName,
+                Parameters: [{
+                    Name: "PropertyName",
+                    Type: "Edm.String",
+                    Nullable: false,
+                    Unicode: false
+                },
+                {
+                    Name: "PropertyValue1",
+                    Type: "Edm.Int64",
+                    Nullable: false,
+                    Unicode: false
+                },
+                {
+                    Name: "PropertyValue2",
+                    Type: "Edm.Int64",
+                    Nullable: false,
+                    Unicode: false
+                }],
+                ReturnInfo: { Type: "Edm.Boolean", Nullable: false },
+                DeclarationTemplate: `Microsoft.Dynamics.CRM.${functionName}(PropertyName=@p1,PropertyValue1=@p2,PropertyValue2=@p3)`
+            };
+            break;
+
+        case "Last7Days":
+        case "LastFiscalPeriod":
+        case "LastFiscalYear":
+        case "LastYear":
+        case "Next7Days":
+        case "NextFiscalPeriod":
+        case "NextFiscalYear":
+        case "NextMonth":
+        case "NextWeek":
+        case "NextYear":
+        case "LastMonth":
+        case "ThisFiscalPeriod":
+        case "ThisFiscalYear":
+        case "ThisMonth":
+        case "ThisWeek":
+        case "ThisYear":
+        case "LastWeek":
+        case "Tomorrow":
+        case "Today":
+        case "Yesterday": functionDefinition = {
+            Name: functionName,
+            Parameters: [{
+                Name: "PropertyName",
+                Type: "Edm.String",
+                Nullable: false,
+                Unicode: false
+            }],
+            ReturnInfo: { Type: "Edm.Boolean", Nullable: false },
+            DeclarationTemplate: `Microsoft.Dynamics.CRM.${functionName}(PropertyName=@p1)`
+        };
+            break;
+
+
+        default: functionDefinition = undefined;
+            break;
+    }
+
+
+    return functionDefinition
 }

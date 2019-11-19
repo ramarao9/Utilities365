@@ -1,12 +1,15 @@
+
+
 const Store = window.require("electron-store");
 
-export const setConfigData = (key, value) => {
+
+export const setConfigData = (key:any, value:any) => {
   const localUserConfigStore = new Store();
 
   localUserConfigStore.set(key, value);
 };
 
-export const getConfigData = key => {
+export const getConfigData = (key:any) => {
   const localUserConfigStore = new Store();
 
   let configData = localUserConfigStore.get(key);
@@ -23,31 +26,31 @@ export const getConnections = () => {
   return connections;
 };
 
-export const saveConnection = connectionInfo => {
+export const saveConnection = (connectionInfo: any) => {
   let connections = getConnections();
 
-  connections = connections.filter(x => x.orgUrl !== connectionInfo.orgUrl);
+  connections = connections.filter((x:any) => x.orgUrl !== connectionInfo.orgUrl);
   connections.push(connectionInfo);
 
   setConfigData("Connections", connections);
 };
 
-export const getConnection = orgUrl => {
+export const getConnection = (orgUrl:any) => {
   let connections = getConnections();
 
-  let connection = connections.find(x => x.orgUrl === orgUrl);
+  let connection = connections.find((x:any) => x.orgUrl === orgUrl);
   return connection;
 };
 
-export const removeConnection = orgUrl => {
+export const removeConnection = (orgUrl:any) => {
   let connections = getConnections();
-  connections = connections.filter(x => x.orgUrl !== orgUrl);
+  connections = connections.filter((x:any)=> x.orgUrl !== orgUrl);
   setConfigData("Connections", connections);
 
   return connections;
 };
 
-export const updateToken = tokenData => {
+export const updateToken = (tokenData:any) => {
   let connection = getConnection(tokenData.resource);
   connection.accessToken = tokenData;
   saveConnection(connection);

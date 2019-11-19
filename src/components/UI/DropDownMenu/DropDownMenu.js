@@ -36,7 +36,7 @@ const dropDownMenu = ({ menuItems, menuItemClick }) => {
   let dropDownContent = menuItems.map(menuItem => (
     <a
       key={menuItem.id}
-      href="#"
+      href="/#"
       className="dropdown-item"
       onClick={event => {
         closeMenu();
@@ -56,5 +56,6 @@ const dropDownMenu = ({ menuItems, menuItemClick }) => {
     </div>
   );
 };
+
 
 export default dropDownMenu;

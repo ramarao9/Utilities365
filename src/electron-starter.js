@@ -10,10 +10,10 @@ let mainWindow;
 
 function createWindow() {
   // Create the browser window.
-
   if (isDev) {
+    //the below will show some security errors but since this is just local development it should be fine.
     mainWindow = new BrowserWindow({
-      webPreferences: { webSecurity: false },
+      webPreferences: { webSecurity: false,nodeIntegration: true },
       width: 800,
       height: 600,
       allowRunningInsecureContent: true
@@ -21,7 +21,7 @@ function createWindow() {
     mainWindow.loadURL("http://localhost:3000");
   } else {
     var indexFilePath = path.join(__dirname, "../build/index.html");
-    mainWindow = new BrowserWindow({ width: 800, height: 600, icon: path.join(__dirname, '../build/u365.ico') });
+    mainWindow = new BrowserWindow({ webPreferences: { nodeIntegration: true },width: 800, height: 600, icon: path.join(__dirname, '../build/u365.ico') });
     mainWindow.loadFile(indexFilePath);
   }
 

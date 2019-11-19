@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { Redirect } from "react-router";
 import { connect } from "react-redux";
 import MoreButton from "../../components/UI/MoreButton/MoreButton";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isValidToken } from "../../helpers/crmutil";
 import AnchorButton from "../../components/UI/AnchorButton/AnchorButton";
 import AdalNode from "adal-node";
@@ -18,7 +17,6 @@ import {
 
 import { retrieveAll } from "../../helpers/webAPIClientHelper";
 import * as actionTypes from "../../store/actions";
-import * as crmUtil from "../../helpers/crmutil";
 import "./Auth.css";
 import isEmpty from "is-empty";
 const isDev = window.require("electron-is-dev");
@@ -65,7 +63,7 @@ class Auth extends Component {
         elementType: "input",
         elementConfig: {
           type: "text",
-          placeholder: "Provide the reply url from the app registration"
+          placeholder: "Provide the reply url from the app registration if you want to use authorization code authentication"
         },
         value: ""
       },
@@ -74,12 +72,12 @@ class Auth extends Component {
         elementType: "input",
         elementConfig: {
           type: "password",
-          placeholder: "Provide the secret for client credential grant or S2S"
+          placeholder: "Provide the client secret if you want to use client credential grant or S2S authentication"
         },
         value: ""
       },
       saveNewConnection: {
-        label: "Save Connection Locally(Access Token)",
+        label: "Save Connection Locally(Access Token/Client Secret)",
         elementType: "inputChk",
         elementConfig: {
           type: "checkbox"
@@ -144,7 +142,7 @@ class Auth extends Component {
   getAuthorizationUrlFromOrgUrl = async orgUrl => {
     let authorizationUrl = null;
     try {
-      const response = await axios.get(`${orgUrl}/api/data`);
+      await axios.get(`${orgUrl}/api/data`);
     } catch (error) {
       let response = error.response;
       let responseHeaders = response.headers;
