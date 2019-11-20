@@ -9,26 +9,31 @@ import * as actionTypes from "../../../store/actions";
 class navigationItems extends Component {
   state = {
     isActive: false,
-    isAuthenticated: false
+    isAuthenticated: false,
+    selectedNavItem: "home"
   };
 
   onNavBurgerClicked = () => {
-    //
+
     this.setState({ isActive: !this.state.isActive });
   };
 
   onUserMenuItemClick = (event, menuItem) => {
 
-    
+
     switch (menuItem.id) {
-      case "signout":  this.props.onUserSignOut();  
+      case "signout": this.props.onUserSignOut();
         break;
-    
+
       default:
         break;
     }
 
   };
+
+  onNavItemClick = (ev, itemName) => {
+    this.setState({ selectedNavItem: itemName });
+  }
 
   render() {
     let navEndUI = null;
@@ -49,7 +54,7 @@ class navigationItems extends Component {
             menuItems={userMenuOptions}
             menuItemClick={this.onUserMenuItemClick}
           />
-       
+
         </div>
       );
     }
@@ -81,13 +86,13 @@ class navigationItems extends Component {
           >
             {/* navbar start, navbar end  */}
             <div className="navbar-start">
-              <NavLink className="navbar-item" exact to="/home">
+              <NavLink className={`navbar-item ${this.state.selectedNavItem == "home" ? "is-active" : ""}`} onClick={ev => this.onNavItemClick(ev, "home")} exact to="/home">
                 Home
               </NavLink>
-              <NavLink className="navbar-item" exact to="/guidsearch">
+              <NavLink className={`navbar-item ${this.state.selectedNavItem == "gs" ? "is-active" : ""}`} onClick={ev => this.onNavItemClick(ev, "gs")} exact to="/guidsearch">
                 Guid Search
               </NavLink>
-              <NavLink className="navbar-item" exact to="/cli">
+              <NavLink className={`navbar-item ${this.state.selectedNavItem == "cli" ? "is-active" : ""}`} onClick={ev => this.onNavItemClick(ev, "cli")} exact to="/cli">
                 CLI
               </NavLink>
             </div>
@@ -108,9 +113,9 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    onUserSignOut:() =>
-      dispatch({ type: actionTypes.SIGNOUT_USER})
+    onUserSignOut: () =>
+      dispatch({ type: actionTypes.SIGNOUT_USER })
   };
 };
 
-export default connect(mapStateToProps,mapDispatchToProps)(navigationItems);
+export default connect(mapStateToProps, mapDispatchToProps)(navigationItems);

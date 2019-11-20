@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import classes from "./DropDownMenu.css";
-const dropDownMenu = ({ menuItems, menuItemClick }) => {
+ const DropDownMenu = (props) => {
   const node = useRef();
 
   const [open, setOpen] = useState(false);
@@ -33,14 +33,14 @@ const dropDownMenu = ({ menuItems, menuItemClick }) => {
     dropdownStyles.push("is-active");
   }
 
-  let dropDownContent = menuItems.map(menuItem => (
+  let dropDownContent = props.menuItems.map(menuItem => (
     <a
       key={menuItem.id}
       href="/#"
       className="dropdown-item"
       onClick={event => {
         closeMenu();
-        menuItemClick(event, menuItem);
+        props.menuItemClick(event, menuItem);
       }}
     >
       {menuItem.label}
@@ -58,4 +58,4 @@ const dropDownMenu = ({ menuItems, menuItemClick }) => {
 };
 
 
-export default dropDownMenu;
+export default DropDownMenu;

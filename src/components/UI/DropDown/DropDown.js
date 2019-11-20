@@ -4,7 +4,7 @@ import IsEmpty from "is-empty";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./DropDown.css";
 
-const dropDown = props => {
+const DropDown = props => {
   const node = useRef();
   const [showDropDown, setShowDropDown] = useState(false);
   const [dropdownOptions, setDropdownoptions] = useState(props.options);
@@ -201,4 +201,4 @@ const dropDown = props => {
   );
 };
 
-export default dropDown;
+export default DropDown;

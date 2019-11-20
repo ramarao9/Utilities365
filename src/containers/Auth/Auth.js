@@ -135,7 +135,7 @@ class Auth extends Component {
       var authorizationUrlWithParams = this.getAuthorizationUrlWithParams(
         connectionInfo
       );
-      this.requestAccessToken(authorizationUrlWithParams,authorizationUrl);
+      this.requestAccessToken(authorizationUrlWithParams, authorizationUrl);
     }
   };
 
@@ -178,7 +178,7 @@ class Auth extends Component {
     return authorizationUrl;
   };
 
-  requestAccessToken =(authorizationUrlWithParams, authorizationUrl) => {
+  requestAccessToken = (authorizationUrlWithParams, authorizationUrl) => {
     let authWindow = new BrowserWindow({
       width: 800,
       height: 600,
@@ -200,15 +200,20 @@ class Auth extends Component {
     });
   };
 
-  onNavigateToAAD = (newUrl, authWndw,authorizationUrl) => {
+  onNavigateToAAD = (newUrl, authWndw, authorizationUrl) => {
     const connectionInfo = this.getNewConnectionInfo();
 
     var queryParams = newUrl.substr(newUrl.indexOf("?"));
     var urlParams = new URLSearchParams(queryParams);
 
     var code = urlParams.get("code");
+    var error = urlParams.get("error_description");
 
-    if (code == null || code === "") return;
+
+    if (code == null || code === "") {
+      alert(error);
+      if (authWndw) authWndw.destroy();
+    }
 
     var authContext = new AdalNode.AuthenticationContext(
       authorizationUrl
@@ -301,7 +306,7 @@ class Auth extends Component {
     let user = {};
     let users = await retrieveAll(
       "systemusers",
-      ["fullname","domainname"],
+      ["fullname", "domainname"],
       `applicationid eq '${applicationId}'`
     );
 
@@ -567,7 +572,7 @@ class Auth extends Component {
       </div>
     );
 
-    return    <React.Fragment>{newOrg}</React.Fragment>
+    return <React.Fragment>{newOrg}</React.Fragment>
   }
 }
 
