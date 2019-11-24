@@ -156,10 +156,6 @@ export const CLI: React.FC = () => {
 
 
 
-  const storeData = store.getState();
-  if (!crmUtil.isValidToken(storeData.tokenData)) {
-    return <Redirect to="/" />;
-  }
 
   return (
     <React.Fragment>

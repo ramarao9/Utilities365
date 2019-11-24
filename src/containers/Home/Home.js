@@ -16,7 +16,7 @@ class Home extends Component {
 
     render() {
         if (!crmUtil.isValidToken(this.props.tokenData)) {
-            return <Redirect to='/Auth' />
+            this.props.history.push('/Auth');
         }
 
         return (

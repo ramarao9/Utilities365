@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import { Redirect } from "react-router";
 import { connect } from "react-redux";
 import MoreButton from "../../components/UI/MoreButton/MoreButton";
 import { isValidToken } from "../../helpers/crmutil";
@@ -86,6 +85,17 @@ class Auth extends Component {
       }
     }
   };
+
+
+  componentDidUpdate(prevProps) {
+    // will be true
+    let locationChanged =
+      this.props.location !== prevProps.location;
+
+
+      console.log("Location changed"+ locationChanged +" location : " +this.props.history.location);
+  }
+
 
   newConnectionEleChangedHandler = (event, inputIdentifier) => {
     const updatedNewConnectionInfo = {
@@ -275,6 +285,8 @@ class Auth extends Component {
       }
 
       await this.setUserInfo(tokenObj, orgName);
+
+      this.props.history.push("/home");
     } else {
       let errMsg =
         "Error occured while retrieving the Token: " + error.message + "\n";
@@ -399,7 +411,7 @@ class Auth extends Component {
       connection.authorizationUrl
     );
 
-    if (connection.accessToken.refreshToken) {
+    if (connection.accessToken && connection.accessToken.refreshToken) {
       authContext.acquireTokenWithRefreshToken(
         connection.accessToken.refreshToken,
         connection.appId,
@@ -431,16 +443,14 @@ class Auth extends Component {
 
       await this.setUserInfo(token, orgName);
 
-      this.props.history.push("/");
+      this.props.history.push("/home");
     } else {
     }
   };
 
   render() {
-    if (isValidToken(this.props.tokenData)) {
-      return <Redirect to="/" />;
-    }
 
+console.log("rendering auth");
     const connections = [...this.state.connections];
 
     let connectionInEditMode = { ...this.state.connectionInEditMode };

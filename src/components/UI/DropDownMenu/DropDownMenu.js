@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import classes from "./DropDownMenu.css";
- const DropDownMenu = (props) => {
+ const DropDownMenu = ({ menuItems, menuItemClick }) => {
   const node = useRef();
 
   const [open, setOpen] = useState(false);
@@ -33,14 +33,14 @@ import classes from "./DropDownMenu.css";
     dropdownStyles.push("is-active");
   }
 
-  let dropDownContent = props.menuItems.map(menuItem => (
+  let dropDownContent = menuItems.map(menuItem => (
     <a
       key={menuItem.id}
       href="/#"
       className="dropdown-item"
       onClick={event => {
         closeMenu();
-        props.menuItemClick(event, menuItem);
+        menuItemClick(event, menuItem);
       }}
     >
       {menuItem.label}

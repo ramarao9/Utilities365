@@ -14,9 +14,9 @@ export const create = async (createRequest: any, collectionOrLogicalName: string
 }
 
 
-export const update = async (key :string,updateRequest: any, collectionOrLogicalName: string, prefer?: string | string[] | undefined,select?: string[] | undefined) => {
+export const update = async (key: string, updateRequest: any, collectionOrLogicalName: string, prefer?: string | string[] | undefined, select?: string[] | undefined) => {
   let dynamicsWebAPIClient = getWebAPIClient(true);
-  return dynamicsWebAPIClient.update(key,collectionOrLogicalName, updateRequest,prefer, select);
+  return dynamicsWebAPIClient.update(key, collectionOrLogicalName, updateRequest, prefer, select);
 }
 
 
@@ -121,7 +121,13 @@ export const getCurrentOrgUrl = () => {
 
 function getWebAPIClient(useTokenRefresh: Boolean) {
   const currentToken = getTokenFromStore();
-  var webApiConfig: any = { webApiUrl: currentToken.resource + "/api/data/v9.1/" };
+
+  let baseUrl = currentToken.resource;
+  if (baseUrl.endsWith("/")) {
+    baseUrl = baseUrl.slice(0, -1);
+  }
+
+  var webApiConfig: any = { webApiUrl: baseUrl + "/api/data/v9.1/" };
 
   const tokenExpired = hasTokenExpired();
 

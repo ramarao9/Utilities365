@@ -1,32 +1,73 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, dialog } = require("electron");
+const { app, BrowserWindow , Menu} = require("electron");
 const isDev = require("electron-is-dev");
 const path = require("path");
-const url = require("url");
+
+
+
+
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
 function createWindow() {
+
+  
+
+
   // Create the browser window.
   if (isDev) {
+
+  
     //the below will show some security errors but since this is just local development it should be fine.
     mainWindow = new BrowserWindow({
-      webPreferences: { webSecurity: false,nodeIntegration: true },
-      width: 800,
-      height: 600,
+      webPreferences: { webSecurity: false, nodeIntegration: true },
+      width: 1024,
+      height: 768,
       allowRunningInsecureContent: true
     });
+
     mainWindow.loadURL("http://localhost:3000");
+
+
+    mainWindow.webContents.on("will-redirect", (event, newUrl) => {
+      console.log("will-redirect" + newUrl);
+    });
+  
+    mainWindow.webContents.on("did-redirect-navigation", (event, newUrl) => {
+      console.log("did-redirect-navigation" + newUrl);
+    });
+  
+    mainWindow.webContents.on("did-navigate", (event, newUrl) => {
+      console.log("did-navigate" + newUrl);
+    });
+  
+    mainWindow.webContents.on("did-navigate-in-page", (event, newUrl) => {
+      console.log("did-navigate-in-page" + newUrl);
+    });
+  
+    // Open the DevTools.
+     mainWindow.webContents.openDevTools()
   } else {
-    var indexFilePath = path.join(__dirname, "../build/index.html");
-    mainWindow = new BrowserWindow({ webPreferences: { nodeIntegration: true },width: 800, height: 600, icon: path.join(__dirname, '../build/u365.ico') });
-    mainWindow.loadFile(indexFilePath);
+
+    Menu.setApplicationMenu(null);
+
+    mainWindow = new BrowserWindow({
+      width: 1024,
+      height: 768,
+      webPreferences: { nodeIntegration: true },
+      icon: path.join(__dirname, '../build/u365.ico')
+    });
+
+    let filePath = path.join(__dirname, '../build/index.html')
+    mainWindow.loadFile(filePath);
+
+   
   }
 
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+
+
 
   // Emitted when the window is closed.
   mainWindow.on("closed", function () {
@@ -58,6 +99,18 @@ app.on("activate", function () {
     createWindow();
   }
 });
+
+
+app.on('web-contents-created', (event, contents) => {
+  contents.on('will-navigate', (event, navigationUrl) => {
+    const parsedUrl = new URL(navigationUrl)
+
+    console.log(parsedUrl);
+    // if (parsedUrl.origin !== 'https://example.com') {
+    //   event.preventDefault()
+    // }
+  })
+})
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.

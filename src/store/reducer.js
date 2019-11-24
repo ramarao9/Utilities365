@@ -19,8 +19,7 @@ const reducer = (state = initialState, action) => {
         }
       };
 
-    case actionTypes.REFRESH_ACCESS_TOKEN:
-      return {};
+
 
     case actionTypes.SET_ENTITIES:
       return {
@@ -49,9 +48,9 @@ const reducer = (state = initialState, action) => {
     case actionTypes.SIGNOUT_USER:
       return {
         ...state,
-        currentUserId: null,
-        currentUser: null,
-        tokenData: {},
+         tokenData: {},
+        currentUserId: {},
+        currentUser: {},
         crmUsers: [],
         entities: [],
         entitiesAttributeCollection: []

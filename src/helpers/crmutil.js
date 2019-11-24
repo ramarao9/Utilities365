@@ -2,9 +2,8 @@
 
 export function isValidToken(token) {
   return (
-    token != null &&
-    token.accessToken !== null &&
-    token.accessToken !== undefined
+    token &&
+    token.accessToken
   );
 }
  
@@ -13,7 +12,6 @@ export function getAuthorizationEndpoint(tenantId) {
   let authUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/authorize`;
   return authUrl;
 }
-
 export function getCliResponse(type,message, response, success) {
   var cliResponse = {
     type: type,

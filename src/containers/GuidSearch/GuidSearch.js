@@ -94,6 +94,7 @@ const GuidSearch = () => {
         x.LogicalName !== "businessdatalocalizedlabel" &&
         x.LogicalName !== "businessprocessflowinstance" &&
         x.LogicalName !== "calendarrule" &&
+        x.LogicalName !== "attribute" &&
         x.LogicalName !== "activityparty" &&
         x.LogicalName !== "commitment" &&
         x.LogicalName !== "dependencyfeature" &&
@@ -309,10 +310,7 @@ const GuidSearch = () => {
     }
   };
 
-  const storeData = store.getState();
-  if (!crmUtil.isValidToken(storeData.tokenData)) {
-    return <Redirect to="/" />;
-  }
+
 
   let entitiesToSearch = null;
 
