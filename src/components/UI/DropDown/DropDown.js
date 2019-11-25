@@ -6,6 +6,7 @@ import "./DropDown.css";
 
 const DropDown = props => {
   const node = useRef();
+  const searchTextEl=useRef("");
   const [showDropDown, setShowDropDown] = useState(false);
   const [dropdownOptions, setDropdownoptions] = useState(props.options);
   const [currentDropdownOptions, setCurrentDropdownOptions] = useState(
@@ -47,14 +48,22 @@ const DropDown = props => {
   };
 
   const onsearchTextChange = ev => {
-    const searchText = ev.target.value;
+    const searchText = ev.target.value.toLowerCase();
+    if (searchText === "") {
+      hideMenu();
+      return;
+    }
+
     const entitiesFromSearch = dropdownOptions.filter(
       option =>
-        option.Label.includes(searchText) ||
-        option.Value.includes(searchText) ||
+        (option.Label && option.Label.toLowerCase().includes(searchText)) ||
+        (option.Value && option.Value.toLowerCase().includes(searchText)) ||
         (option.AlternateValue != null && option.AlternateValue == searchText)
     );
 
+
+
+    showMenu();
     setCurrentDropdownOptions(entitiesFromSearch);
   };
 
@@ -65,15 +74,15 @@ const DropDown = props => {
     if (selectedValue != null && selectedValue !== "") {
       updatedSelectionsArr.push(selectedValue);
     }
-   
+
     const options = getCurrentDropDownOptions(updatedSelectionsArr);
 
-   
     //Update State to indicate selections and current options and to clear input
     setCurrentDropdownOptions(options);
     showMenu(false);
-
-     props.changed(updatedSelectionsArr);
+    searchTextEl.current.value="";
+    searchTextEl.current.focus();
+    props.changed(updatedSelectionsArr);
   };
 
   const removeOption = (event, entityToRemove) => {
@@ -83,8 +92,8 @@ const DropDown = props => {
       return optionValue !== entityToRemove;
     });
 
-  
-    
+
+
 
     const updatedCurrentDropDownOptions = getCurrentDropDownOptions(
       updatedSelectionsArr
@@ -155,7 +164,7 @@ const DropDown = props => {
   }
 
   return (
-    <Aux>
+    <React.Fragment>
       <div className="field is-horizontal">
         <div className="field-label is-small">
           <label className="label">{props.label}</label>
@@ -171,6 +180,8 @@ const DropDown = props => {
                       <input
                         onFocus={showMenu}
                         type="text"
+                        className="searchTxt"
+                        ref={searchTextEl}
                         onKeyUp={ev => onsearchTextChange(ev)}
                       />
                     </div>
@@ -197,7 +208,7 @@ const DropDown = props => {
           </div>
         </div>
       </div>
-    </Aux>
+    </React.Fragment>
   );
 };
 

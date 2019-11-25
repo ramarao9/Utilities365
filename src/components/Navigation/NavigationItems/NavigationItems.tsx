@@ -89,11 +89,11 @@ navEndUI=  (<div className="userInfo">
       <NavLink className={`navbar-item ${selectedNavItem == "home" ? "is-active" : ""}`} onClick={ev => onNavItemClick(ev, "home")} exact to="/home">
       Home
     </NavLink>
-    <NavLink className={`navbar-item ${selectedNavItem == "gs" ? "is-active" : ""}`} onClick={ev => onNavItemClick(ev, "gs")} exact to="/guidsearch">
-      Guid Search
-    </NavLink>
     <NavLink className={`navbar-item ${selectedNavItem == "cli" ? "is-active" : ""}`} onClick={ev => onNavItemClick(ev, "cli")} exact to="/cli">
       CLI
+    </NavLink>
+    <NavLink className={`navbar-item ${selectedNavItem == "gs" ? "is-active" : ""}`} onClick={ev => onNavItemClick(ev, "gs")} exact to="/guidsearch">
+    Guid Search
     </NavLink>
       </div>
       <div className="navbar-end">{navEndUI}</div>

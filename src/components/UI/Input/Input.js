@@ -39,11 +39,24 @@ const input = (props) => {
 
         case ('input'):
             inputClasses.push('input');
-            inputElement = <input
+
+            if(props.refrnc)
+            {
+                inputElement = <input
+                ref={props.refrnc}
                 onChange={props.changed}
                 className={inputClasses.join(' ')}
                 {...props.elementConfig}
                 value={props.value} />;
+            }
+            else{
+                inputElement = <input
+                onChange={props.changed}
+                className={inputClasses.join(' ')}
+                {...props.elementConfig}
+                value={props.value} />;
+            }
+     
             break;
 
             case ('password'):

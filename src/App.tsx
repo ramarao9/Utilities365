@@ -51,11 +51,11 @@ export const App: React.FC = () => {
         <PrivateRoute path="/home">
            <Home/>
         </PrivateRoute>
-        <PrivateRoute path="/guidsearch">
-           <GuidSearch/>
-        </PrivateRoute>
         <PrivateRoute path="/cli">
            <CLI/>
+        </PrivateRoute>
+        <PrivateRoute path="/guidsearch">
+        <GuidSearch/>
         </PrivateRoute>
         <Route path="*" exact component={Auth} />
         </Switch>

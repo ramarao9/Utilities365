@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState ,useRef} from "react";
 import { Redirect } from "react-router";
 import store from "../../store/store";
 import * as crmUtil from "../../helpers/crmutil";
@@ -19,6 +19,14 @@ import {
 const { clipboard } = window.require("electron");
 
 const GuidSearch = () => {
+
+  const guidEl = useRef(null);
+
+  useEffect(() => {
+    guidEl.current.focus();
+  }, []);
+
+
   const [entities, setEntities] = useState([]);
   const [noResultsFound, setNoResultsFound] = useState(false);
   const [searchInProcess, setSearchInProcess] = useState(false);
@@ -29,7 +37,7 @@ const GuidSearch = () => {
     elementConfig: {
       type: "checkbox"
     },
-    checked: false
+    checked: true
   });
   const [guidToSearch, setGuidToSearch] = useState({
     id: "guidInput",
@@ -94,17 +102,25 @@ const GuidSearch = () => {
         x.LogicalName !== "businessdatalocalizedlabel" &&
         x.LogicalName !== "businessprocessflowinstance" &&
         x.LogicalName !== "calendarrule" &&
+        x.LogicalName !== "entity" &&
         x.LogicalName !== "attribute" &&
         x.LogicalName !== "activityparty" &&
         x.LogicalName !== "commitment" &&
         x.LogicalName !== "dependencyfeature" &&
         x.LogicalName !== "dependencynode" &&
         x.LogicalName !== "delveactionhub" &&
+        x.LogicalName !== "untrackedemail" &&
         x.LogicalName !== "postfollow" &&
         x.LogicalName !== "fileattachment" &&
         x.LogicalName !== "holidaywrapper" &&
         x.LogicalName !== "imagedescriptor" &&
+        x.LogicalName !== "partnerapplication" &&
         x.LogicalName !== "documentindex" &&
+        x.LogicalName !== "complexcontrol" &&
+        x.LogicalName !== "salesprocessinstance" &&
+        x.LogicalName !== "similarityrule" &&
+        x.LogicalName !== "syncattributemappingprofile" &&
+        x.LogicalName !== "officegraphdocument" &&
         x.LogicalName !== "globalsearchconfiguration" &&
         x.LogicalName !== "customerrelationship" &&
         x.LogicalName !== "childincidentcount" &&
@@ -132,7 +148,7 @@ const GuidSearch = () => {
   const onClearClick = () => {
     updateGuidToSearch("");
     updateMatchedRecord("", "");
-    updateAllEntitiesCheck(false);
+    updateAllEntitiesCheck(true);
     setNoResultsFound(false);
     setEntitiesToSearchOn([]);
   };
@@ -151,6 +167,8 @@ const GuidSearch = () => {
   };
 
   const onSearchClick = async () => {
+    setNoResultsFound(false);
+
     let guidToSearchOn = guidToSearch.value;
     if (IsEmpty(guidToSearchOn)) {
       //To Do show indicator that the guid is required
@@ -358,7 +376,7 @@ const GuidSearch = () => {
 
   if (searchInProcess) {
     progressbarUI = (
-      <ProgressBar progressClasses={["is-small", "is-warning"]} />
+      <ProgressBar progressClasses={["is-small","is-link"]} />
     );
   }
 
@@ -374,7 +392,7 @@ const GuidSearch = () => {
     <React.Fragment>
       <div className="columns is-desktop">
         <div className="column is-half">
-          <div className="buttons">
+          <div className="buttons" style={{marginBottom:0}}>
             <a
               className="button is-radiusless is-white"
               disabled={searchInProcess}
@@ -397,12 +415,14 @@ const GuidSearch = () => {
               <span>Clear</span>
             </a>
           </div>
+          <hr className="hr" style={{marginTop: 0}}></hr>
 
           {progressbarUI}
 
           {noResultsNotificationUI}
           <Input
-            id={guidToSearch.id}
+            id={guidToSearch.id}          
+            refrnc={guidEl}
             elementType={guidToSearch.elementType}
             elementConfig={guidToSearch.elementConfig}
             size="is-small"

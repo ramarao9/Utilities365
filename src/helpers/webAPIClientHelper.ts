@@ -87,7 +87,7 @@ export const retrieveAll = async (entityCollectionName: string, select?: Array<s
 };
 
 export const retrieveRequest = async (request: any) => {
-  let dynamicsWebAPIClient = getWebAPIClient(false);
+  let dynamicsWebAPIClient = getWebAPIClient(true);
   return dynamicsWebAPIClient.retrieveRequest(request);
 };
 
@@ -173,7 +173,13 @@ function acquireTokenForRefresh(dynamicsWebApiCallback: any) {
 
   let connectionInfo = getConnection(tokenData.resource);
 
-  if (tokenData.refreshToken) {
+
+  let tooManyTokenRequestsinShortPeriod = tooManyRequestsForToken(tokenData.expiresOn);
+  let tokenExpired = hasTokenExpired();
+  if (tooManyTokenRequestsinShortPeriod && !tokenExpired) {
+    dynamicsWebApiCallback(tokenData);
+  }
+  else if (tokenData.refreshToken) {
     authContext.acquireTokenWithRefreshToken(
       tokenData.refreshToken,
       connectionInfo.appId,
@@ -215,4 +221,13 @@ function getTokenFromStore() {
 
 function updateTokenInStore(tokenData: any) {
   store.dispatch({ type: actionTypes.SET_ACCESS_TOKEN, token: tokenData });
+}
+
+
+function tooManyRequestsForToken(tokenExpiresOn: Date) {
+  var now = new Date();
+  var hourFromNow=now.setHours(now.getHours()+1);
+  var diffMs: number = (tokenExpiresOn.getTime() - hourFromNow);
+  var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
+  return (diffMins < 2);
 }
