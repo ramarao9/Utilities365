@@ -73,6 +73,8 @@ There are times as a developer when you need to perform certain tasks in the web
 Some of these operations could include testing, grabbing the metadata or quickly validating the data changes. Having the ability to perform all these tasks from a single location could significantly improve productivity. While there are tools like Postman which could help these tasks it requires setup and configuration and the ability to build the request object. 
 
 
+![](https://ramarao.blob.core.windows.net/utilities365/SampleQuery.jpg)
 
+For more commands refer to the Wiki.
 
 Feedback and contributions welcome!
