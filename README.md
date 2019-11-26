@@ -6,15 +6,17 @@ Refer to the [Wiki](https://github.com/ramarao9/Utilities365/wiki) for documenta
 
 A tool that hopefully eases up some of repetitive tasks involved with querying data and metadata. Although it's a work in progress it was built to speed up the common tasks I experienced as a developer. 
 
-The idea is to add more utilities that solve common problems that we encounter with Dynamics 365. So if you have any suggestions feel free to post an issue. While this tool acts as a basic utility it could also be used as a starter template to help you build your own application.
+The idea is to keep adding useful utilities that solve common problems that we encounter with Dynamics 365. So if you have any suggestions feel free to post an issue. While this tool acts as a basic utility it could also be used as a starter template to help you build your own application.
 
-This tool is built using ElectronJs, ReactJS and NPM. Some reasons that lead to this path as compared to building it as a WPF application.
+This tool is built using [Electron](https://electronjs.org/),[Node.js](https://nodejs.org/en/), [React](https://reactjs.org/) and [NPM](https://www.npmjs.com/). Some reasons that lead to this path as compared to building it as a WPF application.
 
-- Using HTML, JS and CSS makes development much more easier and faster with all the latest open source frameworks available in the market that can also ease up building complex UIs.
+- Using HTML, JS and CSS makes development much more easier and faster with all the latest open source frameworks available in the market and can also ease up building complex UIs.
 
 - The code can be easily resused to build webresources, build an NPM package and for other front end development purposes.
 
 - Support for front end development is huge and has a very big community that could easily help solve issues.
+
+- Allows easy collaboration as most developers are used to Html, JS and CSS. While the tool uses typescript at places it's easy to pick up on Typescript if one knows JS.
 
 
 # Using the Tool
