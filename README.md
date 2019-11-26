@@ -77,6 +77,6 @@ Some of these operations could include testing, grabbing the metadata or quickly
 
 ![](https://ramarao.blob.core.windows.net/utilities365/SampleQuery.jpg)
 
-For more commands refer to the Wiki.
+For a complete list of commands refer to the Wiki.
 
 Feedback and contributions welcome!
