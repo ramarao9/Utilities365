@@ -20,22 +20,14 @@ export const update = async (key: string, updateRequest: any, collectionOrLogica
 }
 
 
-export function executeUnboundAction(
-  functionName: string,
-  successCallback: any,
-  errorCallback: any,
-  passThroughCallback: any,
-  passThroughObj: any
-) {
+export const  executeUnboundFunction=async(functionName: string,parameters :any) => {
   let dynamicsWebAPIClient = getWebAPIClient(true);
-  dynamicsWebAPIClient
-    .executeUnboundFunction(functionName)
-    .then(function (response) {
-      successCallback(response, passThroughCallback, passThroughObj);
-    })
-    .catch(function (error) {
-      errorCallback(error, passThroughCallback, passThroughObj);
-    });
+  return dynamicsWebAPIClient.executeUnboundFunction(functionName,parameters);
+}
+
+export const executeFetchXml=async(collectionName:string,fetchXml:string)=>{
+  let dynamicsWebAPIClient = getWebAPIClient(true);
+  return dynamicsWebAPIClient.fetch(collectionName,fetchXml);
 }
 
 export const retrieveEntitites = async (properties?: Array<string>, filter?: string) => {
@@ -104,14 +96,33 @@ export const batchRetrieveMultipleRequests = async (retrieveMultipleRequests: an
 };
 
 export const retrieveMultiple = async (request: any) => {
-  request = setTokenOnRequestIfValid(request);
-  let dynamicsWebAPIClient = getWebAPIClient(false);
+
+  let dynamicsWebAPIClient = getWebAPIClient(true);
   let retrieveMultipleResponse = dynamicsWebAPIClient.retrieveMultipleRequest(
     request
   );
   return retrieveMultipleResponse;
 };
 
+
+
+export const associate = async (collection: string, primaryKey: string, relationshipName: string, relatedCollection: string, relatedKey: string) => {
+  let dynamicsWebAPIClient = getWebAPIClient(true);
+
+  let associateRequest = dynamicsWebAPIClient.associate(collection, primaryKey, relationshipName, relatedCollection, relatedKey);
+
+  return associateRequest;
+
+}
+
+export const disassociate = async (collection: string, primaryKey: string, relationshipName: string, relatedKey: string) => {
+  let dynamicsWebAPIClient = getWebAPIClient(true);
+
+  let disassociateRequest = dynamicsWebAPIClient.disassociate(collection, primaryKey, relationshipName, relatedKey);
+
+  return disassociateRequest;
+
+}
 
 
 export const getCurrentOrgUrl = () => {
@@ -226,7 +237,7 @@ function updateTokenInStore(tokenData: any) {
 
 function tooManyRequestsForToken(tokenExpiresOn: Date) {
   var now = new Date();
-  var hourFromNow=now.setHours(now.getHours()+1);
+  var hourFromNow = now.setHours(now.getHours() + 1);
   var diffMs: number = (tokenExpiresOn.getTime() - hourFromNow);
   var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
   return (diffMins < 2);

@@ -22,7 +22,7 @@ export const getEntities = async () => {
   let entities = getEntitiesFromStore();
 
   if (entities == null || entities.length === 0) {
-    let filter = "IsValidForAdvancedFind eq true or ObjectTypeCode lt 10000 and OwnershipType ne 'None'";
+    let filter = "IsValidForAdvancedFind eq true or ObjectTypeCode lt 10000 and OwnershipType ne 'None' and PrimaryIdAttribute ne null";
     let entityProperties = getEntityProperties();
     let retrieveEntitiesResponse = await retrieveEntitites(
       entityProperties,

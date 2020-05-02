@@ -20,7 +20,8 @@ import {
   faPencilAlt,
   faEraser,
   faSlash,
-  faAngleDown
+  faAngleDown,
+  faBan
 } from "@fortawesome/free-solid-svg-icons";
 library.add(
   faAngleDown,
@@ -31,7 +32,8 @@ library.add(
   faTrashAlt,
   faPlus,
   faCopy,
-  faSlash
+  faSlash,
+  faBan
 );
 
 const app = (

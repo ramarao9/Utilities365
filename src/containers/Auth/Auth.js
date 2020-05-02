@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
+import ErrorMessage from "../../components/UI/ErrorMessage/ErrorMessage";
 import MoreButton from "../../components/UI/MoreButton/MoreButton";
 import { isValidToken } from "../../helpers/crmutil";
 import AnchorButton from "../../components/UI/AnchorButton/AnchorButton";
@@ -24,6 +25,8 @@ const { BrowserWindow } = window.require("electron").remote;
 class Auth extends Component {
   state = {
     currentEnv: {},
+    connectionInProcess: false,
+    connectionError: null,
     connections: getConnections(),
     showNewConnectionUI: false,
     connectionInEditMode: null,
@@ -93,7 +96,7 @@ class Auth extends Component {
       this.props.location !== prevProps.location;
 
 
-      console.log("Location changed"+ locationChanged +" location : " +this.props.history.location);
+    console.log("Location changed" + locationChanged + " location : " + this.props.history.location);
   }
 
 
@@ -122,6 +125,9 @@ class Auth extends Component {
   };
 
   connectClick = async event => {
+
+    this.setState({ connectionInProcess: true });
+
     const connectionInfo = this.getNewConnectionInfo();
     //To do validation
 
@@ -221,8 +227,9 @@ class Auth extends Component {
 
 
     if (code == null || code === "") {
-      alert(error);
       if (authWndw) authWndw.destroy();
+      this.setState({ connectionInProcess: false, connectionError: error });
+      return;
     }
 
     var authContext = new AdalNode.AuthenticationContext(
@@ -270,6 +277,8 @@ class Auth extends Component {
   };
 
   adalCallback = async (error, tokenObj) => {
+
+    let errorDetail = null;
     let connectionInfo = this.getNewConnectionInfo();
     if (tokenObj != null) {
       this.props.onTokenGenerated(tokenObj);
@@ -288,10 +297,10 @@ class Auth extends Component {
 
       this.props.history.push("/home");
     } else {
-      let errMsg =
-        "Error occured while retrieving the Token: " + error.message + "\n";
-      alert(errMsg);
+      errorDetail = `Error occured while retrieving the Token: + ${error && error.message ? error.message : error}`;
     }
+
+    this.setState({ connectionInProcess: false, connectionError: errorDetail });
   };
 
   setUserInfo = async (token, orgName) => {
@@ -345,6 +354,7 @@ class Auth extends Component {
   };
 
   cancelConnectionClick = () => {
+    this.setState({ connectionInProcess: false, connectionError: null });
     this.showOrHideNewConnectionUI(false);
   };
 
@@ -407,6 +417,8 @@ class Auth extends Component {
   };
 
   connectToExistingOrg = (event, connection) => {
+    this.setState({ connectionInProcess: true });
+
     var authContext = new AdalNode.AuthenticationContext(
       connection.authorizationUrl
     );
@@ -430,6 +442,7 @@ class Auth extends Component {
   };
 
   connectToExistingOrgCallback = async (error, token) => {
+    let errorDetail = null;
     if (!error) {
       let connection = getConnection(token.resource);
 
@@ -445,12 +458,15 @@ class Auth extends Component {
 
       this.props.history.push("/home");
     } else {
+      errorDetail = error && error.message ? error.message : error;
     }
+
+    this.setState({ connectionInProcess: false, connectionError: errorDetail });
   };
 
   render() {
 
-console.log("rendering auth");
+    console.log("rendering auth");
     const connections = [...this.state.connections];
 
     let connectionInEditMode = { ...this.state.connectionInEditMode };
@@ -490,17 +506,37 @@ console.log("rendering auth");
       );
     }
 
+
+    let connectionErrorDetail = null;
+    if (this.state.connectionError) {
+      connectionErrorDetail = (
+        <ErrorMessage message={this.state.connectionError} />
+      );
+    }
+
+    let connectionInProcessBar =  (
+        <progress className="progress is-small is-info" 
+        style={{ height: '3px' ,visibility: this.state.connectionInProcess? 'visible': 'hidden'}}
+         max="100"></progress>
+      );
+    
+
     if (connections.length > 0 && !this.state.showNewConnectionUI) {
       const envActions = [
         { id: "edit", label: "Edit" },
         { id: "remove", label: "Remove" }
       ];
 
+
+
       return (
         <div className="conn-select-box">
           <div className="conn-select-box-cont">
+            {connectionErrorDetail}
+            {connectionInProcessBar}
             <div className="conn-select-box-item">
               <h4 className="title is-4">Pick an Organization</h4>
+              <div className="orgs-cont">
               {connections.map(connection => (
                 <div key={connection.orgUrl} className="env-cont">
                   <div
@@ -521,6 +557,7 @@ console.log("rendering auth");
                   </div>
                 </div>
               ))}
+              </div>
             </div>
             <div className="new-org-cont">
               <div>
@@ -549,6 +586,8 @@ console.log("rendering auth");
     let newOrg = (
       <div className="conn-select-box">
         <div className="conn-select-box-item">
+          {connectionErrorDetail}
+          {connectionInProcessBar}
           {newConnectionElements.map(connectionEle => (
             <Input
               key={connectionEle.id}

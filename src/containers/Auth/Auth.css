@@ -28,7 +28,10 @@
 }
 
 
-
+.orgs-cont{
+max-height:200px;
+overflow-y: auto;
+}
 
 
 .env-cont{
@@ -68,6 +71,11 @@
     margin: 2px 2px;
 } 
 
+.env-actions .dropdown-menu
+{
+    top:0 !important;
+    left: -170px !important;
+}
 
 .new-org-cont{
     display: flex;

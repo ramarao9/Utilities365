@@ -34,6 +34,8 @@ if(navProps.onUserSignout){
   navProps.onUserSignout();
 }
 
+setSelectedNavItem("home");
+
       let { from } = location.state || { from: { pathname: "/" } };
       history.replace(from);
         break;

@@ -1,6 +1,9 @@
 import { handleCrmOpenActions } from "../CLI/Actions/OpenCliService";
 import { handleCrmCreateActions, handleCrmUpdateActions } from "./Actions/WriteCliService";
 import { handleCrmGetActions } from "../CLI/Actions/GetCliService";
+import { handleCrmAddActions } from "../CLI/Actions/AddCliService";
+import { handleCrmRemoveActions } from "../CLI/Actions/RemoveCliService";
+import {handleCrmExecuteActions} from "../CLI/Actions/ExecuteCliService";
 import IsEmpty from "is-empty";
 
 import { CliResponse } from "../../interfaces/CliResponse";
@@ -22,6 +25,9 @@ export const PerformCrmAction = async (cliData: any): Promise<CliResponse> => {
       cliResponse = await handleCrmOpenActions(cliData);
       break;
 
+    case "execute":
+      cliResponse = await handleCrmExecuteActions(cliData);
+      break;
 
     case "create":
       cliResponse = await handleCrmCreateActions(cliData);
@@ -33,6 +39,16 @@ export const PerformCrmAction = async (cliData: any): Promise<CliResponse> => {
 
     case "get":
       cliResponse = await handleCrmGetActions(cliData);
+      break;
+
+    case "add":
+      cliResponse = await handleCrmAddActions(cliData);
+      break;
+
+    case "remove":
+      cliResponse = await handleCrmRemoveActions(cliData);
+      break;
+
   }
 
   return cliResponse;

@@ -1,0 +1,16 @@
+.errorDetailCont {
+    background-color: whitesmoke;
+    margin: 5px 0px;
+    padding:5px 0px;
+    border-radius: 4px;
+    max-width: 760px;
+}
+
+.errorDetail{
+    vertical-align: top;
+    font-size: 16px;
+    color: #cc0f35;
+    max-width: 700px !important;
+    word-wrap: break-word;
+    display: inline-block
+}

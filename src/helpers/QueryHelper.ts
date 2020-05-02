@@ -137,7 +137,7 @@ export const parseQueryFunctionInFilterIfAny = (filter: string): string => {
 
         let functionNameLC = queryFunction.Name.toLowerCase();
 
-        while (runningFilterLowerCase.indexOf(functionNameLC) != -1) {
+        while (runningFilterLowerCase.indexOf(functionNameLC+"(") != -1) {
 
             let indexOfCurrentFunction = runningFilterLowerCase.indexOf(functionNameLC);
             let substrFromCurrentFunctionIndex = parsedFilter.substr(indexOfCurrentFunction);
@@ -222,7 +222,6 @@ const getAvilableQueryFunctionNames = (): string[] => {
         "Above",
         "AboveOrEqual",
         "Between",
-        "Contains",
         "ContainValues",
         "DoesNotContainValues",
         "EqualBusinessId",

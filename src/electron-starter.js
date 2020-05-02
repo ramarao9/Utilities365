@@ -23,7 +23,7 @@ function createWindow() {
     //the below will show some security errors but since this is just local development it should be fine.
     mainWindow = new BrowserWindow({
       webPreferences: { webSecurity: false, nodeIntegration: true },
-      width: 1024,
+      width: 1100,
       height: 768,
       allowRunningInsecureContent: true
     });
@@ -54,7 +54,7 @@ function createWindow() {
     Menu.setApplicationMenu(null);
 
     mainWindow = new BrowserWindow({
-      width: 1024,
+      width: 1100,
       height: 768,
       webPreferences: { nodeIntegration: true },
       icon: path.join(__dirname, '../build/u365.ico')

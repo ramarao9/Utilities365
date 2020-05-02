@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from "react";
+import React, { FunctionComponent, useState,useRef } from "react";
 import { Redirect } from "react-router";
 import store from "../../store/store";
 import * as crmUtil from "../../helpers/crmutil";
@@ -11,22 +11,54 @@ import { CliResponse } from "../../interfaces/CliResponse";
 import { CliData } from "../../interfaces/CliData";
 import {Spinner} from "../../interfaces/Spinner";
 import { TerminalOut } from "../../interfaces/TerminalOut";
+import {getIntelliSenseForText,getUpdatedInputOnSelection} from "../../services/CLI/IntelliSense/IntelliSenseService"
 import "./CLI.css";
 import { number } from "prop-types";
+import { CliIntelliSense,CLIVerb } from "../../interfaces/CliIntelliSense";
 const KEYCODE_UP = 38;
 const KEYCODE_DOWN = 40;
 const KEYCODE_ENTER = 13;
 
 
 export const CLI: React.FC = () => {
+  const getDefaultIntellisenseState=() :CliIntelliSense=>{
+    return {results:Array<CLIVerb>(),currentIndex:0};
+  }
+  const cliInputRef = useRef();
   const [variables, setVariables] = useState<any>({});
   const [spinnerInfo,setSpinner]=useState<Spinner>({show:false});
   const [inputText, setInputText] = useState<string>("");
   const [outputs, setOutputs] = useState<Array<any>>([]);
+  const [intellisenseResults, setIntelliSenseResults] = useState<CliIntelliSense>(getDefaultIntellisenseState());
   const [commandsHistoryCurrentIndex, setCommandsHistoryCurrentIndex] = useState<number>(-1);
   const [commandsHistory, setCommandsHistory] = useState<Array<string>>([]);
 
+
+  const onTerminalInputBlur = async (ev: any) => {
+    setIntelliSenseResults(getDefaultIntellisenseState());
+  }
+
+  const onTerminalIntellisenseItemClick = async (ev: any, result: CLIVerb) => {
+
+
+    let updatedInput = getUpdatedInputOnSelection(inputText, result);
+    setInputText(updatedInput);
+
+    let intellisenseInfo = await getIntelliSenseForText(updatedInput);
+    setIntelliSenseResults(intellisenseInfo);
+
+    if (cliInputRef && cliInputRef.current) {
+      let currentRef = cliInputRef.current as any;
+      currentRef.focus();
+    }
+  }
+
+
+
+
   const onTerminalInputKeyDown = async (ev: any) => {
+    let intellisenseInfo = await getIntelliSenseForText(inputText);
+    setIntelliSenseResults(intellisenseInfo);
 
     if (ev.keyCode === KEYCODE_UP || ev.keyCode === KEYCODE_DOWN) {
       setCurrentCommandFromHistory(ev.keyCode);
@@ -40,13 +72,9 @@ export const CLI: React.FC = () => {
 
     if (cliDataVal.action != null) {//special cases
       switch (cliDataVal.action.toLowerCase()) {
-
         case "cls":
         case "clear": clearTerminal();
           return;
-
-
-
       }
     }
 
@@ -57,14 +85,12 @@ export const CLI: React.FC = () => {
   };
 
 
-  const showProgressSpinner=()=>
-  {   
-    setSpinner({ show:true});
+  const showProgressSpinner = () => {
+    setSpinner({ show: true });
   }
 
-  const hideProgressSpinner=()=>
-  {   
-    setSpinner({ show:false});
+  const hideProgressSpinner = () => {
+    setSpinner({ show: false });
   }
 
   const setCurrentCommandFromHistory = (keyCode: number) => {
@@ -163,8 +189,13 @@ export const CLI: React.FC = () => {
     <div className="terminalContainer">
       <Terminal
           outputs={outputs}
+          intelliSenseResults={intellisenseResults}
   terminalInputChange={(event: any) => onTerminalInputChanged(event)}
 terminalInputKeyDown={onTerminalInputKeyDown}
+terminalInputKeyPress={onTerminalInputKeyDown}
+terminalIntelliSenseItemClick={onTerminalIntellisenseItemClick}
+terminalInputBlur={onTerminalInputBlur}
+terminalInputRef={cliInputRef}
 inputText={inputText} spinner={spinnerInfo} />
   </div>
   </React.Fragment>

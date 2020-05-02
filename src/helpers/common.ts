@@ -54,7 +54,7 @@ export const getAttributeMetadataName = (attributeTypeShort: string): string => 
 
         case "bigint": return "BigInt";
 
-        case "optionset":return "Picklist"
+        case "optionset": return "Picklist"
 
         default: return capitalizeFirstLetter(attributeTypeShort.toLowerCase());
     }
@@ -121,4 +121,20 @@ export const isValidGuid = (id: string | undefined): boolean => {
         isValid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id);
     }
     return isValid;
+}
+
+
+export const extractContentFromText = (textToSearch: string, startText: string, endText: string): string | undefined => {
+
+    let indexOfStartText = textToSearch.toLowerCase().indexOf(startText.toLowerCase());
+    if (indexOfStartText === -1)
+        return undefined;
+
+    let subStringFromStartText = textToSearch.toLowerCase().substring(indexOfStartText);
+    let indexOfEndText = subStringFromStartText.indexOf(endText);
+    if (indexOfEndText === -1)
+        return undefined;
+
+    let extractedContent = subStringFromStartText.substring(startText.length, indexOfEndText);
+    return extractedContent;
 }

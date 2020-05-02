@@ -36,10 +36,6 @@ export const terminalOutput: React.FC<TerminalOut> = (
       break;
 
      case "json":
-        //  let jsonString=JSON.stringify(terminalOutputProps.data,null,3);
-        //  output = (
-        //    <pre className="terminal-output-line">{jsonString}</pre>
-        //    );
 
         let treeTheme=getJSONTreeTheme();
         let jsonData=terminalOutputProps.data;

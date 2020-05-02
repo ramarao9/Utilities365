@@ -1,13 +1,15 @@
 
 import { CliData, ActionParam } from "../../../interfaces/CliData"
 import { CliResponse } from "../../../interfaces/CliResponse"
-import { retrieveMultiple, retrieveEntitites, retrieveEntity, retrieveAttribute, retrieveAttributes } from "../../../helpers/webAPIClientHelper"
+import { retrieveMultiple, retrieveEntitites, retrieveEntity,retrieveRequest,
+   retrieveAttribute, retrieveAttributes,executeUnboundFunction,retrieve } from "../../../helpers/webAPIClientHelper"
 import { getErrorResponse } from "../CliResponseUtil";
 import { getArrayFromCSV, getParamVal, getAttributeMetadataName, getFirstLabelFromLocalizedLabels, isValidGuid } from "../../../helpers/common";
 import { getEntityMetadataBasic, getEntity as getEntityMetadata } from "../../CrmMetadataService"
 import {
   STR_ERROR_OCCURRED
 } from "../../../helpers/strings";
+
 import { async } from "q";
 import { expand } from "../../../interfaces/expand";
 import { EntityMetadata } from "../../../interfaces/EntityMetadata";
@@ -15,7 +17,7 @@ import { EntityMetadata } from "../../../interfaces/EntityMetadata";
 import {
   getTypeQueryParam, getExpandQueryParam, getAlternateKey, getActionParam,
   getPrimaryIdAttribute, getFilterWhenAttributes, getOptionSetLabelValues,
-  hasActionParamVal,parseQueryFunctionInFilterIfAny
+  hasActionParamVal, parseQueryFunctionInFilterIfAny
 } from "../../../helpers/QueryHelper";
 
 export const handleCrmGetActions = async (cliData: CliData) => {
@@ -33,14 +35,14 @@ export const handleCrmGetActions = async (cliData: CliData) => {
 
       case "entities": responseData = await getEntities(cliData);
         cliResponse.type = "table";
-        cliResponse.response = cleanEntitiesData(responseData);
+        cliResponse.response = cleanEntitiesData(cliData.actionParams as ActionParam[], responseData);
         break;
 
       case "attribute":
       case "attributes": responseData = await getAttributeData(cliData);
 
         if (cliData.target.toLowerCase() === "attributes") {
-          cliResponse.response = cleanAttributesData(responseData);
+          cliResponse.response = cleanAttributesData(cliData.actionParams as ActionParam[], responseData);
           cliResponse.type = "table";
         }
         else {
@@ -50,6 +52,9 @@ export const handleCrmGetActions = async (cliData: CliData) => {
         break;
 
 
+      case "org-detail": responseData = await getOrgDetail();
+        cliResponse.response = responseData;
+        break;
 
       default: responseData = await getRecords(cliData);
         cliResponse.type = "table";
@@ -95,15 +100,10 @@ const getEntity = async (cliData: CliData) => {
 
 const getEntities = async (cliData: CliData) => {
   let actionParams = cliData.actionParams;
-  // if (actionParams == null)
-  //   throw new Error("Please specify the parameters and try again.");
-
 
   let namesParam = getActionParam("entities", actionParams);
   let propertiesParam = getActionParam("properties", actionParams);
   let filterParam = getActionParam("filter", actionParams);
-
-
   let properties = propertiesParam ? getArrayFromCSV(propertiesParam.value) : getDefaultEntityAttributes();
   let entities = namesParam ? getArrayFromCSV(namesParam.value) : undefined;
   let filter = filterParam ? filterParam.value : "";
@@ -115,12 +115,7 @@ const getEntities = async (cliData: CliData) => {
     filter = filter.slice(0, -4);//removes the or condition for the last statement
   }
 
-  // if (!filter) {
-  //   throw new Error(`Filter parameter cannot be empty when the Names parameter is not specified. Please provide the parameter and try again or specify the Names parameter using CSV of Entity logical names.`);
-  // }
-
   let retrieveEntitiesResponse = await retrieveEntitites(properties, filter);
-
   return retrieveEntitiesResponse;
 
 }
@@ -140,6 +135,8 @@ const getAttributeData = async (cliData: CliData) => {
   let expandParam = getActionParam("expand", actionParams);
   let filterParam = getActionParam("filter", actionParams);
 
+
+
   if (!entityParam || !entityParam.value)
     throw new Error(`Entity parameter required. Please provide both the parameter and try again.`);
 
@@ -149,15 +146,12 @@ const getAttributeData = async (cliData: CliData) => {
   let expandQueryParam = getExpandQueryParam(expandParam, type);
 
   if (retrieveAllProperties) {
-    properties=undefined;//will return everything
+    properties = undefined;//will return everything
   }
 
   if (cliData.target.toLowerCase() === "attribute") {
     if (!attributeParam)
       throw new Error(`Attribute parameter required. Please provide both the parameter and try again.`);
-
-
-
 
     let retrieveAttributeResponse = await retrieveAttribute(
       getAlternateKey(entityParam.value),
@@ -183,21 +177,26 @@ const getAttributeData = async (cliData: CliData) => {
       currentFilter,
       expandQueryParam
     );
-
-
-    // if (!type || type.indexOf("Picklist") != -1) {
-    //   let entityMetadata: EntityMetadata = await getEntityMetadata(entityParam.value);
-    //   let picklistValues = entityMetadata.PicklistAttributes;    
-    // }
-
     return retrieveAttributesResponse;
-
   }
 
 
 }
 
-const cleanEntitiesData = (responseData: any): any => {
+const filterOnDisplayNameOrLogicalName = (textToSearch: string, records: Array<any>): Array<any> => {
+
+  if (!records || records.length === 0 || textToSearch === "" || textToSearch == null)
+    return records;
+
+  textToSearch = textToSearch.toLowerCase();
+
+  return records.filter(x => (x.LogicalName && x.LogicalName.toLowerCase().includes(textToSearch)) ||
+    (x.DisplayName && x.DisplayName.toLowerCase().includes(textToSearch)));
+
+}
+
+
+const cleanEntitiesData = (actionParams: ActionParam[], responseData: any): any => {
 
   let data: Array<any> = responseData.value.map((x: any) => {
 
@@ -206,16 +205,26 @@ const cleanEntitiesData = (responseData: any): any => {
       let label = getFirstLabelFromLocalizedLabels(localizedLabels);
       x["DisplayName"] = label;
     }
+
+    delete x.MetadataId;
+
     return x;
   });
 
-  let cleanedData = { uniqueidattribute: "MetadataId", data: data };
+  let containsParam = getActionParam("contains", actionParams);
+
+  if (containsParam && containsParam.value) {
+    let containsFilter = containsParam.value;
+    data = filterOnDisplayNameOrLogicalName(containsFilter, data);
+  }
+
+  let cleanedData = { uniqueidattribute: "LogicalName", data: data };
   return cleanedData;
 
 }
 
 
-const cleanAttributesData = (responseData: any): any => {
+const cleanAttributesData = (actionParams: ActionParam[], responseData: any): any => {
 
   let data: Array<any> = responseData.value.map((x: any) => {
 
@@ -230,10 +239,20 @@ const cleanAttributesData = (responseData: any): any => {
       let optionSetLabelValues = getOptionSetLabelValues(options);
       x["OptionSet"] = optionSetLabelValues;
     }
+
+    delete x.MetadataId;
+    delete x["@odata.type"];
     return x;
   });
 
-  let cleanedData = { uniqueidattribute: "MetadataId", data: data };
+
+  let containsParam = getActionParam("contains", actionParams);
+  if (containsParam && containsParam.value) {
+    let containsFilter = containsParam.value;
+    data = filterOnDisplayNameOrLogicalName(containsFilter, data);
+  }
+
+  let cleanedData = { uniqueidattribute: "LogicalName", data: data };
   return cleanedData;
 
 }
@@ -286,7 +305,7 @@ const getRequestBody = async (cliData: CliData) => {
     retrieveMultipleRequest.filter = `${entityMetadata.PrimaryNameAttribute} eq '${cliData.unnamedParam}'`;
   }
   else if (filterParam != null && filterParam.value != null) {
-    let parsedFilter=parseQueryFunctionInFilterIfAny(filterParam.value);
+    let parsedFilter = parseQueryFunctionInFilterIfAny(filterParam.value);
     retrieveMultipleRequest.filter = parsedFilter;
   }
 
@@ -308,7 +327,15 @@ const getRequestBody = async (cliData: CliData) => {
 
 }
 
+const getOrgDetail=async ()=>{
 
+  let parameters={
+    "AccessType":"Microsoft.Dynamics.CRM.EndpointAccessType'Default'"
+  }
+
+  var orgDetailsResponse=await executeUnboundFunction("RetrieveCurrentOrganization",parameters);
+  return orgDetailsResponse;
+}
 
 
 
@@ -328,7 +355,7 @@ const getDefaultEntityAttributes = (): Array<string> => {
 const getDefaultAttributeProperties = (): Array<string> => {
 
 
-  return ["DisplayName", "LogicalName", "AttributeType", "SchemaName"];
+  return ["DisplayName", "LogicalName", "AttributeType"];
 
 }
 
