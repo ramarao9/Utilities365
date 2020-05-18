@@ -12,7 +12,7 @@ interface TerminalProp {
   intelliSenseResults:CliIntelliSense;
   terminalInputChange: any;
   terminalInputKeyDown: any;
-  terminalInputKeyPress:any;
+  terminalInputKeyPress?:any;
   terminalInputBlur?(e:any):void;
   terminalIntelliSenseItemClick(e:any,resultItem :CLIVerb):void;
   inputText: string;

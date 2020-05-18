@@ -14,7 +14,7 @@ import { TerminalOut } from "../../interfaces/TerminalOut";
 import {getIntelliSenseForText,getUpdatedInputOnSelection} from "../../services/CLI/IntelliSense/IntelliSenseService"
 import "./CLI.css";
 import { number } from "prop-types";
-import { CliIntelliSense,CLIVerb } from "../../interfaces/CliIntelliSense";
+import { CliIntelliSense,CLIVerb,ClientRect } from "../../interfaces/CliIntelliSense";
 const KEYCODE_UP = 38;
 const KEYCODE_DOWN = 40;
 const KEYCODE_ENTER = 13;
@@ -22,11 +22,14 @@ const KEYCODE_ENTER = 13;
 
 export const CLI: React.FC = () => {
   const getDefaultIntellisenseState=() :CliIntelliSense=>{
-    return {results:Array<CLIVerb>(),currentIndex:0};
+    return {results:Array<CLIVerb>(),currentPos:{left:0,top:0}};
   }
   const cliInputRef = useRef();
+  const intelliSensePositionCanvasRef = useRef(null);
   const [variables, setVariables] = useState<any>({});
   const [spinnerInfo,setSpinner]=useState<Spinner>({show:false});
+  const [inIntelliSenseNavMode, setIntelliSenseNavMode] = useState<boolean>(false);
+  const [intelliSenseVerbCurrentIndex, setintelliSenseVerbCurrentIndex] = useState<number>(0);
   const [inputText, setInputText] = useState<string>("");
   const [outputs, setOutputs] = useState<Array<any>>([]);
   const [intellisenseResults, setIntelliSenseResults] = useState<CliIntelliSense>(getDefaultIntellisenseState());
@@ -39,26 +42,46 @@ export const CLI: React.FC = () => {
   }
 
   const onTerminalIntellisenseItemClick = async (ev: any, result: CLIVerb) => {
-
-
-    let updatedInput = getUpdatedInputOnSelection(inputText, result);
-    setInputText(updatedInput);
-
-    let intellisenseInfo = await getIntelliSenseForText(updatedInput);
-    setIntelliSenseResults(intellisenseInfo);
-
-    if (cliInputRef && cliInputRef.current) {
-      let currentRef = cliInputRef.current as any;
-      currentRef.focus();
-    }
+    await retrieveAndSetIntelliSense(result);
   }
 
+const retrieveAndSetIntelliSense=async (result: CLIVerb)=>{
 
+  let updatedInput = getUpdatedInputOnSelection(inputText, result);
+  setInputText(updatedInput);
+  setIntelliSenseNavMode(false);
+  let intellisenseInfo = await getIntelliSenseForText(updatedInput);
+  intellisenseInfo.currentPos=calculateIntelliSensePos();
+  setIntelliSenseResults(intellisenseInfo);
+
+  if (cliInputRef && cliInputRef.current) {
+    let currentRef = cliInputRef.current as any;
+    currentRef.focus();
+  }
+}
 
 
   const onTerminalInputKeyDown = async (ev: any) => {
-    let intellisenseInfo = await getIntelliSenseForText(inputText);
-    setIntelliSenseResults(intellisenseInfo);
+
+    if (ev.key === "Tab") {
+      ev.preventDefault();
+      let selectedCLIVerb = getSelectedCLIVerb();
+      if (selectedCLIVerb) {
+        retrieveAndSetIntelliSense(selectedCLIVerb);
+      }
+      return;
+    }
+
+
+    if (inIntelliSenseNavMode) {
+      manageIntellisenseVerbNavigation(ev.keyCode);
+      return;
+    }
+
+    if (ev.shiftKey && ev.keyCode === KEYCODE_DOWN) {
+      setIntelliSenseNavMode(true);
+      return;
+    }
 
     if (ev.keyCode === KEYCODE_UP || ev.keyCode === KEYCODE_DOWN) {
       setCurrentCommandFromHistory(ev.keyCode);
@@ -84,6 +107,62 @@ export const CLI: React.FC = () => {
     hideProgressSpinner();
   };
 
+  const manageIntellisenseVerbNavigation = (keyCode: number) => {
+
+    if (keyCode !== KEYCODE_UP && keyCode !== KEYCODE_DOWN)
+      return;
+
+    let updatedIndex = intelliSenseVerbCurrentIndex;
+    let maxIndex = intellisenseResults && intellisenseResults.results ? intellisenseResults.results.length-1 : -1;
+    if (keyCode === KEYCODE_UP) {
+      updatedIndex -= 1;
+    }
+    else {
+      updatedIndex += 1;
+    }
+
+    if (updatedIndex < 0) {
+      updatedIndex = 0;
+    }
+
+    if (updatedIndex > maxIndex) {
+      updatedIndex = maxIndex;
+    }
+
+    if (maxIndex > 0) {
+      intellisenseResults.results[updatedIndex].isSelected = true;
+      intellisenseResults.results[intelliSenseVerbCurrentIndex].isSelected = false;
+
+      setIntelliSenseResults(intellisenseResults);
+      setintelliSenseVerbCurrentIndex(updatedIndex);
+    }
+
+  }
+
+
+  const getSelectedCLIVerb = (): CLIVerb | undefined => {
+
+    if (intellisenseResults && intellisenseResults.results) {
+      let results = intellisenseResults.results;
+      return results.find(x => x.isSelected);
+    }
+    else {
+      return undefined;
+    }
+  }
+
+  const calculateIntelliSensePos=():ClientRect=>{
+
+    let inputTxtRef: any = cliInputRef.current;
+    var canvas: any = intelliSensePositionCanvasRef.current;
+    var context = canvas.getContext("2d");
+    context.font = "";
+    var metrics = context.measureText(inputTxtRef.value);
+
+    let inputRect = inputTxtRef.getBoundingClientRect();
+    return { left: metrics.width + inputRect.left, top: inputRect.top };
+  }
+
 
   const showProgressSpinner = () => {
     setSpinner({ show: true });
@@ -91,6 +170,7 @@ export const CLI: React.FC = () => {
 
   const hideProgressSpinner = () => {
     setSpinner({ show: false });
+    
   }
 
   const setCurrentCommandFromHistory = (keyCode: number) => {
@@ -168,10 +248,14 @@ export const CLI: React.FC = () => {
   };
 
 
-  const onTerminalInputChanged = (ev: any) => {
+  const onTerminalInputChanged = async (ev: any) => {
     const userInput = ev.target.value;
-
     setInputText(userInput);
+
+    let intellisenseInfo = await getIntelliSenseForText(userInput);
+    intellisenseInfo.currentPos = calculateIntelliSensePos();
+    setIntelliSenseResults(intellisenseInfo);
+
   };
 
   const addTextToOutput = (outputText: string) => {
@@ -192,12 +276,12 @@ export const CLI: React.FC = () => {
           intelliSenseResults={intellisenseResults}
   terminalInputChange={(event: any) => onTerminalInputChanged(event)}
 terminalInputKeyDown={onTerminalInputKeyDown}
-terminalInputKeyPress={onTerminalInputKeyDown}
 terminalIntelliSenseItemClick={onTerminalIntellisenseItemClick}
 terminalInputBlur={onTerminalInputBlur}
 terminalInputRef={cliInputRef}
 inputText={inputText} spinner={spinnerInfo} />
   </div>
+  <canvas ref={intelliSensePositionCanvasRef} className="posHelperCanvas"/>
   </React.Fragment>
   );
 };

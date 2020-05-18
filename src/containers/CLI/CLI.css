@@ -2,3 +2,7 @@
     height: calc(100% - 24px);
     overflow: auto;
 }
+
+.posHelperCanvas{
+    display: none;
+}

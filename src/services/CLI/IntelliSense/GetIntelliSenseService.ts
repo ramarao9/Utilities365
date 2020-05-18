@@ -3,6 +3,7 @@ import { CLI_TARGET_GET } from "../Definitions/GetTargetDefinitions"
 import { getEntities } from "../../CrmMetadataService"
 import { CliIntelliSense, IntelliSenseType, CLIVerb } from "../../../interfaces/CliIntelliSense"
 import { EntityMetadata } from "../../../interfaces/EntityMetadata"
+import { getCleanedCLIVerbs } from "../../../helpers/cliutil";
 
 export const getTargetGetIntelliSense = async (cliDataVal: CliData) => {
 
@@ -11,6 +12,15 @@ export const getTargetGetIntelliSense = async (cliDataVal: CliData) => {
     let entititesResults = await getEntitiesIntelliSense();
     cliResults = cliResults.concat(CLI_TARGET_GET);//Default targets
     cliResults = cliResults.concat(entititesResults);
+
+
+    if(targetName){
+        cliResults = cliResults.filter(x => x.name.toLowerCase().startsWith(targetName.toLowerCase()) || 
+        x.text && x.text.toLowerCase().startsWith(targetName.toLowerCase()));
+    }
+    
+    cliResults = getCleanedCLIVerbs(cliResults);
+
     return cliResults;
 }
 
@@ -29,11 +39,14 @@ const getEntitiesIntelliSense = async () => {
             entityMetadata.DisplayCollectionName.UserLocalizedLabel.Label : entityMetadata.EntitySetName
 
         let cliVerb: CLIVerb = {
-            name: `${collectionDisplayName}(${entityMetadata.EntitySetName})`,
+            name: `${collectionDisplayName}`,
             text: entityMetadata.EntitySetName
         };
         return cliVerb;
-    })
+    });
+
+    cliResults.sort((a,b)=>{return a.name>b.name?1:-1 });
+
 
     return cliResults;
 

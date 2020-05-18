@@ -2,7 +2,7 @@
 
 
 export interface CliIntelliSense {
-    currentIndex:number;
+    currentPos:ClientRect;
     results: Array<CLIVerb>
 }
 
@@ -20,4 +20,10 @@ export enum IntelliSenseType {
     Action = 1,
     Target = 2,
     ActionParams = 3
+}
+
+
+export interface ClientRect{
+    left:number;
+    top:number;
 }

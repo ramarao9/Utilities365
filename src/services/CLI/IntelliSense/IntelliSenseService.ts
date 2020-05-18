@@ -1,22 +1,23 @@
 import { CliData } from "../../../interfaces/CliData";
 import { getCliData } from "../../CliParsingService";
 import { CliIntelliSense, IntelliSenseType, CLIVerb } from "../../../interfaces/CliIntelliSense"
-import {getTargetGetIntelliSense} from "../../../services/CLI/IntelliSense/GetIntelliSenseService"
+import { getTargetGetIntelliSense } from "../../../services/CLI/IntelliSense/GetIntelliSenseService"
 import {
     CLI_ACTIONS, ACTION_ADD_NAME, ACTION_CREATE_NAME,
     ACTION_EXECUTE_NAME, ACTION_GET_NAME, ACTION_OPEN_NAME,
     ACTION_REMOVE_NAME, ACTION_UPDATE_NAME
 } from "../Definitions/ActionDefinitions"
 import { cursorTo } from "readline";
+import { getCleanedCLIVerbs } from "../../../helpers/cliutil";
 
 const MINIMUM_CHARS_FOR_INTELLISENSE: number = 1;
 
 export const getIntelliSenseForText = async (inputText: string): Promise<CliIntelliSense> => {
 
     console.log(inputText);
-    let intellisenseInfo = { results: Array<CLIVerb>(), currentIndex: 0 };
+    let intellisenseInfo: CliIntelliSense = { results: Array<CLIVerb>(), currentPos: { left: 0, top: 0 } };
     const cliDataVal = getCliData(inputText) as CliData;
-    let intellisenseType = getIntelliSenseType(cliDataVal);
+    let intellisenseType = getIntelliSenseType(inputText,cliDataVal);
 
 
     switch (intellisenseType) {
@@ -26,8 +27,7 @@ export const getIntelliSenseForText = async (inputText: string): Promise<CliInte
             break;
 
         case IntelliSenseType.Target:
-            intellisenseInfo.results=await getTargetIntelliSense(cliDataVal);
-            intellisenseInfo.currentIndex = cliDataVal.action.length;
+            intellisenseInfo.results = await getTargetIntelliSense(cliDataVal);
             break;
 
         case IntelliSenseType.ActionParams:
@@ -39,27 +39,29 @@ export const getIntelliSenseForText = async (inputText: string): Promise<CliInte
 
 
 
-const getIntelliSenseType = (cliData: CliData): IntelliSenseType => {
+const getIntelliSenseType = (inputText:string,cliData: CliData): IntelliSenseType => {
 
     if (!cliData)
         return IntelliSenseType.Action;
 
-
     let actionPopulated = isActionPopulated(cliData.action);
+    let targetPopulated=isTargetPopulated(inputText,cliData);
 
-    if (cliData.action && !actionPopulated && !cliData.target && !cliData.actionParams) {
+    if (!actionPopulated && !cliData.target && !cliData.actionParams) {
         return IntelliSenseType.Action;
     }
-    else if (cliData.action && actionPopulated && !cliData.actionParams) {
+    else if (actionPopulated && !targetPopulated && !cliData.actionParams) {
         return IntelliSenseType.Target;
     }
-    else if (cliData.action && cliData.target && cliData.actionParams) {
+    else if (targetPopulated && !cliData.actionParams) {
         return IntelliSenseType.ActionParams;
     }
     else {
         return IntelliSenseType.None;
     }
 }
+
+
 
 const getActionsIntelliSense = (actionSubStr: string): Array<CLIVerb> => {
 
@@ -71,11 +73,7 @@ const getActionsIntelliSense = (actionSubStr: string): Array<CLIVerb> => {
         cliResults = CLI_ACTIONS;
     }
 
-
-
-    if (cliResults.length > 0) {
-        cliResults[0].isSelected = true;
-    }
+    cliResults = getCleanedCLIVerbs(cliResults);
     return cliResults;
 }
 
@@ -85,7 +83,7 @@ export const getUpdatedInputOnSelection = (currentInputText: string, selectedVer
     let updatedInput = "";
 
     const cliDataVal = getCliData(currentInputText) as CliData;
-    let intellisenseType = getIntelliSenseType(cliDataVal);
+    let intellisenseType = getIntelliSenseType(currentInputText,cliDataVal);
 
 
     switch (intellisenseType) {
@@ -94,7 +92,7 @@ export const getUpdatedInputOnSelection = (currentInputText: string, selectedVer
             updatedInput = `${selectedVerb.name} `;
             break;
 
-        case IntelliSenseType.Target:
+        case IntelliSenseType.Target: updatedInput = `${currentInputText} ${selectedVerb.text ? selectedVerb.text : selectedVerb.name} `;
             break;
 
         case IntelliSenseType.ActionParams:
@@ -116,6 +114,20 @@ const isActionPopulated = (action: string): boolean => {
 }
 
 
+const isTargetPopulated = (inputText: string, cliData: CliData): boolean => {
+
+
+    let action = cliData.action;
+
+    if (!cliData.target)
+        return false;
+
+    let cliDataSplit = inputText.split(" ");
+    return (cliDataSplit && cliDataSplit.length >= 3 &&
+            cliDataSplit[0] === action);
+
+}
+
 const getTargetIntelliSense = async (cliDataVal: CliData) => {
 
     let cliResults: Array<CLIVerb> = [];
@@ -129,7 +141,7 @@ const getTargetIntelliSense = async (cliDataVal: CliData) => {
         case ACTION_EXECUTE_NAME:
             break;
 
-        case ACTION_GET_NAME:cliResults=await getTargetGetIntelliSense(cliDataVal);
+        case ACTION_GET_NAME: cliResults = await getTargetGetIntelliSense(cliDataVal);
             break;
 
         case ACTION_OPEN_NAME:
