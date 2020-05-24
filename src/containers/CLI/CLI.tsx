@@ -42,17 +42,24 @@ export const CLI: React.FC = () => {
   }
 
   const onTerminalIntellisenseItemClick = async (ev: any, result: CLIVerb) => {
-    await retrieveAndSetIntelliSense(result);
+    await retrieveAndSetIntelliSense(inputText, result);
   }
 
-const retrieveAndSetIntelliSense=async (result: CLIVerb)=>{
+const retrieveAndSetIntelliSense=async (userInputText:string, result?: CLIVerb |undefined)=>{
 
-  let updatedInput = getUpdatedInputOnSelection(inputText, result);
+  if(!result){
+    result = getSelectedCLIVerb();
+  }
+  
+
+  let updatedInput = getUpdatedInputOnSelection(userInputText, result);
   setInputText(updatedInput);
   setIntelliSenseNavMode(false);
   let intellisenseInfo = await getIntelliSenseForText(updatedInput);
   intellisenseInfo.currentPos=calculateIntelliSensePos();
   setIntelliSenseResults(intellisenseInfo);
+
+  setintelliSenseVerbCurrentIndex(0);
 
   if (cliInputRef && cliInputRef.current) {
     let currentRef = cliInputRef.current as any;
@@ -65,20 +72,23 @@ const retrieveAndSetIntelliSense=async (result: CLIVerb)=>{
 
     if (ev.key === "Tab") {
       ev.preventDefault();
-      let selectedCLIVerb = getSelectedCLIVerb();
-      if (selectedCLIVerb) {
-        retrieveAndSetIntelliSense(selectedCLIVerb);
-      }
+      retrieveAndSetIntelliSense(inputText);
       return;
     }
 
+
+    if (ev.keyCode === KEYCODE_ENTER && inIntelliSenseNavMode) {
+      //a verb has been selected from the IntelliSense results, need to update the user text
+      retrieveAndSetIntelliSense(inputText);
+      return;
+    }
 
     if (inIntelliSenseNavMode) {
       manageIntellisenseVerbNavigation(ev.keyCode);
       return;
     }
 
-    if (ev.shiftKey && ev.keyCode === KEYCODE_DOWN) {
+    if (intellisenseResults.results && intellisenseResults.results.length>0 && ev.keyCode === KEYCODE_DOWN) {
       setIntelliSenseNavMode(true);
       return;
     }
@@ -87,6 +97,8 @@ const retrieveAndSetIntelliSense=async (result: CLIVerb)=>{
       setCurrentCommandFromHistory(ev.keyCode);
       return;
     }
+
+
 
     if (ev.keyCode !== KEYCODE_ENTER) return;
 
@@ -128,12 +140,23 @@ const retrieveAndSetIntelliSense=async (result: CLIVerb)=>{
     if (updatedIndex > maxIndex) {
       updatedIndex = maxIndex;
     }
+   
+    if (updatedIndex >= 0 && maxIndex !== -1) {
 
-    if (maxIndex > 0) {
-      intellisenseResults.results[updatedIndex].isSelected = true;
-      intellisenseResults.results[intelliSenseVerbCurrentIndex].isSelected = false;
+      let updatedIntellisenseInfo = { ...intellisenseResults };
+      let previousSelectedItem = updatedIntellisenseInfo.results[intelliSenseVerbCurrentIndex];
+      if (previousSelectedItem) {
+        previousSelectedItem.isSelected = false;
+      }
 
-      setIntelliSenseResults(intellisenseResults);
+      let currentSelectedItem = updatedIntellisenseInfo.results[updatedIndex];
+      if (currentSelectedItem) {
+        currentSelectedItem.isSelected = true;
+      }
+
+
+      updatedIntellisenseInfo.currentIndex=updatedIndex;
+      setIntelliSenseResults(updatedIntellisenseInfo);
       setintelliSenseVerbCurrentIndex(updatedIndex);
     }
 

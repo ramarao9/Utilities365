@@ -42,16 +42,18 @@ let intellisenseStyle={
 let intelliSenseContent = null;
 if (terminalInpProp.intelliSenseResults && terminalInpProp.intelliSenseResults.results) {
  let results= terminalInpProp.intelliSenseResults.results;
+ if(results.length>0){
   intelliSenseContent = (<div className= "intellisense-results" style={intellisenseStyle}>
     <ul className="is-list-none">
       {results.map((resultItem :CLIVerb,index:number) => (
-        <li  ref={el=>refs.current[index]=el} key={resultItem.name} onMouseDown={event=> terminalInpProp.onIntelliSenseItemClick(event, resultItem)} className={resultItem.isSelected? 'selected' :''}>
+        <li  ref={el=>refs.current[index]=el} key={resultItem.text?`${resultItem.text}_${resultItem.name}`:resultItem.name} onMouseDown={event=> terminalInpProp.onIntelliSenseItemClick(event, resultItem)} className={resultItem.isSelected? 'selected' :''}>
         {resultItem.name}
        {(resultItem.description!=="")?(<span className="intsense-sub-title">{resultItem.description}</span>):<span></span>} 
         </li>
       ))}
       </ul>
       </div>);
+ }
 }
 
 

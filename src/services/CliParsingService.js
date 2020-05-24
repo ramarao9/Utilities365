@@ -45,7 +45,7 @@ export function getCliData(userInput) {
     let actionParams = null;
     let unnamedParam = null;
     let cliOutput = null;
-    let actionTarget=null;
+    let actionTarget = null;
     const indexOfFirstSpace = userInput.indexOf(EMPTY_SPACE);
     if (indexOfFirstSpace !== -1) {
         const userInputWithoutAction = userInput.substr(indexOfFirstSpace).trim();
@@ -69,7 +69,7 @@ export function getCliData(userInput) {
 
         }
 
-  
+
         if (actionParams != null) {
             let indexOfOutputParam = actionParams.findIndex(x => x.name != null && x.name.toLowerCase() === "output");
             if (indexOfOutputParam !== -1) {
@@ -112,6 +112,10 @@ function getActionParams(actionParamsStr) {
 
     actionsParams = actionParamsSplit.map(paramStr => {
         const indexOfFirstSpace = paramStr.indexOf(EMPTY_SPACE);
+        if (indexOfFirstSpace === -1) {
+            return new ActionParam(paramStr, null);
+        }
+
         const paramName = getFirstSubStringbyDelimiter(EMPTY_SPACE, paramStr);
         const paramval = paramStr.substring(indexOfFirstSpace).replace(/["]+/g, "").trim();
         return new ActionParam(paramName, paramval);

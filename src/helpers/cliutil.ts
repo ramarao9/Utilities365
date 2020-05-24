@@ -1,6 +1,6 @@
 import { CLIVerb } from "../interfaces/CliIntelliSense";
 
-export const getCleanedCLIVerbs=(cliVerbs:Array<CLIVerb>):Array<CLIVerb>=>{
+export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => {
 
 
     cliVerbs = cliVerbs.map((x) => {
@@ -9,9 +9,12 @@ export const getCleanedCLIVerbs=(cliVerbs:Array<CLIVerb>):Array<CLIVerb>=>{
     });
 
     if (cliVerbs.length > 0) {
+        cliVerbs.sort((a, b) => { return a.name > b.name ? 1 : -1 });
         cliVerbs[0].isSelected = true;
     }
 
+
+    
 
     return cliVerbs;
 }

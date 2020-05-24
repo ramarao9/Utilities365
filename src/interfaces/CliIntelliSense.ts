@@ -1,9 +1,10 @@
 
-
+export const MINIMUM_CHARS_FOR_INTELLISENSE: number = 1;
 
 export interface CliIntelliSense {
     currentPos:ClientRect;
-    results: Array<CLIVerb>
+    results: Array<CLIVerb>;
+    currentIndex?:number;
 }
 
 export interface CLIVerb {
@@ -12,6 +13,7 @@ export interface CLIVerb {
     usage?: string ;
     text?: string ;
     isSelected?:boolean;
+    type?:number;
 }
 
 export enum IntelliSenseType {
