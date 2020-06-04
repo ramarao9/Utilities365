@@ -7,6 +7,13 @@ export interface CliIntelliSense {
     currentIndex?:number;
 }
 
+
+
+export interface IntelliSenseInput {   
+    inputText: string;
+    inputCaretPosition:number;
+}
+
 export interface CLIVerb {
     name: string;
     description?: string;

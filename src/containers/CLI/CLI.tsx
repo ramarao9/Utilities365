@@ -14,7 +14,7 @@ import { TerminalOut } from "../../interfaces/TerminalOut";
 import {getIntelliSenseForText,getUpdatedInputOnSelection} from "../../services/CLI/IntelliSense/IntelliSenseService"
 import "./CLI.css";
 import { number } from "prop-types";
-import { CliIntelliSense,CLIVerb,ClientRect } from "../../interfaces/CliIntelliSense";
+import { CliIntelliSense,CLIVerb,ClientRect,IntelliSenseInput } from "../../interfaces/CliIntelliSense";
 const KEYCODE_UP = 38;
 const KEYCODE_DOWN = 40;
 const KEYCODE_ENTER = 13;
@@ -26,6 +26,7 @@ export const CLI: React.FC = () => {
   }
   const cliInputRef = useRef();
   const intelliSensePositionCanvasRef = useRef(null);
+  const [inputCaretPosition,setInputCaretPosition] = useState<number>(0);
   const [variables, setVariables] = useState<any>({});
   const [spinnerInfo,setSpinner]=useState<Spinner>({show:false});
   const [inIntelliSenseNavMode, setIntelliSenseNavMode] = useState<boolean>(false);
@@ -42,21 +43,28 @@ export const CLI: React.FC = () => {
   }
 
   const onTerminalIntellisenseItemClick = async (ev: any, result: CLIVerb) => {
-    await retrieveAndSetIntelliSense(inputText, result);
+    await retrieveAndSetIntelliSense(undefined,result);
   }
 
-const retrieveAndSetIntelliSense=async (userInputText:string, result?: CLIVerb |undefined)=>{
+const retrieveAndSetIntelliSense=async (inputtoUse?:string, result?: CLIVerb |undefined)=>{
 
   if(!result){
     result = getSelectedCLIVerb();
   }
   
 
-  let updatedInput = getUpdatedInputOnSelection(userInputText, result);
+
+  let userInputText = inputtoUse ? inputtoUse : getCurrentTextInput();
+  let intellisenseInput: IntelliSenseInput = { inputText: userInputText, inputCaretPosition: inputCaretPosition };
+  let updatedInput = getUpdatedInputOnSelection(intellisenseInput, result);
   setInputText(updatedInput);
   setIntelliSenseNavMode(false);
-  let intellisenseInfo = await getIntelliSenseForText(updatedInput);
-  intellisenseInfo.currentPos=calculateIntelliSensePos();
+
+  //now that we got the latest information let's update the data needed to get the intellisense results
+  intellisenseInput.inputText=updatedInput;
+
+  let intellisenseInfo = await getIntelliSenseForText(intellisenseInput);
+  intellisenseInfo.currentPos=calculateIntelliSensePos(inputCaretPosition);
   setIntelliSenseResults(intellisenseInfo);
 
   setintelliSenseVerbCurrentIndex(0);
@@ -64,22 +72,25 @@ const retrieveAndSetIntelliSense=async (userInputText:string, result?: CLIVerb |
   if (cliInputRef && cliInputRef.current) {
     let currentRef = cliInputRef.current as any;
     currentRef.focus();
+    currentRef.setSelectionRange(inputCaretPosition,inputCaretPosition);
   }
 }
 
 
   const onTerminalInputKeyDown = async (ev: any) => {
 
+
     if (ev.key === "Tab") {
       ev.preventDefault();
-      retrieveAndSetIntelliSense(inputText);
+      let userInputText= getCurrentTextInput();//We use space as a delimiter when trying to indentify the IntelliSenseType(e.g. Action, target, ActionParams etc.)
+      retrieveAndSetIntelliSense(userInputText);
       return;
     }
 
 
     if (ev.keyCode === KEYCODE_ENTER && inIntelliSenseNavMode) {
       //a verb has been selected from the IntelliSense results, need to update the user text
-      retrieveAndSetIntelliSense(inputText);
+      retrieveAndSetIntelliSense();
       return;
     }
 
@@ -163,28 +174,37 @@ const retrieveAndSetIntelliSense=async (userInputText:string, result?: CLIVerb |
   }
 
 
-  const getSelectedCLIVerb = (): CLIVerb | undefined => {
+  const getSelectedCLIVerb = (): CLIVerb => {
 
     if (intellisenseResults && intellisenseResults.results) {
       let results = intellisenseResults.results;
-      return results.find(x => x.isSelected);
+      let result = results.find(x => x.isSelected);
+
+      if (result)
+        return result;
     }
-    else {
-      return undefined;
-    }
+
+    return { name: "" };
   }
 
-  const calculateIntelliSensePos=():ClientRect=>{
+  const calculateIntelliSensePos=(inputCaretPos:number):ClientRect=>{
 
     let inputTxtRef: any = cliInputRef.current;
     var canvas: any = intelliSensePositionCanvasRef.current;
     var context = canvas.getContext("2d");
     context.font = "";
-    var metrics = context.measureText(inputTxtRef.value);
+
+    let textToMeasure=inputTxtRef.value.substring(0,inputCaretPos);
+    var metrics = context.measureText(textToMeasure);
 
     let inputRect = inputTxtRef.getBoundingClientRect();
     return { left: metrics.width + inputRect.left, top: inputRect.top };
   }
+
+const getCurrentTextInput=()=>{
+   let inputTxtRef: any = cliInputRef.current;
+   return inputTxtRef.value;
+}
 
 
   const showProgressSpinner = () => {
@@ -273,17 +293,22 @@ const retrieveAndSetIntelliSense=async (userInputText:string, result?: CLIVerb |
 
   const onTerminalInputChanged = async (ev: any) => {
     const userInput = ev.target.value;
-    setInputText(userInput);
+    const caretPos=ev.target.selectionStart;
+    console.log(`Input caret position: ${caretPos}, UserInput:${userInput}`);
+    setInputText(userInput);  
+    setInputCaretPosition(caretPos);
 
-    let intellisenseInfo = await getIntelliSenseForText(userInput);
-    intellisenseInfo.currentPos = calculateIntelliSensePos();
+    let intellisenseInput: IntelliSenseInput = { inputText: userInput, inputCaretPosition: caretPos };
+
+    let intellisenseInfo = await getIntelliSenseForText(intellisenseInput);
+    intellisenseInfo.currentPos = calculateIntelliSensePos(caretPos);
     setIntelliSenseResults(intellisenseInfo);
 
   };
 
   const addTextToOutput = (outputText: string) => {
     const updatedOutputs = [...outputs];
-    updatedOutputs.push(outputText);
+    updatedOutputs.push(outputText);  
     setOutputs(updatedOutputs);
   };
 

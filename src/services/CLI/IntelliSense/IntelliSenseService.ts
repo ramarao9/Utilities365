@@ -1,6 +1,6 @@
 import { CliData } from "../../../interfaces/CliData";
 import { getCliData } from "../../CliParsingService";
-import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
+import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE, IntelliSenseInput } from "../../../interfaces/CliIntelliSense"
 import { getTargetGetIntelliSense, getActionsParamsGetIntelliSense } from "../../../services/CLI/IntelliSense/GetIntelliSenseService"
 import {
     CLI_ACTIONS, ACTION_ADD_NAME, ACTION_CREATE_NAME,
@@ -12,12 +12,17 @@ import { getCleanedCLIVerbs } from "../../../helpers/cliutil";
 
 
 
-export const getIntelliSenseForText = async (inputText: string): Promise<CliIntelliSense> => {
+export const getIntelliSenseForText = async (intellisenseInput: IntelliSenseInput): Promise<CliIntelliSense> => {
 
-    console.log(inputText);
+    let inputText = intellisenseInput.inputText;
+
+
+    let inputToUseForCLI = inputText.substring(0, intellisenseInput.inputCaretPosition);
+
     let intellisenseInfo: CliIntelliSense = { results: Array<CLIVerb>(), currentPos: { left: 0, top: 0 } };
-    const cliDataVal = getCliData(inputText) as CliData;
-    let intellisenseType = getIntelliSenseType(inputText, cliDataVal);
+    const cliDataVal = getCliData(inputToUseForCLI) as CliData;
+    let intellisenseType = getIntelliSenseType(inputToUseForCLI, cliDataVal);
+    console.log(`Input to use for CLI: ${inputToUseForCLI}, Intellisense Type: ${intellisenseType}`);
     let cliVerbs: Array<CLIVerb> = [];
 
     switch (intellisenseType) {
@@ -31,7 +36,7 @@ export const getIntelliSenseForText = async (inputText: string): Promise<CliInte
             break;
 
         case IntelliSenseType.ActionParams:
-            cliVerbs = await getParamsIntelliSense(inputText, cliDataVal);
+            cliVerbs = await getParamsIntelliSense(inputToUseForCLI, cliDataVal);
             break;
     }
 
@@ -56,10 +61,13 @@ const getIntelliSenseType = (inputText: string, cliData: CliData): IntelliSenseT
     if (!actionPopulated && !cliData.target && !cliData.actionParams) {
         return IntelliSenseType.Action;
     }
+    else if (actionPopulated && !cliData.target && !inputText.endsWith(" ") && !targetPopulated && !cliData.actionParams) {
+        return IntelliSenseType.None;
+    }
     else if (actionPopulated && !targetPopulated && !cliData.actionParams) {
         return IntelliSenseType.Target;
     }
-    else if (targetPopulated && (!cliData.actionParams || (cliData.actionParams && cliData.actionParams.length>0) )) {
+    else if (targetPopulated && (!cliData.actionParams || (cliData.actionParams && cliData.actionParams.length > 0))) {
         return IntelliSenseType.ActionParams;
     }
     else {
@@ -83,33 +91,57 @@ const getActionsIntelliSense = (actionSubStr: string): Array<CLIVerb> => {
     return cliResults;
 }
 
-
-export const getUpdatedInputOnSelection = (currentInputText: string, selectedVerb: CLIVerb | undefined): string => {
+//this method called when a Verb is Selected either by Click or Tab from the Intellisense Results
+//Returns an updated user input with the new selection
+export const getUpdatedInputOnSelection = (intellisenseInput: IntelliSenseInput, selectedVerb: CLIVerb ): string => {
 
     let updatedInput = "";
 
+    let currentInputText = intellisenseInput.inputText;
     const cliDataVal = getCliData(currentInputText) as CliData;
     let intellisenseType = selectedVerb && selectedVerb.type ? selectedVerb.type : getIntelliSenseType(currentInputText, cliDataVal);
 
+    console.log(`IntelliSense Type - On Update Input after verb selection: ${intellisenseType}`);
 
-    switch (intellisenseType) {
-        case IntelliSenseType.Action:
-            updatedInput = selectedVerb ? `${selectedVerb.name} ` : `${cliDataVal.action} `;
-            break;
+    let inputCaretPos = intellisenseInput.inputCaretPosition;
 
-        case IntelliSenseType.Target: updatedInput = selectedVerb ? (`${cliDataVal.action} ${selectedVerb.text ? selectedVerb.text : selectedVerb.name} `) :
-            `${cliDataVal.action} ${cliDataVal.target} `;
-            break;
+    let textBeforeCaret = currentInputText.substring(0, inputCaretPos);
+    let startIndexOfCurrentText = textBeforeCaret.lastIndexOf(" ")+1;
+    let textAfterCaret = currentInputText.substring(inputCaretPos);
+    let endIndexOfCurrentText = textAfterCaret.indexOf(" ");
 
-        case IntelliSenseType.ActionParams:
-            updatedInput = selectedVerb ? `${currentInputText.trim()} ${selectedVerb.name} ` : currentInputText;
-            break;
+    if(endIndexOfCurrentText==-1)
+    {
+        endIndexOfCurrentText=currentInputText.length;
     }
+
+    let textToReplaceWith=selectedVerb.text? selectedVerb.text: selectedVerb.name;
+    updatedInput =replaceBetween(startIndexOfCurrentText,endIndexOfCurrentText,currentInputText,textToReplaceWith);
+
+       
+
+    // switch (intellisenseType) {
+    //     case IntelliSenseType.Action:
+    //         updatedInput = selectedVerb ? `${selectedVerb.name}` : `${cliDataVal.action}`;
+    //         break;
+
+    //     case IntelliSenseType.Target: updatedInput = selectedVerb ? (`${cliDataVal.action} ${selectedVerb.text ? selectedVerb.text : selectedVerb.name}`) :
+    //         `${cliDataVal.action} ${cliDataVal.target}`;
+    //         break;
+
+    //     case IntelliSenseType.ActionParams:
+    //         updatedInput = selectedVerb ? `${currentInputText.trim()} ${selectedVerb.name}` : currentInputText;
+    //         break;
+    // }
 
     return updatedInput;
 
 
 }
+
+const replaceBetween = function (start: number, end: number, textToReplace: string, replaceWith: string) {
+    return textToReplace.substring(0, start) + replaceWith + textToReplace.substring(end);
+};
 
 
 const isActionPopulated = (action: string): boolean => {
