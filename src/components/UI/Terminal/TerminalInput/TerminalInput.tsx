@@ -18,25 +18,23 @@ export const TerminalInput: React.FC<TerminalInp> = (terminalInpProp: TerminalIn
   const refs = useRef(new Array(terminalInpProp.intelliSenseResults.results.length));
 
   useEffect(() => {
-  let results= terminalInpProp.intelliSenseResults.results;
+    let results = terminalInpProp.intelliSenseResults.results;
 
-  if(results)
-  {
-     let selectedItemIndex= results.findIndex(x=>x.isSelected);
-     if(selectedItemIndex!=-1){
-     let selectedItem :any=  refs.current[selectedItemIndex];
-     if(selectedItem)
-     {
-      selectedItem.scrollIntoView();
-     }
-     }
-  }
-   
+    if (results) {
+      let selectedItemIndex = results.findIndex(x => x.isSelected);
+      if (selectedItemIndex != -1) {
+        let selectedItem: any = refs.current[selectedItemIndex];
+        if (selectedItem) {
+          selectedItem.scrollIntoView();
+        }
+      }
+    }
+
   });
 
-let intellisenseStyle={
-  left:terminalInpProp.intelliSenseResults.currentPos.left
-}
+  let intellisenseStyle = {
+    left: terminalInpProp.intelliSenseResults.currentPos.left
+  }
 
 
 let intelliSenseContent = null;
@@ -64,17 +62,15 @@ if (terminalInpProp.intelliSenseResults && terminalInpProp.intelliSenseResults.r
     <div className="terminal-inp-cont">
       <input
         type="text"
-        autoFocus
-        onKeyDown={event=>terminalInpProp.onInputKeyDown(event)}
-        onKeyPress={event=>terminalInpProp.onInputKeyPress?terminalInpProp.onInputKeyPress(event):null}
+        onKeyDown={event=>terminalInpProp.onInputKeyDown(event)}   
         onChange={event=>terminalInpProp.onInputChange(event)}
         onBlur={event=>terminalInpProp.onInputBlur?terminalInpProp.onInputBlur(event):null}
         value={terminalInpProp.terminalInputText}
         className="terminal-main-input"
-        tabIndex={-1}
+
         ref={terminalInpProp.inputRef}
       />
-
+<div className="dummy-div"/>
 {intelliSenseContent}
     </div>
   </div>);

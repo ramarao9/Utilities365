@@ -21,7 +21,7 @@ export const getIntelliSenseForText = async (intellisenseInput: IntelliSenseInpu
 
     let intellisenseInfo: CliIntelliSense = { results: Array<CLIVerb>(), currentPos: { left: 0, top: 0 } };
     const cliDataVal = getCliData(inputToUseForCLI) as CliData;
-    let intellisenseType = getIntelliSenseType(inputToUseForCLI, cliDataVal);
+    let intellisenseType = await getIntelliSenseType(inputToUseForCLI, cliDataVal);
     console.log(`Input to use for CLI: ${inputToUseForCLI}, Intellisense Type: ${intellisenseType}`);
     let cliVerbs: Array<CLIVerb> = [];
 
@@ -50,13 +50,13 @@ export const getIntelliSenseForText = async (intellisenseInput: IntelliSenseInpu
 
 
 
-const getIntelliSenseType = (inputText: string, cliData: CliData): IntelliSenseType => {
+const getIntelliSenseType = async (inputText: string, cliData: CliData) => {
 
     if (!cliData)
         return IntelliSenseType.Action;
 
     let actionPopulated = isActionPopulated(cliData.action);
-    let targetPopulated = isTargetPopulated(inputText, cliData);
+    let targetPopulated = await isTargetPopulated(inputText, cliData);
 
     if (!actionPopulated && !cliData.target && !cliData.actionParams) {
         return IntelliSenseType.Action;
@@ -66,6 +66,9 @@ const getIntelliSenseType = (inputText: string, cliData: CliData): IntelliSenseT
     }
     else if (actionPopulated && !targetPopulated && !cliData.actionParams) {
         return IntelliSenseType.Target;
+    }
+    else if (targetPopulated && !inputText.endsWith(" ") && !cliData.actionParams) {
+        return IntelliSenseType.None;
     }
     else if (targetPopulated && (!cliData.actionParams || (cliData.actionParams && cliData.actionParams.length > 0))) {
         return IntelliSenseType.ActionParams;
@@ -93,7 +96,9 @@ const getActionsIntelliSense = (actionSubStr: string): Array<CLIVerb> => {
 
 //this method called when a Verb is Selected either by Click or Tab from the Intellisense Results
 //Returns an updated user input with the new selection
-export const getUpdatedInputOnSelection = (intellisenseInput: IntelliSenseInput, selectedVerb: CLIVerb ): string => {
+export const getUpdatedInputOnSelection = (intellisenseInput: IntelliSenseInput, selectedVerb: CLIVerb): IntelliSenseInput => {
+
+
 
     let updatedInput = "";
 
@@ -106,19 +111,25 @@ export const getUpdatedInputOnSelection = (intellisenseInput: IntelliSenseInput,
     let inputCaretPos = intellisenseInput.inputCaretPosition;
 
     let textBeforeCaret = currentInputText.substring(0, inputCaretPos);
-    let startIndexOfCurrentText = textBeforeCaret.lastIndexOf(" ")+1;
+    let startIndexOfCurrentText = textBeforeCaret.lastIndexOf(" ") + 1;
     let textAfterCaret = currentInputText.substring(inputCaretPos);
     let endIndexOfCurrentText = textAfterCaret.indexOf(" ");
 
-    if(endIndexOfCurrentText==-1)
-    {
-        endIndexOfCurrentText=currentInputText.length;
+    if (endIndexOfCurrentText == -1) {
+        endIndexOfCurrentText = currentInputText.length;
+    }
+    else {
+        endIndexOfCurrentText = endIndexOfCurrentText + inputCaretPos;
     }
 
-    let textToReplaceWith=selectedVerb.text? selectedVerb.text: selectedVerb.name;
-    updatedInput =replaceBetween(startIndexOfCurrentText,endIndexOfCurrentText,currentInputText,textToReplaceWith);
+    let textToReplaceWith = selectedVerb.text ? selectedVerb.text : selectedVerb.name;
+    updatedInput = replaceBetween(startIndexOfCurrentText, endIndexOfCurrentText, currentInputText, textToReplaceWith);
 
-       
+
+    let lenDiffOldAndNewText = updatedInput.length - currentInputText.length;
+
+    let updatedIntelliSenseInput: IntelliSenseInput = { inputText: updatedInput, inputCaretPosition: inputCaretPos + lenDiffOldAndNewText };
+    return updatedIntelliSenseInput;
 
     // switch (intellisenseType) {
     //     case IntelliSenseType.Action:
@@ -134,7 +145,7 @@ export const getUpdatedInputOnSelection = (intellisenseInput: IntelliSenseInput,
     //         break;
     // }
 
-    return updatedInput;
+
 
 
 }
@@ -153,7 +164,7 @@ const isActionPopulated = (action: string): boolean => {
 }
 
 
-const isTargetPopulated = (inputText: string, cliData: CliData): boolean => {
+const isTargetPopulated = async (inputText: string, cliData: CliData) => {
 
 
     let action = cliData.action;
@@ -166,8 +177,22 @@ const isTargetPopulated = (inputText: string, cliData: CliData): boolean => {
         return true;
 
     let cliDataSplit = inputText.split(" ");
-    return (cliDataSplit && cliDataSplit.length >= 3 &&
-        cliDataSplit[0] === action);
+    if (cliDataSplit && cliDataSplit.length >= 3 &&
+        cliDataSplit[0] === action) {
+        return true;
+    }
+
+    let cliResults: Array<CLIVerb> = await getTargetIntelliSense(cliData);
+
+    let target = cliData.target;
+    let matchingVerbOnName = cliResults.find(x => x.name.toLowerCase() === target.toLowerCase());
+    if (matchingVerbOnName != null) {
+        return true;
+    }
+
+    let matchingVerbOnText = cliResults.find(x => x.text && x.text.toLowerCase() === target.toLowerCase());
+    return (matchingVerbOnText != null);
+
 
 }
 
@@ -224,6 +249,12 @@ const getParamsIntelliSense = async (userInput: string, cliDataVal: CliData) => 
 
         case ACTION_UPDATE_NAME:
             break;
+    }
+
+    let actionsParams = cliDataVal.actionParams;
+
+    if (actionsParams && actionsParams.length > 0 && cliResults.length > 0) {
+        cliResults = cliResults.filter(x =>x.name && actionsParams && actionsParams.findIndex(y => y.name === x.name.replace("--","")) === -1);
     }
 
 

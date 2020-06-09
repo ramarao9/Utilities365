@@ -293,6 +293,7 @@ const getRequestBody = async (cliData: CliData) => {
   let filterParam = getActionParam("filter", actionParams);
   let selectParam = getActionParam("select", actionParams);
   let topParam = getActionParam("top", actionParams);
+  let orderByParam = getActionParam("orderby", actionParams);
 
   let retrieveMultipleRequest: any = {};
   retrieveMultipleRequest.collection = entityMetadata.EntitySetName;
@@ -322,6 +323,9 @@ const getRequestBody = async (cliData: CliData) => {
     retrieveMultipleRequest.top = topParam.value;
   }
 
+  if(orderByParam && orderByParam.value){
+    retrieveMultipleRequest.orderBy=orderByParam.value.split(",");
+  }
 
   return retrieveMultipleRequest;
 

@@ -15,10 +15,15 @@ import {getIntelliSenseForText,getUpdatedInputOnSelection} from "../../services/
 import "./CLI.css";
 import { number } from "prop-types";
 import { CliIntelliSense,CLIVerb,ClientRect,IntelliSenseInput } from "../../interfaces/CliIntelliSense";
+import input from "../../components/UI/Input/Input";
 const KEYCODE_UP = 38;
 const KEYCODE_DOWN = 40;
 const KEYCODE_ENTER = 13;
+const KEYCODE_LEFT=37;
+const KEYCODE_RIGHT=39;
 
+const KEYCODE_HOME=36;
+const KEYCODE_END=35;
 
 export const CLI: React.FC = () => {
   const getDefaultIntellisenseState=() :CliIntelliSense=>{
@@ -43,39 +48,50 @@ export const CLI: React.FC = () => {
   }
 
   const onTerminalIntellisenseItemClick = async (ev: any, result: CLIVerb) => {
-    await retrieveAndSetIntelliSense(undefined,result);
+    await retrieveAndSetIntelliSense(undefined,result,"click");
   }
 
-const retrieveAndSetIntelliSense=async (inputtoUse?:string, result?: CLIVerb |undefined)=>{
+const retrieveAndSetIntelliSense=async (inputtoUse?:string, result?: CLIVerb |undefined, eventKey?:string)=>{
 
+  console.log(`Entering retrieveAndSetIntelliSense...`);
+  
   if(!result){
     result = getSelectedCLIVerb();
   }
   
 
-
   let userInputText = inputtoUse ? inputtoUse : getCurrentTextInput();
   let intellisenseInput: IntelliSenseInput = { inputText: userInputText, inputCaretPosition: inputCaretPosition };
-  let updatedInput = getUpdatedInputOnSelection(intellisenseInput, result);
-  setInputText(updatedInput);
+  let updatedIntelliSenseInput = getUpdatedInputOnSelection(intellisenseInput, result);
+  setInputText(updatedIntelliSenseInput.inputText);
   setIntelliSenseNavMode(false);
 
   //now that we got the latest information let's update the data needed to get the intellisense results
-  intellisenseInput.inputText=updatedInput;
 
-  let intellisenseInfo = await getIntelliSenseForText(intellisenseInput);
-  intellisenseInfo.currentPos=calculateIntelliSensePos(inputCaretPosition);
-  setIntelliSenseResults(intellisenseInfo);
+
+  // if(eventKey==="tab"|| eventKey==="click"){//Since a proper selection is made, there is no need to render the IntelliSenseResults
+  //   focusInputAndSetCaretPosition();
+  //   setIntelliSenseResults(getDefaultIntellisenseState());
+  // }
+  // else{
+    let intellisenseInfo = await getIntelliSenseForText(updatedIntelliSenseInput);
+    intellisenseInfo.currentPos=calculateIntelliSensePos(updatedIntelliSenseInput.inputCaretPosition);
+    focusInputAndSetCaretPosition(updatedIntelliSenseInput.inputCaretPosition);
+    setIntelliSenseResults(intellisenseInfo);
+  // }
 
   setintelliSenseVerbCurrentIndex(0);
-
-  if (cliInputRef && cliInputRef.current) {
-    let currentRef = cliInputRef.current as any;
-    currentRef.focus();
-    currentRef.setSelectionRange(inputCaretPosition,inputCaretPosition);
-  }
 }
 
+
+const focusInputAndSetCaretPosition=(caretPos?:number|undefined)=>{
+  if (cliInputRef && cliInputRef.current) {
+    let currentRef = cliInputRef.current as any;
+    let caretPosToUse=caretPos?caretPos:inputCaretPosition;
+    currentRef.focus();
+    currentRef.setSelectionRange(caretPosToUse,caretPosToUse);
+  }
+}
 
   const onTerminalInputKeyDown = async (ev: any) => {
 
@@ -83,7 +99,7 @@ const retrieveAndSetIntelliSense=async (inputtoUse?:string, result?: CLIVerb |un
     if (ev.key === "Tab") {
       ev.preventDefault();
       let userInputText= getCurrentTextInput();//We use space as a delimiter when trying to indentify the IntelliSenseType(e.g. Action, target, ActionParams etc.)
-      retrieveAndSetIntelliSense(userInputText);
+      retrieveAndSetIntelliSense(userInputText,undefined,ev.key.toLowerCase());
       return;
     }
 
@@ -94,8 +110,17 @@ const retrieveAndSetIntelliSense=async (inputtoUse?:string, result?: CLIVerb |un
       return;
     }
 
+
+    if (ev.keyCode === KEYCODE_LEFT || ev.keyCode === KEYCODE_RIGHT ||
+      ev.keyCode===KEYCODE_HOME || ev.keyCode===KEYCODE_END) {
+      resetIntelliSense();
+      return;
+    }
+
     if (inIntelliSenseNavMode) {
+      ev.preventDefault();
       manageIntellisenseVerbNavigation(ev.keyCode);
+      focusInputAndSetCaretPosition();
       return;
     }
 
@@ -109,9 +134,9 @@ const retrieveAndSetIntelliSense=async (inputtoUse?:string, result?: CLIVerb |un
       return;
     }
 
-
-
     if (ev.keyCode !== KEYCODE_ENTER) return;
+
+    resetIntelliSense();
 
     const cliDataVal = getCliData(inputText) as CliData;
     let cliResponse: CliResponse = { type: "", success: false, message: "" };
@@ -130,10 +155,23 @@ const retrieveAndSetIntelliSense=async (inputtoUse?:string, result?: CLIVerb |un
     hideProgressSpinner();
   };
 
+
+  const resetIntelliSense=()=>{
+    setIntelliSenseNavMode(false);
+    setIntelliSenseResults(getDefaultIntellisenseState());
+    setintelliSenseVerbCurrentIndex(0);
+  }
+
   const manageIntellisenseVerbNavigation = (keyCode: number) => {
 
+    console.log(`Entering manageIntellisenseVerbNavigation...`);
+
     if (keyCode !== KEYCODE_UP && keyCode !== KEYCODE_DOWN)
+    {
+      resetIntelliSense();
       return;
+    }
+    
 
     let updatedIndex = intelliSenseVerbCurrentIndex;
     let maxIndex = intellisenseResults && intellisenseResults.results ? intellisenseResults.results.length-1 : -1;
@@ -192,12 +230,13 @@ const retrieveAndSetIntelliSense=async (inputtoUse?:string, result?: CLIVerb |un
     let inputTxtRef: any = cliInputRef.current;
     var canvas: any = intelliSensePositionCanvasRef.current;
     var context = canvas.getContext("2d");
-    context.font = "";
+    context.font = "10pt Arial";
 
     let textToMeasure=inputTxtRef.value.substring(0,inputCaretPos);
     var metrics = context.measureText(textToMeasure);
 
     let inputRect = inputTxtRef.getBoundingClientRect();
+    console.log(`Calculated Left Position: ${inputRect.left+ metrics.width}`);
     return { left: metrics.width + inputRect.left, top: inputRect.top };
   }
 
@@ -292,6 +331,8 @@ const getCurrentTextInput=()=>{
 
 
   const onTerminalInputChanged = async (ev: any) => {
+
+    console.log(`Entering onchange event...`);
     const userInput = ev.target.value;
     const caretPos=ev.target.selectionStart;
     console.log(`Input caret position: ${caretPos}, UserInput:${userInput}`);
