@@ -1,7 +1,7 @@
-import { CliData } from "../../../interfaces/CliData";
+import { CliData, ActionParam } from "../../../interfaces/CliData";
 import { getCliData } from "../../CliParsingService";
 import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE, IntelliSenseInput } from "../../../interfaces/CliIntelliSense"
-import { getTargetGetIntelliSense, getActionsParamsGetIntelliSense } from "../../../services/CLI/IntelliSense/GetIntelliSenseService"
+import { getTargetForGet, getActionParamsForGet } from "../../../services/CLI/IntelliSense/GetIntelliSenseService"
 import {
     CLI_ACTIONS, ACTION_ADD_NAME, ACTION_CREATE_NAME,
     ACTION_EXECUTE_NAME, ACTION_GET_NAME, ACTION_OPEN_NAME,
@@ -9,6 +9,7 @@ import {
 } from "../Definitions/ActionDefinitions"
 import { cursorTo } from "readline";
 import { getCleanedCLIVerbs } from "../../../helpers/cliutil";
+import { getTargetForCreate, getActionsParamsForCreate } from "./CreateIntelliSenseService";
 
 
 
@@ -56,12 +57,14 @@ const getIntelliSenseType = async (inputText: string, cliData: CliData) => {
         return IntelliSenseType.Action;
 
     let actionPopulated = isActionPopulated(cliData.action);
-    let targetPopulated = await isTargetPopulated(inputText, cliData);
+
 
     if (!actionPopulated && !cliData.target && !cliData.actionParams) {
         return IntelliSenseType.Action;
     }
-    else if (actionPopulated && !cliData.target && !inputText.endsWith(" ") && !targetPopulated && !cliData.actionParams) {
+
+    let targetPopulated = await isTargetPopulated(inputText, cliData);
+    if (actionPopulated && !cliData.target && !inputText.endsWith(" ") && !targetPopulated && !cliData.actionParams) {
         return IntelliSenseType.None;
     }
     else if (actionPopulated && !targetPopulated && !cliData.actionParams) {
@@ -70,7 +73,15 @@ const getIntelliSenseType = async (inputText: string, cliData: CliData) => {
     else if (targetPopulated && !inputText.endsWith(" ") && !cliData.actionParams) {
         return IntelliSenseType.None;
     }
-    else if (targetPopulated && (!cliData.actionParams || (cliData.actionParams && cliData.actionParams.length > 0))) {
+
+    let lastActionParam = getLastActionParam(cliData);
+
+
+    let actionParamsPopulated = await isLastActionParamsPopulated(inputText, cliData);
+    if (actionParamsPopulated) {
+        return IntelliSenseType.None;
+    }
+    if (targetPopulated && (!cliData.actionParams || (cliData.actionParams && cliData.actionParams.length > 0))) {
         return IntelliSenseType.ActionParams;
     }
     else {
@@ -96,7 +107,7 @@ const getActionsIntelliSense = (actionSubStr: string): Array<CLIVerb> => {
 
 //this method called when a Verb is Selected either by Click or Tab from the Intellisense Results
 //Returns an updated user input with the new selection
-export const getUpdatedInputOnSelection = (intellisenseInput: IntelliSenseInput, selectedVerb: CLIVerb): IntelliSenseInput => {
+export const getUpdatedInputOnSelection = async (intellisenseInput: IntelliSenseInput, selectedVerb: CLIVerb): Promise<IntelliSenseInput> => {
 
 
 
@@ -104,7 +115,13 @@ export const getUpdatedInputOnSelection = (intellisenseInput: IntelliSenseInput,
 
     let currentInputText = intellisenseInput.inputText;
     const cliDataVal = getCliData(currentInputText) as CliData;
-    let intellisenseType = selectedVerb && selectedVerb.type ? selectedVerb.type : getIntelliSenseType(currentInputText, cliDataVal);
+    let intellisenseType = selectedVerb && selectedVerb.type ? selectedVerb.type : await getIntelliSenseType(currentInputText, cliDataVal);
+
+    if (intellisenseType === IntelliSenseType.None) {
+
+        return intellisenseInput;
+    }
+
 
     console.log(`IntelliSense Type - On Update Input after verb selection: ${intellisenseType}`);
 
@@ -123,6 +140,9 @@ export const getUpdatedInputOnSelection = (intellisenseInput: IntelliSenseInput,
     }
 
     let textToReplaceWith = selectedVerb.text ? selectedVerb.text : selectedVerb.name;
+    if (intellisenseType === IntelliSenseType.ActionParams) {
+        textToReplaceWith = "--" + textToReplaceWith;
+    }
     updatedInput = replaceBetween(startIndexOfCurrentText, endIndexOfCurrentText, currentInputText, textToReplaceWith);
 
 
@@ -130,22 +150,6 @@ export const getUpdatedInputOnSelection = (intellisenseInput: IntelliSenseInput,
 
     let updatedIntelliSenseInput: IntelliSenseInput = { inputText: updatedInput, inputCaretPosition: inputCaretPos + lenDiffOldAndNewText };
     return updatedIntelliSenseInput;
-
-    // switch (intellisenseType) {
-    //     case IntelliSenseType.Action:
-    //         updatedInput = selectedVerb ? `${selectedVerb.name}` : `${cliDataVal.action}`;
-    //         break;
-
-    //     case IntelliSenseType.Target: updatedInput = selectedVerb ? (`${cliDataVal.action} ${selectedVerb.text ? selectedVerb.text : selectedVerb.name}`) :
-    //         `${cliDataVal.action} ${cliDataVal.target}`;
-    //         break;
-
-    //     case IntelliSenseType.ActionParams:
-    //         updatedInput = selectedVerb ? `${currentInputText.trim()} ${selectedVerb.name}` : currentInputText;
-    //         break;
-    // }
-
-
 
 
 }
@@ -196,6 +200,36 @@ const isTargetPopulated = async (inputText: string, cliData: CliData) => {
 
 }
 
+
+const isLastActionParamsPopulated = async (inputText: string, cliData: CliData) => {
+
+
+    let lastActionParam = getLastActionParam(cliData);
+
+    if (lastActionParam == null || lastActionParam === undefined)
+        return false;
+
+    let cliResults: Array<CLIVerb> = await getParamsIntelliSense(inputText, cliData);
+
+
+    let matchingVerbOnName = cliResults.find(x => x.name.toLowerCase() === lastActionParam!!.name.toLowerCase());
+    if (matchingVerbOnName != null) {
+        return true;
+    }
+
+    let matchingVerbOnText = cliResults.find(x => x.text && x.text.toLowerCase() === lastActionParam!!.name.toLowerCase());
+    return (matchingVerbOnText != null);
+
+}
+const getLastActionParam = (cliData: CliData): ActionParam | undefined => {
+    let actionParams = cliData.actionParams;
+    if (!actionParams || actionParams.length === 0)
+        return undefined;
+    let lastActionParam = actionParams[actionParams.length - 1];
+    return lastActionParam;
+}
+
+
 const getTargetIntelliSense = async (cliDataVal: CliData) => {
 
     let cliResults: Array<CLIVerb> = [];
@@ -203,13 +237,13 @@ const getTargetIntelliSense = async (cliDataVal: CliData) => {
         case ACTION_ADD_NAME:
             break;
 
-        case ACTION_CREATE_NAME:
+        case ACTION_CREATE_NAME: cliResults = await getTargetForCreate(cliDataVal)
             break;
 
         case ACTION_EXECUTE_NAME:
             break;
 
-        case ACTION_GET_NAME: cliResults = await getTargetGetIntelliSense(cliDataVal);
+        case ACTION_GET_NAME: cliResults = await getTargetForGet(cliDataVal);
             break;
 
         case ACTION_OPEN_NAME:
@@ -232,13 +266,13 @@ const getParamsIntelliSense = async (userInput: string, cliDataVal: CliData) => 
         case ACTION_ADD_NAME:
             break;
 
-        case ACTION_CREATE_NAME:
+        case ACTION_CREATE_NAME: cliResults = await getActionsParamsForCreate(userInput, cliDataVal);
             break;
 
         case ACTION_EXECUTE_NAME:
             break;
 
-        case ACTION_GET_NAME: cliResults = await getActionsParamsGetIntelliSense(userInput, cliDataVal);
+        case ACTION_GET_NAME: cliResults = await getActionParamsForGet(userInput, cliDataVal);
             break;
 
         case ACTION_OPEN_NAME:
@@ -254,7 +288,7 @@ const getParamsIntelliSense = async (userInput: string, cliDataVal: CliData) => 
     let actionsParams = cliDataVal.actionParams;
 
     if (actionsParams && actionsParams.length > 0 && cliResults.length > 0) {
-        cliResults = cliResults.filter(x =>x.name && actionsParams && actionsParams.findIndex(y => y.name === x.name.replace("--","")) === -1);
+        cliResults = cliResults.filter(x => x.name && actionsParams && actionsParams.findIndex(y => y.name === x.name.replace("--", "")) === -1);
     }
 
 

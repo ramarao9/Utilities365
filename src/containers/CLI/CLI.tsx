@@ -62,7 +62,7 @@ const retrieveAndSetIntelliSense=async (inputtoUse?:string, result?: CLIVerb |un
 
   let userInputText = inputtoUse ? inputtoUse : getCurrentTextInput();
   let intellisenseInput: IntelliSenseInput = { inputText: userInputText, inputCaretPosition: inputCaretPosition };
-  let updatedIntelliSenseInput = getUpdatedInputOnSelection(intellisenseInput, result);
+  let updatedIntelliSenseInput = await getUpdatedInputOnSelection(intellisenseInput, result);
   setInputText(updatedIntelliSenseInput.inputText);
   setIntelliSenseNavMode(false);
 

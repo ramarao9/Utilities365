@@ -4,13 +4,14 @@ import { CLI_ACTION_PARAMS_GET_RECORDS } from "../Definitions/GetActionParamsDef
 import { getEntities } from "../../CrmMetadataService"
 import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
 import { EntityMetadata } from "../../../interfaces/EntityMetadata"
-import { getCleanedCLIVerbs } from "../../../helpers/cliutil";
+import { getCleanedCLIVerbs, getCLIVerbsForEntities } from "../../../helpers/cliutil";
+import { getEntityCollectionName } from "../../../helpers/metadatautil";
 
-export const getTargetGetIntelliSense = async (cliDataVal: CliData) => {
+export const getTargetForGet = async (cliDataVal: CliData) => {
 
     let cliResults: Array<CLIVerb> = [];
     let targetName = cliDataVal.target;
-    let entititesResults = await getEntitiesIntelliSense();
+    let entititesResults = await getCLIVerbsForEntities();
     cliResults = cliResults.concat(CLI_TARGET_GET);//Default targets
     cliResults = cliResults.concat(entititesResults);
 
@@ -25,31 +26,9 @@ export const getTargetGetIntelliSense = async (cliDataVal: CliData) => {
 }
 
 
-const getEntitiesIntelliSense = async () => {
-
-    let cliResults: Array<CLIVerb> = [];
-    let entitiesMetadata = await getEntities();
-    cliResults = entitiesMetadata.map((entityMetadata: EntityMetadata) => {
 
 
-        let collectionDisplayName = (entityMetadata.DisplayCollectionName &&
-            entityMetadata.DisplayCollectionName.UserLocalizedLabel &&
-            entityMetadata.DisplayCollectionName.UserLocalizedLabel.Label) ?
-            entityMetadata.DisplayCollectionName.UserLocalizedLabel.Label : entityMetadata.EntitySetName
-
-        let cliVerb: CLIVerb = {
-            name: `${collectionDisplayName}`,
-            text: entityMetadata.EntitySetName
-        };
-        return cliVerb;
-    });
-
-
-    return cliResults;
-
-}
-
-export const getActionsParamsGetIntelliSense = async (userInput: string, cliDataVal: CliData) => {
+export const getActionParamsForGet = async (userInput: string, cliDataVal: CliData) => {
     let cliResults: Array<CLIVerb> = [];
     switch (cliDataVal.target) {
 
@@ -87,7 +66,12 @@ const getCurrentActionParamVerbsForRecords = async (userInput: string, cliDataVa
         return CLI_ACTION_PARAMS_GET_RECORDS;
 
     let lastActionParam = actionParams[actionParams.length - 1];
-    let paramName = lastActionParam && lastActionParam.name ? `--${lastActionParam.name.toLowerCase()}` : null;
+    let paramName = lastActionParam && lastActionParam.name ? `${lastActionParam.name.toLowerCase()}` : null;
+
+    if (paramName === null) {
+        return CLI_ACTION_PARAMS_GET_RECORDS;
+    }
+
     let paramMatched = paramName ? CLI_ACTION_PARAMS_GET_RECORDS.find(x => x.name.toLowerCase() === paramName) : null;
     let paramValue = lastActionParam.value;
     if (paramMatched) {//When the Param name is already populated, this indicates we need to provide the Verbs for the data present in the value
