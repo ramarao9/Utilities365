@@ -8,8 +8,10 @@ import {
     ACTION_REMOVE_NAME, ACTION_UPDATE_NAME
 } from "../Definitions/ActionDefinitions"
 import { cursorTo } from "readline";
-import { getCleanedCLIVerbs } from "../../../helpers/cliutil";
-import { getTargetForCreate, getActionsParamsForCreate } from "./CreateIntelliSenseService";
+import { getCleanedCLIVerbs, getEntityCLIVerbs } from "../../../helpers/cliutil";
+import { getActionsParamsForWrite } from "./WriteIntelliSenseService";
+import { CRMOperation } from "../../../interfaces/CRMOperation";
+import { getTargetForOpen } from "./OpenIntelliSenseService";
 
 
 
@@ -237,7 +239,8 @@ const getTargetIntelliSense = async (cliDataVal: CliData) => {
         case ACTION_ADD_NAME:
             break;
 
-        case ACTION_CREATE_NAME: cliResults = await getTargetForCreate(cliDataVal)
+        case ACTION_CREATE_NAME:
+        case ACTION_UPDATE_NAME: cliResults = await getEntityCLIVerbs(cliDataVal);
             break;
 
         case ACTION_EXECUTE_NAME:
@@ -246,14 +249,12 @@ const getTargetIntelliSense = async (cliDataVal: CliData) => {
         case ACTION_GET_NAME: cliResults = await getTargetForGet(cliDataVal);
             break;
 
-        case ACTION_OPEN_NAME:
+        case ACTION_OPEN_NAME: cliResults = await getTargetForOpen(cliDataVal);
             break;
 
         case ACTION_REMOVE_NAME:
             break;
 
-        case ACTION_UPDATE_NAME:
-            break;
     }
     return cliResults;
 }
@@ -266,7 +267,10 @@ const getParamsIntelliSense = async (userInput: string, cliDataVal: CliData) => 
         case ACTION_ADD_NAME:
             break;
 
-        case ACTION_CREATE_NAME: cliResults = await getActionsParamsForCreate(userInput, cliDataVal);
+        case ACTION_CREATE_NAME: cliResults = await getActionsParamsForWrite(userInput, cliDataVal, CRMOperation.Create);
+            break;
+
+        case ACTION_UPDATE_NAME: cliResults = await getActionsParamsForWrite(userInput, cliDataVal, CRMOperation.Update);
             break;
 
         case ACTION_EXECUTE_NAME:
@@ -281,7 +285,7 @@ const getParamsIntelliSense = async (userInput: string, cliDataVal: CliData) => 
         case ACTION_REMOVE_NAME:
             break;
 
-        case ACTION_UPDATE_NAME:
+
             break;
     }
 
@@ -290,8 +294,6 @@ const getParamsIntelliSense = async (userInput: string, cliDataVal: CliData) => 
     if (actionsParams && actionsParams.length > 0 && cliResults.length > 0) {
         cliResults = cliResults.filter(x => x.name && actionsParams && actionsParams.findIndex(y => y.name === x.name.replace("--", "")) === -1);
     }
-
-
 
     return cliResults;
 

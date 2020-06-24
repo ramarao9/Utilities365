@@ -1,7 +1,8 @@
-import { CLIVerb, IntelliSenseType } from "../interfaces/CliIntelliSense";
+import { CLIVerb, IntelliSenseType, MINIMUM_CHARS_FOR_INTELLISENSE } from "../interfaces/CliIntelliSense";
 import { getEntities } from "../services/CrmMetadataService";
 import { getEntityCollectionName, getAttributeDisplayName, getEntityDisplayLabel } from "./metadatautil";
 import { EntityMetadata, AttributeMetadata, PicklistMetadata } from "../interfaces/EntityMetadata";
+import { CliData } from "../interfaces/CliData";
 
 export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => {
     cliVerbs = cliVerbs.map((x) => {
@@ -16,6 +17,23 @@ export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => 
     return cliVerbs;
 }
 
+
+export const getEntityCLIVerbs=async(cliDataVal:CliData)=>{
+
+    let cliResults: Array<CLIVerb> = [];
+    let targetName = cliDataVal.target;
+    let entititesResults = await getCLIVerbsForEntitiesWrite();
+    cliResults = cliResults.concat(entititesResults);
+
+    if (targetName && targetName.length >= MINIMUM_CHARS_FOR_INTELLISENSE) {
+        cliResults = cliResults.filter(x => x.name.toLowerCase().startsWith(targetName.toLowerCase()) ||
+            x.text && x.text.toLowerCase().startsWith(targetName.toLowerCase()));
+    }
+
+    cliResults = getCleanedCLIVerbs(cliResults);
+    return cliResults;
+
+}
 
 export const getCLIVerbsForEntities = async () => {
 
