@@ -1,4 +1,4 @@
-import { CLIVerb, IntelliSenseType } from "../../../interfaces/CliIntelliSense";
+import { CLIVerb, IntelliSenseType } from "../../../../interfaces/CliIntelliSense";
 
 
 export const ACTION_PARAM_UPDATE_ID_NAME="id";

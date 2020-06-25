@@ -1,4 +1,4 @@
-import { CLIVerb, IntelliSenseType } from "../../../interfaces/CliIntelliSense"
+import { CLIVerb, IntelliSenseType } from "../../../../interfaces/CliIntelliSense"
 
 export const TARGET_GET_ENTITY_NAME="entity";
 export const TARGET_GET_ENTITIES_NAME="entities";

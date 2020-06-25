@@ -1,13 +1,13 @@
 import { CliData } from "../../../interfaces/CliData";
-import { CLI_TARGET_GET } from "../Definitions/GetTargetDefinitions"
-import { CLI_ACTION_PARAMS_GET_RECORDS } from "../Definitions/GetActionParamsDefinitions"
+import { CLI_TARGET_GET } from "../Definitions/Target/Get"
+import { CLI_ACTION_PARAMS_GET_RECORDS } from "../Definitions/ActionParams/Get"
 import { getEntities, getEntity } from "../../CrmMetadataService"
 import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
 import { EntityMetadata } from "../../../interfaces/EntityMetadata"
 import { getCleanedCLIVerbs, getCLIVerbsForEntities, getCLIVerbsForAttributes, getCLIVerbsForEntitiesWrite, getEntityCLIVerbs } from "../../../helpers/cliutil";
 import { getEntityCollectionName } from "../../../helpers/metadatautil";
 import { CRMOperation } from "../../../interfaces/CRMOperation";
-import { CLI_ACTION_PARAMS_UPDATE_RECORDS } from "../Definitions/UpdateActionParamsDefinitions";
+import { CLI_ACTION_PARAMS_UPDATE_RECORDS } from "../Definitions/ActionParams/Update";
 
 
 

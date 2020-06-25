@@ -21,15 +21,8 @@ export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => 
 export const getEntityCLIVerbs=async(cliDataVal:CliData)=>{
 
     let cliResults: Array<CLIVerb> = [];
-    let targetName = cliDataVal.target;
     let entititesResults = await getCLIVerbsForEntitiesWrite();
     cliResults = cliResults.concat(entititesResults);
-
-    if (targetName && targetName.length >= MINIMUM_CHARS_FOR_INTELLISENSE) {
-        cliResults = cliResults.filter(x => x.name.toLowerCase().startsWith(targetName.toLowerCase()) ||
-            x.text && x.text.toLowerCase().startsWith(targetName.toLowerCase()));
-    }
-
     cliResults = getCleanedCLIVerbs(cliResults);
     return cliResults;
 

@@ -1,71 +1,28 @@
 import { CliData } from "../../../interfaces/CliData";
-import { CLI_TARGET_GET } from "../Definitions/GetTargetDefinitions"
-import { CLI_ACTION_PARAMS_GET_RECORDS } from "../Definitions/GetActionParamsDefinitions"
-import { getEntities, getEntity } from "../../CrmMetadataService"
-import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
-import { EntityMetadata } from "../../../interfaces/EntityMetadata"
-import { getCleanedCLIVerbs, getCLIVerbsForEntities, getCLIVerbsForAttributes, getCLIVerbsForEntitiesWrite } from "../../../helpers/cliutil";
-import { getEntityCollectionName } from "../../../helpers/metadatautil";
-import { CRMOperation } from "../../../interfaces/CRMOperation";
-import { CLI_ACTION_PARAMS_UPDATE_RECORDS } from "../Definitions/UpdateActionParamsDefinitions";
-import { CLI_TARGET_OPEN } from "../Definitions/OpenTargetDefinitions";
-
+import { CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
+import { getCLIVerbsForEntitiesWrite } from "../../../helpers/cliutil";
+import { CLI_TARGET_OPEN } from "../Definitions/Target/Open";
+import { CLI_ACTION_PARAMS_OPEN_ENTITY } from "../Definitions/ActionParams/Open";
 
 
 export const getTargetForOpen = async (cliDataVal: CliData) => {
 
     let cliResults: Array<CLIVerb> = [];
-    let targetName = cliDataVal.target;
- 
     cliResults = cliResults.concat(CLI_TARGET_OPEN);//Default targets
-
-    let entititesResults = await getCLIVerbsForEntities();
+    let entititesResults = await getCLIVerbsForEntitiesWrite();
     cliResults = cliResults.concat(entititesResults);
-
-    if (targetName && targetName.length >= MINIMUM_CHARS_FOR_INTELLISENSE) {
-        cliResults = cliResults.filter(x => x.name.toLowerCase().startsWith(targetName.toLowerCase()));
-    }
-
     return cliResults;
 }
 
-
-
-export const getActionsParamsForOpen = async (userInput: string, cliDataVal: CliData, crmOperation: CRMOperation) => {
+export const getActionParamsForOpen = (userInput: string, cliDataVal: CliData) => {
     let cliResults: Array<CLIVerb> = [];
-    let entitySetName = cliDataVal.target;
-    let entityMetadata = await getEntity(entitySetName) as EntityMetadata;
 
-    if (crmOperation === CRMOperation.Update) {
-        cliResults = cliResults.concat(CLI_ACTION_PARAMS_UPDATE_RECORDS);//Default targets
-    }
+    switch (cliDataVal.target) {
 
-    let attributeVerbs = getCLIVerbsForAttributes(entityMetadata);
-    cliResults = cliResults.concat(attributeVerbs);
-
-    let actionParams = cliDataVal.actionParams;
-
-    if (!actionParams || actionParams.length === 0)
-        return cliResults;
-
-    let lastActionParam = actionParams[actionParams.length - 1];
-
-    let paramName = lastActionParam && lastActionParam.name ? `${lastActionParam.name.toLowerCase()}` : null;
-    let populatedActionParams = actionParams.filter(x => x.name && x.value && x.name !== paramName);
-
-    //Remove the previously populated items
-    cliResults = cliResults.filter(x => {
-        return populatedActionParams.findIndex(y => y.name === x.text) === -1;
-    });
-
-    if (paramName === null) {
-        return cliResults;
-    }
-
-    if (paramName && paramName.length > 0) {//No param has been completely matched.In this case just filter the results
-        cliResults = cliResults.filter(x =>(x.text && x.text!!.toLowerCase().startsWith(paramName!!)) ||
-            x.name.toLowerCase().startsWith(paramName!!));
+        case "entity": cliResults = cliResults.concat(CLI_ACTION_PARAMS_OPEN_ENTITY);
+            break;
     }
 
     return cliResults;
 }
+

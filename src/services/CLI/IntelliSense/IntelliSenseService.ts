@@ -11,7 +11,9 @@ import { cursorTo } from "readline";
 import { getCleanedCLIVerbs, getEntityCLIVerbs } from "../../../helpers/cliutil";
 import { getActionsParamsForWrite } from "./WriteIntelliSenseService";
 import { CRMOperation } from "../../../interfaces/CRMOperation";
-import { getTargetForOpen } from "./OpenIntelliSenseService";
+import { getTargetForOpen ,getActionParamsForOpen} from "./OpenIntelliSenseService";
+import { getActionParamsForAdd, getTargetForAdd } from "./AddIntelliSenseService";
+import { getActionParamsForRemove, getTargetForRemove } from "./RemoveIntelliSenseService";
 
 
 
@@ -236,7 +238,7 @@ const getTargetIntelliSense = async (cliDataVal: CliData) => {
 
     let cliResults: Array<CLIVerb> = [];
     switch (cliDataVal.action) {
-        case ACTION_ADD_NAME:
+        case ACTION_ADD_NAME:cliResults = getTargetForAdd(cliDataVal);
             break;
 
         case ACTION_CREATE_NAME:
@@ -252,10 +254,17 @@ const getTargetIntelliSense = async (cliDataVal: CliData) => {
         case ACTION_OPEN_NAME: cliResults = await getTargetForOpen(cliDataVal);
             break;
 
-        case ACTION_REMOVE_NAME:
+        case ACTION_REMOVE_NAME:cliResults = getTargetForRemove(cliDataVal);
             break;
 
     }
+
+    let targetName = cliDataVal.target;
+    if (targetName && targetName.length >= MINIMUM_CHARS_FOR_INTELLISENSE) {
+        cliResults = cliResults.filter(x => x.name.toLowerCase().startsWith(targetName.toLowerCase()) ||
+            x.text && x.text.toLowerCase().startsWith(targetName.toLowerCase()));
+    }
+
     return cliResults;
 }
 
@@ -264,7 +273,7 @@ const getParamsIntelliSense = async (userInput: string, cliDataVal: CliData) => 
 
     let cliResults: Array<CLIVerb> = [];
     switch (cliDataVal.action) {
-        case ACTION_ADD_NAME:
+        case ACTION_ADD_NAME:cliResults =  getActionParamsForAdd(userInput, cliDataVal);
             break;
 
         case ACTION_CREATE_NAME: cliResults = await getActionsParamsForWrite(userInput, cliDataVal, CRMOperation.Create);
@@ -279,13 +288,10 @@ const getParamsIntelliSense = async (userInput: string, cliDataVal: CliData) => 
         case ACTION_GET_NAME: cliResults = await getActionParamsForGet(userInput, cliDataVal);
             break;
 
-        case ACTION_OPEN_NAME:
+        case ACTION_OPEN_NAME:cliResults =  getActionParamsForOpen(userInput, cliDataVal);
             break;
 
-        case ACTION_REMOVE_NAME:
-            break;
-
-
+        case ACTION_REMOVE_NAME:cliResults =  getActionParamsForRemove(userInput, cliDataVal);
             break;
     }
 

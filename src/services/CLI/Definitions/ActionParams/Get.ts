@@ -1,4 +1,4 @@
-import { CLIVerb, IntelliSenseType } from "../../../interfaces/CliIntelliSense";
+import { CLIVerb, IntelliSenseType } from "../../../../interfaces/CliIntelliSense";
 
 
 export const ACTION_PARAM_GET_FILTER_NAME="filter";

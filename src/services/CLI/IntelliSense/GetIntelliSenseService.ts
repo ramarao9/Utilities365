@@ -1,6 +1,6 @@
 import { CliData } from "../../../interfaces/CliData";
-import { CLI_TARGET_GET } from "../Definitions/GetTargetDefinitions"
-import { CLI_ACTION_PARAMS_GET_RECORDS } from "../Definitions/GetActionParamsDefinitions"
+import { CLI_TARGET_GET } from "../Definitions/Target/Get"
+import { CLI_ACTION_PARAMS_GET_RECORDS } from "../Definitions/ActionParams/Get"
 import { getEntities } from "../../CrmMetadataService"
 import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
 import { EntityMetadata } from "../../../interfaces/EntityMetadata"
@@ -10,18 +10,10 @@ import { getEntityCollectionName } from "../../../helpers/metadatautil";
 export const getTargetForGet = async (cliDataVal: CliData) => {
 
     let cliResults: Array<CLIVerb> = [];
-    let targetName = cliDataVal.target;
     let entititesResults = await getCLIVerbsForEntities();
     cliResults = cliResults.concat(CLI_TARGET_GET);//Default targets
     cliResults = cliResults.concat(entititesResults);
-
-
-    if (targetName && targetName.length >= MINIMUM_CHARS_FOR_INTELLISENSE) {
-        cliResults = cliResults.filter(x => x.name.toLowerCase().startsWith(targetName.toLowerCase()));
-    }
-
     cliResults = getCleanedCLIVerbs(cliResults);
-
     return cliResults;
 }
 

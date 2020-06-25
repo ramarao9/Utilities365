@@ -1,4 +1,4 @@
-import { CLIVerb, IntelliSenseType } from "../../../interfaces/CliIntelliSense"
+import { CLIVerb, IntelliSenseType } from "../../../../interfaces/CliIntelliSense"
 
 export const TARGET_OPEN_ENTITY_NAME="entity";
 export const TARGET_OPEN_ADVANCED_FIND_NAME="advancedfind";
