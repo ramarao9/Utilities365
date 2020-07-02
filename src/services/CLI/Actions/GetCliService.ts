@@ -316,7 +316,7 @@ const getRequestBody = async (cliData: CliData) => {
   }
   else {
     //only bring the Primary Attribute when no attributes provided
-    retrieveMultipleRequest.select = [entityMetadata.PrimaryNameAttribute];
+    retrieveMultipleRequest.select = entityMetadata.PrimaryNameAttribute ?[entityMetadata.PrimaryIdAttribute,entityMetadata.PrimaryNameAttribute] : [entityMetadata.PrimaryIdAttribute];
   }
 
   if (!isValidId && topParam != null && topParam.value != null) {

@@ -21,7 +21,7 @@ export const handleCrmCreateActions = async (cliData: CliData) => {
   try {
     let createResponse = await createRecord(cliData);
     cliResponse.success = true;
-    cliResponse.message = "Record created successfully!";
+    cliResponse.message = `Created! Id:${createResponse}`;
     cliResponse.response = createResponse;
   }
   catch (error) {
@@ -45,7 +45,7 @@ export const handleCrmUpdateActions = async (cliData: CliData) => {
 
     let updateResponse = await updateRecord(cliData);
     cliResponse.success = true;
-    cliResponse.message = "Record updated successfully!";
+    cliResponse.message = "Update successfull!";
     cliResponse.response = updateResponse;
 
     if (hasSelectParam) {
@@ -68,9 +68,9 @@ const createRecord = async (cliData: CliData) => {
 
   let createRequest = await getRequestBody(targetEntityMetadata, cliData);
 
-  let createResponse = await create(createRequest, targetEntityMetadata.LogicalCollectionName);
+  let recordId = await create(createRequest, targetEntityMetadata.LogicalCollectionName);
 
-  return createResponse.value;
+  return recordId;
 
 };
 
@@ -118,6 +118,10 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
 
   let picklistAttributes = targetEntityMetadata.PicklistAttributes;
 
+  let dateTimeAttributes=targetEntityMetadata.DateTimeAttributes;
+
+  let lookupAttributes=targetEntityMetadata.LookupAttributes;
+
   if (cliData.actionParams != null) {
     for (let i = 0; i < cliData.actionParams.length; i++) {
       let param = cliData.actionParams[i];
@@ -139,7 +143,9 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
             if (!isValid) {
               throw new Error(`Invalid date format for ${attributeLogicalName}. Please specify it in a valid format and try again.`);
             }
-            let dateTimeBehavior: string = attributeMetadata.DateTimeBehavior.Value;
+
+            let attributeDateTimeMetadata = dateTimeAttributes.find(x => x.LogicalName === attributeLogicalName);
+            let dateTimeBehavior: string = attributeDateTimeMetadata!!.DateTimeBehavior.Value;
             if (dateTimeBehavior.toLowerCase() === "dateonly") {
               createRequest[attributeLogicalName] = formatDate(attributeValue);
             }
@@ -180,9 +186,11 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
               attributeValue.toLowerCase() === "1")
             break;
 
-          case "lookup":
-            let targetLookupEntity = attributeMetadata.Targets[0];
 
+          case "lookup":
+          
+            let attributeLookupMetadata = lookupAttributes.find(x => x.LogicalName === attributeLogicalName);
+            let targetLookupEntity = attributeLookupMetadata!!.Targets[0];
             let targetLookupEntityMetadata = await getEntityMetadataBasic(targetLookupEntity) as EntityMetadata;
             let targetEntityPrimaryIdAttribute = targetLookupEntityMetadata.PrimaryIdAttribute;
             let targetEntityPrimaryNameAttribute = targetLookupEntityMetadata.PrimaryNameAttribute;

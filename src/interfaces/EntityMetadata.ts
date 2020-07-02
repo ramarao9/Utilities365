@@ -6,6 +6,8 @@ export interface EntityMetadata {
     SchemaName: string;
     ObjectTypeCode: number;
     PicklistAttributes: Array<PicklistMetadata>;
+    DateTimeAttributes: Array<DateTimeMetadata>;
+    LookupAttributes:Array<LookupMetadata>;
     ActivityTypeMask: number;
     AutoRouteToOwnerQueue: boolean;
     CanTriggerWorkflow: boolean;
@@ -583,3 +585,122 @@ export interface CanChangeDateTimeBehavior {
         ParentChild = "ParentChild",
     }
     
+
+
+ 
+
+export interface DateTimeMetadata {
+    MinSupportedValue:           string;
+    MaxSupportedValue:           string;
+    Format:                      string;
+    ImeMode:                     string;
+    SourceTypeMask:              number;
+    FormulaDefinition:           null;
+    AttributeOf:                 null;
+    AttributeType:               string;
+    ColumnNumber:                number;
+    DeprecatedVersion:           null;
+    IntroducedVersion:           string;
+    EntityLogicalName:           string;
+    IsCustomAttribute:           boolean;
+    IsPrimaryId:                 boolean;
+    IsValidODataAttribute:       boolean;
+    IsPrimaryName:               boolean;
+    IsValidForCreate:            boolean;
+    IsValidForRead:              boolean;
+    IsValidForUpdate:            boolean;
+    CanBeSecuredForRead:         boolean;
+    CanBeSecuredForCreate:       boolean;
+    CanBeSecuredForUpdate:       boolean;
+    IsSecured:                   boolean;
+    IsRetrievable:               boolean;
+    IsFilterable:                boolean;
+    IsSearchable:                boolean;
+    IsManaged:                   boolean;
+    LinkedAttributeId:           null;
+    LogicalName:                 string;
+    IsValidForForm:              boolean;
+    IsRequiredForForm:           boolean;
+    IsValidForGrid:              boolean;
+    SchemaName:                  string;
+    ExternalName:                null;
+    IsLogical:                   boolean;
+    IsDataSourceSecret:          boolean;
+    InheritsFrom:                null;
+    SourceType:                  number;
+    AutoNumberFormat:            string;
+    MetadataId:                  string;
+    HasChanged:                  null;
+    DateTimeBehavior:            AttributeTypeName;
+    CanChangeDateTimeBehavior:   CanChangeDateTimeBehavior;
+    AttributeTypeName:           AttributeTypeName;
+    Description:                 Description;
+    DisplayName:                 Description;
+    IsAuditEnabled:              CanChangeDateTimeBehavior;
+    IsGlobalFilterEnabled:       CanChangeDateTimeBehavior;
+    IsSortableEnabled:           CanChangeDateTimeBehavior;
+    IsCustomizable:              CanChangeDateTimeBehavior;
+    IsRenameable:                CanChangeDateTimeBehavior;
+    IsValidForAdvancedFind:      CanChangeDateTimeBehavior;
+    RequiredLevel:               RequiredLevel;
+    CanModifyAdditionalSettings: CanChangeDateTimeBehavior;
+}
+
+
+export interface CanChangeDateTimeBehavior {
+    Value:                      boolean;
+    CanBeChanged:               boolean;
+    ManagedPropertyLogicalName: string;
+}
+
+export interface LookupMetadata {
+    Targets:                     string[];
+    Format:                      string;
+    AttributeOf:                 null;
+    AttributeType:               string;
+    ColumnNumber:                number;
+    DeprecatedVersion:           null;
+    IntroducedVersion:           string;
+    EntityLogicalName:           string;
+    IsCustomAttribute:           boolean;
+    IsPrimaryId:                 boolean;
+    IsValidODataAttribute:       boolean;
+    IsPrimaryName:               boolean;
+    IsValidForCreate:            boolean;
+    IsValidForRead:              boolean;
+    IsValidForUpdate:            boolean;
+    CanBeSecuredForRead:         boolean;
+    CanBeSecuredForCreate:       boolean;
+    CanBeSecuredForUpdate:       boolean;
+    IsSecured:                   boolean;
+    IsRetrievable:               boolean;
+    IsFilterable:                boolean;
+    IsSearchable:                boolean;
+    IsManaged:                   boolean;
+    LinkedAttributeId:           null;
+    LogicalName:                 string;
+    IsValidForForm:              boolean;
+    IsRequiredForForm:           boolean;
+    IsValidForGrid:              boolean;
+    SchemaName:                  string;
+    ExternalName:                null;
+    IsLogical:                   boolean;
+    IsDataSourceSecret:          boolean;
+    InheritsFrom:                null;
+    SourceType:                  null;
+    AutoNumberFormat:            null;
+    MetadataId:                  string;
+    HasChanged:                  null;
+    AttributeTypeName:           AttributeTypeName;
+    Description:                 Description;
+    DisplayName:                 Description;
+    IsAuditEnabled:              CanModifyAdditionalSettings;
+    IsGlobalFilterEnabled:       CanModifyAdditionalSettings;
+    IsSortableEnabled:           CanModifyAdditionalSettings;
+    IsCustomizable:              CanModifyAdditionalSettings;
+    IsRenameable:                CanModifyAdditionalSettings;
+    IsValidForAdvancedFind:      CanModifyAdditionalSettings;
+    RequiredLevel:               RequiredLevel;
+    CanModifyAdditionalSettings: CanModifyAdditionalSettings;
+  }
+  

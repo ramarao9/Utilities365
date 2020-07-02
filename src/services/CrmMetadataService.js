@@ -22,7 +22,7 @@ export const getEntities = async () => {
   let entities = getEntitiesFromStore();
 
   if (entities == null || entities.length === 0) {
-    let filter = "IsValidForAdvancedFind eq true or ObjectTypeCode lt 10000 and OwnershipType ne 'None' and PrimaryIdAttribute ne null";
+    let filter = "(IsValidForAdvancedFind eq true or ObjectTypeCode lt 10000) and PrimaryIdAttribute ne null";
     let entityProperties = getEntityProperties();
     let retrieveEntitiesResponse = await retrieveEntitites(
       entityProperties,
@@ -50,7 +50,7 @@ export const getEntity = async entityName => {
     let retrieveAttributesResponse = await retrieveAttributes(
       `LogicalName='${entityName}'`,
       null,
-      ["DisplayName","AttributeType","LogicalName","IsValidForCreate","IsValidForUpdate"],
+      ["DisplayName", "AttributeType", "LogicalName", "IsValidForCreate", "IsValidForUpdate"],
       null,
       null
     );
@@ -62,13 +62,31 @@ export const getEntity = async entityName => {
 
     let retrievePicklistResponse = await retrieveAttributes(`LogicalName='${entityName}'`,
       "Microsoft.Dynamics.CRM.PicklistAttributeMetadata",
-      ["LogicalName","IsValidForCreate","IsValidForUpdate"], null,
+      ["LogicalName", "IsValidForCreate", "IsValidForUpdate"], null,
       "OptionSet");
 
     let entityPicklistAttributes = retrievePicklistResponse.value;
 
+
+    let retrieveDatetimeResponse = await retrieveAttributes(`LogicalName='${entityName}'`,
+      "Microsoft.Dynamics.CRM.DateTimeAttributeMetadata",
+      ["LogicalName", "IsValidForCreate", "IsValidForUpdate", "DateTimeBehavior"], null,
+      null);
+
+    let entityDatetimeAttributes = retrieveDatetimeResponse.value;
+
+    let retrieveLookupResponse = await retrieveAttributes(`LogicalName='${entityName}'`,
+      "Microsoft.Dynamics.CRM.LookupAttributeMetadata",
+      ["LogicalName", "IsValidForCreate", "IsValidForUpdate", "Targets"], null,
+      null);
+
+    let entityLookupAttributes = retrieveLookupResponse.value;
+
+
     entityMetadata.Attributes = attributes;
     entityMetadata.PicklistAttributes = entityPicklistAttributes;
+    entityMetadata.DateTimeAttributes = entityDatetimeAttributes;
+    entityMetadata.LookupAttributes = entityLookupAttributes;
 
     let relationships = await getRelationships(entityName);
     entityMetadata.ManyToOneRelationships = relationships.ManyToOneRelationships;
@@ -101,6 +119,7 @@ function filterEntityByName(entityMetadata, i, entities) {
   return (
 
     entityMetadata.LogicalName.toLowerCase() === entityToFilterBy ||
+    entityMetadata.EntitySetName.toLowerCase() === entityToFilterBy ||
     (entityMetadata.LogicalCollectionName && entityMetadata.LogicalCollectionName.toLowerCase() === entityToFilterBy) ||
     (entityMetadata.DisplayName.UserLocalizedLabel != null &&
       entityMetadata.DisplayName.UserLocalizedLabel.Label != null &&
