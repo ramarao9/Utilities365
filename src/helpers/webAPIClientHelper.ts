@@ -221,7 +221,7 @@ function setTokenOnRequestIfValid(request: any) {
 function hasTokenExpired() {
   const tokenData = getTokenFromStore();
   const now = new Date();
-  const tokenExpiresOn = new Date(tokenData.expiresOn * 1000);
+  const tokenExpiresOn = new Date(tokenData.expiresOn);
   return now > tokenExpiresOn;
 }
 

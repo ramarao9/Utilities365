@@ -165,7 +165,10 @@ function getEntityProperties() {
     "ObjectTypeCode",
     "PrimaryNameAttribute",
     "SchemaName",
-    "PrimaryIdAttribute"
+    "PrimaryIdAttribute",
+    "IsCustomizable",
+    "OwnershipType",
+    "ExternalName"
   ];
 
   return entityProperties;

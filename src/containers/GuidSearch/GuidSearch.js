@@ -88,52 +88,20 @@ const GuidSearch = () => {
       entity.PrimaryNameAttribute = entityObj.PrimaryNameAttribute;
       entity.PrimaryIdAttribute = entityObj.PrimaryIdAttribute;
       entity.EntitySetName = entityObj.EntitySetName;
+      entity.IsCustomizable=entityObj.IsCustomizable;
+      entity.OwnershipType=entityObj.OwnershipType;
+      entity.ExternalName=entityObj.ExternalName;
 
       return entity;
     });
 
     entitiesFromCrm = entitiesFromCrm.filter(x => {
       return (
-        x.LogicalName !== "appmodulemetadata" &&
-        x.LogicalName !== "appmodulemetadataoperationlog" &&
-        x.LogicalName !== "appmodulecomponent" &&
-        x.LogicalName !== "appmoduleroles" &&
-        x.LogicalName !== "authorizationserver" &&
-        x.LogicalName !== "businessdatalocalizedlabel" &&
-        x.LogicalName !== "businessprocessflowinstance" &&
-        x.LogicalName !== "calendarrule" &&
-        x.LogicalName !== "entity" &&
-        x.LogicalName !== "attribute" &&
-        x.LogicalName !== "activityparty" &&
-        x.LogicalName !== "commitment" &&
-        x.LogicalName !== "dependencyfeature" &&
-        x.LogicalName !== "dependencynode" &&
-        x.LogicalName !== "delveactionhub" &&
-        x.LogicalName !== "untrackedemail" &&
-        x.LogicalName !== "postfollow" &&
-        x.LogicalName !== "fileattachment" &&
-        x.LogicalName !== "holidaywrapper" &&
-        x.LogicalName !== "imagedescriptor" &&
-        x.LogicalName !== "partnerapplication" &&
-        x.LogicalName !== "documentindex" &&
-        x.LogicalName !== "complexcontrol" &&
-        x.LogicalName !== "salesprocessinstance" &&
-        x.LogicalName !== "similarityrule" &&
-        x.LogicalName !== "syncattributemappingprofile" &&
-        x.LogicalName !== "officegraphdocument" &&
-        x.LogicalName !== "globalsearchconfiguration" &&
-        x.LogicalName !== "customerrelationship" &&
-        x.LogicalName !== "childincidentcount" &&
-        x.LogicalName !== "knowledgearticleincident" &&
-        x.LogicalName !== "knowledgearticleviews" &&
-        x.LogicalName !== "leadtoopportunitysalesprocess" &&
-        x.LogicalName !== "postlike" &&
-        x.LogicalName !== "productpricelevel" &&
-        x.LogicalName !== "appmodulemetadatadependency" &&
-        x.LogicalName !== "customeropportunityrole" &&
-        x.LogicalName !== "integrationstatus" &&
-        x.LogicalName !== "msdyn_solutioncomponentsummary" &&
         x.PrimaryNameAttribute != null &&
+        x.PrimaryIdAttribute!=null &&
+        x.OwnershipType!=="None" &&
+        x.IsCustomizable && x.IsCustomizable.Value &&
+        x.ExternalName==null &&
         !x.PrimaryNameAttribute.endsWith("idname")
       );
     });
@@ -260,7 +228,7 @@ const GuidSearch = () => {
         currentPage++;
       }
     } catch (error) {
-      alert("Error occurred." + error.message);
+      console.log("Error occurred." + error.message);
     }
 
     return matchedRecord;

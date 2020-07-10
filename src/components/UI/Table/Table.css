@@ -4,3 +4,34 @@
     color:#ccc;
     font-family:BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
 }
+
+.th-table{
+    font-size:14px !important;
+    font-weight:600 !important;
+}
+
+.table td, .table th{
+    padding-left: 25px !important;
+    padding-right:25px !important;
+}
+
+
+/* width */
+::-webkit-scrollbar {
+    width: 1px !important;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #000000; 
+  }
+   
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: rgb(80,80,80); 
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555; 
+  }

@@ -13,7 +13,7 @@ export const Table: React.FC<TableData> =(tableProps: TableData)=>{
     let tableHeaders=(
         <tr>
         {tableProps.HeaderColumns.map(tableProp=>(
-          <th key={tableProp}>{tableProp}</th>
+          <th className="th-table" key={tableProp}>{tableProp}</th>
         ))}
         </tr>
             );
