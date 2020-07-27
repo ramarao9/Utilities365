@@ -1,15 +1,15 @@
-import React,{useRef, useEffect} from "react";
+import React, { useRef, useEffect } from "react";
 import "./TerminalInput.css";
-import {CliIntelliSense,CLIVerb} from "../../../../interfaces/CliIntelliSense"
+import { CliIntelliSense, CLIVerb } from "../../../../interfaces/CliIntelliSense"
 interface TerminalInp {
   terminalInputText: string;
-  intelliSenseResults:CliIntelliSense;
+  intelliSenseResults: CliIntelliSense;
   onInputKeyDown(e: any): void;
   onInputChange(e: any): void;
   onInputKeyPress?(e: any): void;
-  onInputBlur?(e:any):void;
-  onIntelliSenseItemClick(e:any,resultItem :CLIVerb):void;
-  inputRef:any;
+  onInputBlur?(e: any): void;
+  onIntelliSenseItemClick(e: any, resultItem: CLIVerb): void;
+  inputRef: any;
 }
 
 export const TerminalInput: React.FC<TerminalInp> = (terminalInpProp: TerminalInp) => {
@@ -37,41 +37,40 @@ export const TerminalInput: React.FC<TerminalInp> = (terminalInpProp: TerminalIn
   }
 
 
-let intelliSenseContent = null;
-if (terminalInpProp.intelliSenseResults && terminalInpProp.intelliSenseResults.results) {
- let results= terminalInpProp.intelliSenseResults.results;
- if(results.length>0){
-  intelliSenseContent = (<div className= "intellisense-results" style={intellisenseStyle}>
-    <ul className="is-list-none">
-      {results.map((resultItem :CLIVerb,index:number) => (
-        <li  ref={el=>refs.current[index]=el} key={resultItem.text?`${resultItem.text}_${resultItem.name}`:resultItem.name} onMouseDown={event=> terminalInpProp.onIntelliSenseItemClick(event, resultItem)} className={resultItem.isSelected? 'selected' :''}>
-        {resultItem.name}
-       {(resultItem.description!=="")?(<span className="intsense-sub-title">{resultItem.description}</span>):<span></span>} 
-        </li>
-      ))}
-      </ul>
+  let intelliSenseContent = null;
+  if (terminalInpProp.intelliSenseResults && terminalInpProp.intelliSenseResults.results) {
+    let results = terminalInpProp.intelliSenseResults.results;
+    if (results.length > 0) {
+      intelliSenseContent = (<div className="intellisense-results" style={intellisenseStyle}>
+        <ul className="is-list-none">
+          {results.map((resultItem: CLIVerb, index: number) => (
+            <li ref={el => refs.current[index] = el} key={resultItem.text ? `${resultItem.text}_${resultItem.name}` : resultItem.name} onMouseDown={event => terminalInpProp.onIntelliSenseItemClick(event, resultItem)} className={resultItem.isSelected ? 'selected' : ''}>
+              {resultItem.name}
+              {(resultItem.description !== "") ? (<span className="intsense-sub-title">{resultItem.description}</span>) : <span></span>}
+            </li>
+          ))}
+        </ul>
       </div>);
- }
-}
+    }
+  }
 
-
- return(<div className="terminal-input">
+  return (<div className="terminal-input">
     <div>
       <span className="terminal-prompt">&gt;</span>
     </div>
     <div className="terminal-inp-cont">
-      <input
-        type="text"
-        onKeyDown={event=>terminalInpProp.onInputKeyDown(event)}   
-        onChange={event=>terminalInpProp.onInputChange(event)}
-        onBlur={event=>terminalInpProp.onInputBlur?terminalInpProp.onInputBlur(event):null}
-        value={terminalInpProp.terminalInputText}
-        className="terminal-main-input"
-
-        ref={terminalInpProp.inputRef}
-      />
-<div className="dummy-div"/>
-{intelliSenseContent}
+      <div>
+        <input
+          type="text"
+          onKeyDown={event => terminalInpProp.onInputKeyDown(event)}
+          onChange={event => terminalInpProp.onInputChange(event)}
+          onBlur={event => terminalInpProp.onInputBlur ? terminalInpProp.onInputBlur(event) : null}
+          value={terminalInpProp.terminalInputText}
+          className="terminal-main-input"
+          ref={terminalInpProp.inputRef}
+        />
+      </div>
+      {intelliSenseContent} 
     </div>
   </div>);
 };

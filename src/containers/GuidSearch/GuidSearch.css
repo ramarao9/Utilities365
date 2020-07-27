@@ -1,4 +1,38 @@
-.copy-link-div
-{
+.copy-link-div {
     padding: 0.75rem 0;
+}
+
+.match-cont {
+    width: 100%;
+    padding: 10px 20px !important;
+}
+
+.notification-title {
+    width: 100%;
+    color: green;
+    margin: 10px 0px;
+}
+
+.match-result {
+    width: 100% !important;
+}
+
+.record-info {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.match-entity {
+    width: 100%;
+}
+
+.match-entity>.field {
+    float: left;
+}
+
+.matched-link
+{
+    margin:0px !important;
+    background-color: whitesmoke !important;
 }

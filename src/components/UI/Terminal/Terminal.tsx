@@ -48,6 +48,7 @@ if(terminalProp.spinner && terminalProp.spinner.show)
         inputRef={terminalProp.terminalInputRef}
       />
       {spinnerControl}
+      <div className="terminal-scroll-padding"/>
     </div>
   );
 };

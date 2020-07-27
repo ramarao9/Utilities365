@@ -15,23 +15,34 @@
     padding-right:25px !important;
 }
 
+ 
+
+.table-container table thead td, .table thead th {
+  border-width: 0 0 1px !important;
+  color: grey !important;
+}
+
 
 /* width */
 ::-webkit-scrollbar {
-    width: 1px !important;
+    height: 7px !important;
+    width: 8px !important;
   }
   
   /* Track */
   ::-webkit-scrollbar-track {
     background: #000000; 
+    border-radius: 10px;
   }
    
   /* Handle */
-  ::-webkit-scrollbar-thumb {
+ ::-webkit-scrollbar-thumb {
     background: rgb(80,80,80); 
+    border-radius: 10px;
   }
   
   /* Handle on hover */
   ::-webkit-scrollbar-thumb:hover {
     background: #555; 
+    cursor: pointer;
   }

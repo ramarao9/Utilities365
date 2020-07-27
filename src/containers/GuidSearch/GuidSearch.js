@@ -1,4 +1,4 @@
-import React, { useEffect, useState ,useRef} from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Redirect } from "react-router";
 import store from "../../store/store";
 import * as crmUtil from "../../helpers/crmutil";
@@ -55,9 +55,11 @@ const GuidSearch = () => {
     elementType: "input",
     elementConfig: {
       type: "text",
-      readOnly: "readOnly"
     },
-    value: ""
+    value: "",
+    entity: "",
+    inputState: "is-static"
+
   });
 
   useEffect(() => {
@@ -88,9 +90,9 @@ const GuidSearch = () => {
       entity.PrimaryNameAttribute = entityObj.PrimaryNameAttribute;
       entity.PrimaryIdAttribute = entityObj.PrimaryIdAttribute;
       entity.EntitySetName = entityObj.EntitySetName;
-      entity.IsCustomizable=entityObj.IsCustomizable;
-      entity.OwnershipType=entityObj.OwnershipType;
-      entity.ExternalName=entityObj.ExternalName;
+      entity.IsCustomizable = entityObj.IsCustomizable;
+      entity.OwnershipType = entityObj.OwnershipType;
+      entity.ExternalName = entityObj.ExternalName;
 
       return entity;
     });
@@ -98,10 +100,10 @@ const GuidSearch = () => {
     entitiesFromCrm = entitiesFromCrm.filter(x => {
       return (
         x.PrimaryNameAttribute != null &&
-        x.PrimaryIdAttribute!=null &&
-        x.OwnershipType!=="None" &&
+        x.PrimaryIdAttribute != null &&
+        x.OwnershipType !== "None" &&
         x.IsCustomizable && x.IsCustomizable.Value &&
-        x.ExternalName==null &&
+        x.ExternalName == null &&
         !x.PrimaryNameAttribute.endsWith("idname")
       );
     });
@@ -135,6 +137,8 @@ const GuidSearch = () => {
   };
 
   const onSearchClick = async () => {
+
+    updateMatchedRecord(null, "");
     setNoResultsFound(false);
 
     let guidToSearchOn = guidToSearch.value;
@@ -177,7 +181,7 @@ const GuidSearch = () => {
         result.Id
       );
 
-      updateMatchedRecord(result.Name, url);
+      updateMatchedRecord(result, url);
     } else {
       setNoResultsFound(true);
     }
@@ -185,11 +189,12 @@ const GuidSearch = () => {
     setSearchInProcess(false);
   };
 
-  const updateMatchedRecord = (value, url) => {
+  const updateMatchedRecord = (result, url) => {
     let record = { ...matchedRecord };
 
-    record.value = value;
-    record.url = url;
+    record.entity =result!=null? result.LogicalName:"";
+    record.value = result!=null? result.Name :"";
+    record.url = result!=null? url:"";
 
     setMatchedRecord(record);
   };
@@ -316,27 +321,49 @@ const GuidSearch = () => {
 
   if (!IsEmpty(matchedRecord.value)) {
     matchedRecordUI = (
-      <div className="columns is-desktop">
-        <div className="column is-half">
-          <Input
-            id={matchedRecord.id}
-            elementType={matchedRecord.elementType}
-            elementConfig={matchedRecord.elementConfig}
-            size="is-small"
-            value={matchedRecord.value}
-            label="Matched Record"
-          />
-        </div>
-        <div className="copy-link-div">
-          <AnchorButton
-            iconName="copy"
-            classes={["is-small"]}
-            iconClasses={["has-text-grey-darker"]}
-            toolTip="Copy to clipboard"
-            clicked={event => inputChangedHandler(event, matchedRecord.id)}
-          />
-        </div>
-      </div>
+
+          <div className="notification match-cont">
+            <div className="notification-title">
+              <h3 className="title is-4">Match found!</h3>
+            </div>
+            <div className="record-info">
+
+              <div className="match-entity">
+                <Input
+                  id={matchedRecord.id}
+                  elementType={matchedRecord.elementType}
+                  elementConfig={matchedRecord.elementConfig}
+                  size="is-small"
+                  inputState={matchedRecord.inputState}
+                  value={matchedRecord.entity}
+                  label="Entity"
+                />
+              </div>
+
+              <div className="match-record">
+                <Input
+                  id={matchedRecord.id}
+                  elementType={matchedRecord.elementType}
+                  elementConfig={matchedRecord.elementConfig}
+                  size="is-small"
+                  inputState={matchedRecord.inputState}
+                  value={matchedRecord.value}
+                  label="Name"
+                />
+              </div>
+
+              <div className="match-record-link">
+                <AnchorButton
+                  iconName="copy"
+                  classes={["is-small","matched-link"]}
+                  iconClasses={["has-text-grey-darker"]}
+                  toolTip="Copy URL to clipboard"
+                  clicked={event => inputChangedHandler(event, matchedRecord.id)}
+                />
+              </div>
+            </div>
+          </div>      
+   
     );
   }
 
@@ -344,7 +371,7 @@ const GuidSearch = () => {
 
   if (searchInProcess) {
     progressbarUI = (
-      <ProgressBar progressClasses={["is-small","is-link"]} />
+      <ProgressBar progressClasses={["is-small", "is-link"]} />
     );
   }
 
@@ -360,7 +387,7 @@ const GuidSearch = () => {
     <React.Fragment>
       <div className="columns is-desktop">
         <div className="column is-half">
-          <div className="buttons" style={{marginBottom:0}}>
+          <div className="buttons" style={{ marginBottom: 0 }}>
             <a
               className="button is-radiusless is-white"
               disabled={searchInProcess}
@@ -383,13 +410,16 @@ const GuidSearch = () => {
               <span>Clear</span>
             </a>
           </div>
-          <hr className="hr" style={{marginTop: 0}}></hr>
+          <hr className="hr" style={{ marginTop: 0 }}></hr>
 
           {progressbarUI}
 
           {noResultsNotificationUI}
+
+          {matchedRecordUI}
+
           <Input
-            id={guidToSearch.id}          
+            id={guidToSearch.id}
             refrnc={guidEl}
             elementType={guidToSearch.elementType}
             elementConfig={guidToSearch.elementConfig}
@@ -413,7 +443,7 @@ const GuidSearch = () => {
           {entitiesToSearch}
         </div>
       </div>
-      {matchedRecordUI}
+
     </React.Fragment>
   );
 };

@@ -32,7 +32,7 @@ tableProps.RowData.map((record:any)=>(
 
 return (
 <div className="table-container">
-<table className="table">
+<table className="table cust-tbl">
 <thead>
 {tableHeaders}
 </thead>

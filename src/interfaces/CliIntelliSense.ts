@@ -21,6 +21,7 @@ export interface CLIVerb {
     text?: string ;
     isSelected?:boolean;
     type?:number;
+    order?:number;
 }
 
 export enum IntelliSenseType {

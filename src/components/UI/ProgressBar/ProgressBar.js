@@ -1,4 +1,5 @@
 import React from "react";
+import "./ProgressBar.css";
 
 const progressBar = props => {
   let currentValue = props.currentPercent;
@@ -12,7 +13,7 @@ const progressBar = props => {
     currentPercent = `${currentValue}%`;
   }
 
-  let classes = ["progress"];
+  let classes = ["progress","prog-ht"];
 
   if (props.progressClasses) {
     classes = classes.concat(props.progressClasses);

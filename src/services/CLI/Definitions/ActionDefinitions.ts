@@ -8,7 +8,7 @@ export const ACTION_GET_NAME="get";
 export const ACTION_OPEN_NAME="open";
 export const ACTION_REMOVE_NAME="remove";
 export const ACTION_UPDATE_NAME="update";
-
+export const ACTION_CLEAR_NAME="clear";
 
 export const ACTION_ADD: CLIVerb = { name: ACTION_ADD_NAME, description: "Add data, relationships etc.",type:IntelliSenseType.Action };
 export const ACTION_CREATE: CLIVerb = { name: ACTION_CREATE_NAME, description: "Create records in Dynamics365.",type:IntelliSenseType.Action };
@@ -17,6 +17,7 @@ export const ACTION_GET: CLIVerb = { name: ACTION_GET_NAME, description: "Retrie
 export const ACTION_OPEN: CLIVerb = { name: ACTION_OPEN_NAME, description: "Helps with navigating Dynamics365.",type:IntelliSenseType.Action };
 export const ACTION_REMOVE: CLIVerb = { name: ACTION_REMOVE_NAME, description: "Deletes or removes relationships.",type:IntelliSenseType.Action };
 export const ACTION_UPDATE: CLIVerb = { name: ACTION_UPDATE_NAME, description: "Update records in Dynamics365.",type:IntelliSenseType.Action };
+export const ACTION_CLEAR: CLIVerb = { name: ACTION_CLEAR_NAME, description: "Clears the screen.",type:IntelliSenseType.Action };
 
 export const CLI_ACTIONS: Array<CLIVerb> = [ACTION_ADD,
                                             ACTION_CREATE,

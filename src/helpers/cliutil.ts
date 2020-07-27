@@ -11,14 +11,27 @@ export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => 
     });
 
     if (cliVerbs.length > 0) {
-        cliVerbs.sort((a, b) => { return a.name > b.name ? 1 : -1 });
-        cliVerbs[0].isSelected = true;
+
+        let verbsWithOrder = cliVerbs.filter(x => x.order);
+        let verbsWithoutOrder= cliVerbs.filter(x => !x.order);
+
+        verbsWithOrder.sort((a:any, b:any) => {
+            return  a.order > b.order ? 1 : -1
+        });
+
+        verbsWithoutOrder.sort((a, b) => {
+            return a.name > b.name ? 1 : -1
+        });
+
+        let sortedVerbs=[...verbsWithOrder,...verbsWithoutOrder];       
+        sortedVerbs[0].isSelected = true;
+        return sortedVerbs;
     }
     return cliVerbs;
 }
 
 
-export const getEntityCLIVerbs=async(cliDataVal:CliData)=>{
+export const getEntityCLIVerbs = async (cliDataVal: CliData) => {
 
     let cliResults: Array<CLIVerb> = [];
     let entititesResults = await getCLIVerbsForEntitiesWrite();

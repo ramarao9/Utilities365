@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState,useRef } from "react";
+import React, { FunctionComponent, useState, useRef } from "react";
 import { Redirect } from "react-router";
 import store from "../../store/store";
 import * as crmUtil from "../../helpers/crmutil";
@@ -9,31 +9,31 @@ import { PerformCrmAction } from "../../services/CLI/CrmCliService";
 import { Terminal } from "../../components/UI/Terminal/Terminal";
 import { CliResponse } from "../../interfaces/CliResponse";
 import { CliData } from "../../interfaces/CliData";
-import {Spinner} from "../../interfaces/Spinner";
+import { Spinner } from "../../interfaces/Spinner";
 import { TerminalOut } from "../../interfaces/TerminalOut";
-import {getIntelliSenseForText,getUpdatedInputOnSelection} from "../../services/CLI/IntelliSense/IntelliSenseService"
+import { getIntelliSenseForText, getUpdatedInputOnSelection } from "../../services/CLI/IntelliSense/IntelliSenseService"
 import "./CLI.css";
 import { number } from "prop-types";
-import { CliIntelliSense,CLIVerb,ClientRect,IntelliSenseInput } from "../../interfaces/CliIntelliSense";
+import { CliIntelliSense, CLIVerb, ClientRect, IntelliSenseInput } from "../../interfaces/CliIntelliSense";
 import input from "../../components/UI/Input/Input";
 const KEYCODE_UP = 38;
 const KEYCODE_DOWN = 40;
 const KEYCODE_ENTER = 13;
-const KEYCODE_LEFT=37;
-const KEYCODE_RIGHT=39;
+const KEYCODE_LEFT = 37;
+const KEYCODE_RIGHT = 39;
 
-const KEYCODE_HOME=36;
-const KEYCODE_END=35;
+const KEYCODE_HOME = 36;
+const KEYCODE_END = 35;
 
 export const CLI: React.FC = () => {
-  const getDefaultIntellisenseState=() :CliIntelliSense=>{
-    return {results:Array<CLIVerb>(),currentPos:{left:0,top:0}};
+  const getDefaultIntellisenseState = (): CliIntelliSense => {
+    return { results: Array<CLIVerb>(), currentPos: { left: 0, top: 0 } };
   }
   const cliInputRef = useRef();
   const intelliSensePositionCanvasRef = useRef(null);
-  const [inputCaretPosition,setInputCaretPosition] = useState<number>(0);
+  const [inputCaretPosition, setInputCaretPosition] = useState<number>(0);
   const [variables, setVariables] = useState<any>({});
-  const [spinnerInfo,setSpinner]=useState<Spinner>({show:false});
+  const [spinnerInfo, setSpinner] = useState<Spinner>({ show: false });
   const [inIntelliSenseNavMode, setIntelliSenseNavMode] = useState<boolean>(false);
   const [intelliSenseVerbCurrentIndex, setintelliSenseVerbCurrentIndex] = useState<number>(0);
   const [inputText, setInputText] = useState<string>("");
@@ -48,58 +48,58 @@ export const CLI: React.FC = () => {
   }
 
   const onTerminalIntellisenseItemClick = async (ev: any, result: CLIVerb) => {
-    await retrieveAndSetIntelliSense(undefined,result,"click");
+    await retrieveAndSetIntelliSense(undefined, result, "click");
   }
 
-const retrieveAndSetIntelliSense=async (inputtoUse?:string, result?: CLIVerb |undefined, eventKey?:string)=>{
+  const retrieveAndSetIntelliSense = async (inputtoUse?: string, result?: CLIVerb | undefined, eventKey?: string) => {
 
-  console.log(`Entering retrieveAndSetIntelliSense...`);
-  
-  if(!result){
-    result = getSelectedCLIVerb();
-  }
-  
+    console.log(`Entering retrieveAndSetIntelliSense...`);
 
-  let userInputText = inputtoUse ? inputtoUse : getCurrentTextInput();
-  let intellisenseInput: IntelliSenseInput = { inputText: userInputText, inputCaretPosition: inputCaretPosition };
-  let updatedIntelliSenseInput = await getUpdatedInputOnSelection(intellisenseInput, result);
-  setInputText(updatedIntelliSenseInput.inputText);
-  setIntelliSenseNavMode(false);
-
-  //now that we got the latest information let's update the data needed to get the intellisense results
+    if (!result) {
+      result = getSelectedCLIVerb();
+    }
 
 
-  // if(eventKey==="tab"|| eventKey==="click"){//Since a proper selection is made, there is no need to render the IntelliSenseResults
-  //   focusInputAndSetCaretPosition();
-  //   setIntelliSenseResults(getDefaultIntellisenseState());
-  // }
-  // else{
+    let userInputText = inputtoUse ? inputtoUse : getCurrentTextInput();
+    let intellisenseInput: IntelliSenseInput = { inputText: userInputText, inputCaretPosition: inputCaretPosition };
+    let updatedIntelliSenseInput = await getUpdatedInputOnSelection(intellisenseInput, result);
+    setInputText(updatedIntelliSenseInput.inputText);
+    setIntelliSenseNavMode(false);
+
+    //now that we got the latest information let's update the data needed to get the intellisense results
+
+
+    // if(eventKey==="tab"|| eventKey==="click"){//Since a proper selection is made, there is no need to render the IntelliSenseResults
+    //   focusInputAndSetCaretPosition();
+    //   setIntelliSenseResults(getDefaultIntellisenseState());
+    // }
+    // else{
     let intellisenseInfo = await getIntelliSenseForText(updatedIntelliSenseInput);
-    intellisenseInfo.currentPos=calculateIntelliSensePos(updatedIntelliSenseInput.inputCaretPosition);
+    intellisenseInfo.currentPos = calculateIntelliSensePos(updatedIntelliSenseInput.inputCaretPosition);
     focusInputAndSetCaretPosition(updatedIntelliSenseInput.inputCaretPosition);
     setIntelliSenseResults(intellisenseInfo);
-  // }
+    // }
 
-  setintelliSenseVerbCurrentIndex(0);
-}
-
-
-const focusInputAndSetCaretPosition=(caretPos?:number|undefined)=>{
-  if (cliInputRef && cliInputRef.current) {
-    let currentRef = cliInputRef.current as any;
-    let caretPosToUse=caretPos?caretPos:inputCaretPosition;
-    currentRef.focus();
-    currentRef.setSelectionRange(caretPosToUse,caretPosToUse);
+    setintelliSenseVerbCurrentIndex(0);
   }
-}
+
+
+  const focusInputAndSetCaretPosition = (caretPos?: number | undefined) => {
+    if (cliInputRef && cliInputRef.current) {
+      let currentRef = cliInputRef.current as any;
+      let caretPosToUse = caretPos ? caretPos : inputCaretPosition;
+      currentRef.focus();
+      currentRef.setSelectionRange(caretPosToUse, caretPosToUse);
+    }
+  }
 
   const onTerminalInputKeyDown = async (ev: any) => {
 
 
     if (ev.key === "Tab") {
       ev.preventDefault();
-      let userInputText= getCurrentTextInput();//We use space as a delimiter when trying to indentify the IntelliSenseType(e.g. Action, target, ActionParams etc.)
-      retrieveAndSetIntelliSense(userInputText,undefined,ev.key.toLowerCase());
+      let userInputText = getCurrentTextInput();//We use space as a delimiter when trying to indentify the IntelliSenseType(e.g. Action, target, ActionParams etc.)
+      retrieveAndSetIntelliSense(userInputText, undefined, ev.key.toLowerCase());
       return;
     }
 
@@ -112,7 +112,7 @@ const focusInputAndSetCaretPosition=(caretPos?:number|undefined)=>{
 
 
     if (ev.keyCode === KEYCODE_LEFT || ev.keyCode === KEYCODE_RIGHT ||
-      ev.keyCode===KEYCODE_HOME || ev.keyCode===KEYCODE_END) {
+      ev.keyCode === KEYCODE_HOME || ev.keyCode === KEYCODE_END) {
       resetIntelliSense();
       return;
     }
@@ -124,7 +124,7 @@ const focusInputAndSetCaretPosition=(caretPos?:number|undefined)=>{
       return;
     }
 
-    if (intellisenseResults.results && intellisenseResults.results.length>0 && ev.keyCode === KEYCODE_DOWN) {
+    if (intellisenseResults.results && intellisenseResults.results.length > 0 && ev.keyCode === KEYCODE_DOWN) {
       setIntelliSenseNavMode(true);
       return;
     }
@@ -156,7 +156,7 @@ const focusInputAndSetCaretPosition=(caretPos?:number|undefined)=>{
   };
 
 
-  const resetIntelliSense=()=>{
+  const resetIntelliSense = () => {
     setIntelliSenseNavMode(false);
     setIntelliSenseResults(getDefaultIntellisenseState());
     setintelliSenseVerbCurrentIndex(0);
@@ -166,15 +166,14 @@ const focusInputAndSetCaretPosition=(caretPos?:number|undefined)=>{
 
     console.log(`Entering manageIntellisenseVerbNavigation...`);
 
-    if (keyCode !== KEYCODE_UP && keyCode !== KEYCODE_DOWN)
-    {
+    if (keyCode !== KEYCODE_UP && keyCode !== KEYCODE_DOWN) {
       resetIntelliSense();
       return;
     }
-    
+
 
     let updatedIndex = intelliSenseVerbCurrentIndex;
-    let maxIndex = intellisenseResults && intellisenseResults.results ? intellisenseResults.results.length-1 : -1;
+    let maxIndex = intellisenseResults && intellisenseResults.results ? intellisenseResults.results.length - 1 : -1;
     if (keyCode === KEYCODE_UP) {
       updatedIndex -= 1;
     }
@@ -189,7 +188,7 @@ const focusInputAndSetCaretPosition=(caretPos?:number|undefined)=>{
     if (updatedIndex > maxIndex) {
       updatedIndex = maxIndex;
     }
-   
+
     if (updatedIndex >= 0 && maxIndex !== -1) {
 
       let updatedIntellisenseInfo = { ...intellisenseResults };
@@ -204,7 +203,7 @@ const focusInputAndSetCaretPosition=(caretPos?:number|undefined)=>{
       }
 
 
-      updatedIntellisenseInfo.currentIndex=updatedIndex;
+      updatedIntellisenseInfo.currentIndex = updatedIndex;
       setIntelliSenseResults(updatedIntellisenseInfo);
       setintelliSenseVerbCurrentIndex(updatedIndex);
     }
@@ -225,25 +224,25 @@ const focusInputAndSetCaretPosition=(caretPos?:number|undefined)=>{
     return { name: "" };
   }
 
-  const calculateIntelliSensePos=(inputCaretPos:number):ClientRect=>{
+  const calculateIntelliSensePos = (inputCaretPos: number): ClientRect => {
 
     let inputTxtRef: any = cliInputRef.current;
     var canvas: any = intelliSensePositionCanvasRef.current;
     var context = canvas.getContext("2d");
     context.font = "10pt Arial";
 
-    let textToMeasure=inputTxtRef.value.substring(0,inputCaretPos);
+    let textToMeasure = inputTxtRef.value.substring(0, inputCaretPos);
     var metrics = context.measureText(textToMeasure);
 
     let inputRect = inputTxtRef.getBoundingClientRect();
-    console.log(`Calculated Left Position: ${inputRect.left+ metrics.width}`);
-    return { left: metrics.width + inputRect.left, top: inputRect.top };
+    console.log(`Left:${inputRect.left}, width:${metrics.width}, Calculated Left Position: ${inputRect.left + metrics.width}`);
+    return { left: metrics.width, top: inputRect.top };
   }
 
-const getCurrentTextInput=()=>{
-   let inputTxtRef: any = cliInputRef.current;
-   return inputTxtRef.value;
-}
+  const getCurrentTextInput = () => {
+    let inputTxtRef: any = cliInputRef.current;
+    return inputTxtRef.value;
+  }
 
 
   const showProgressSpinner = () => {
@@ -252,7 +251,7 @@ const getCurrentTextInput=()=>{
 
   const hideProgressSpinner = () => {
     setSpinner({ show: false });
-    
+
   }
 
   const setCurrentCommandFromHistory = (keyCode: number) => {
@@ -326,17 +325,20 @@ const getCurrentTextInput=()=>{
     setVariables(updatedVariables);
     setCommandsHistory(updatedCommandsHistory);
     setCommandsHistoryCurrentIndex(updatedCommandsHistory.length - 1);
-
+  
   };
+
+
+
 
 
   const onTerminalInputChanged = async (ev: any) => {
 
     console.log(`Entering onchange event...`);
     const userInput = ev.target.value;
-    const caretPos=ev.target.selectionStart;
+    const caretPos = ev.target.selectionStart;
     console.log(`Input caret position: ${caretPos}, UserInput:${userInput}`);
-    setInputText(userInput);  
+    setInputText(userInput);
     setInputCaretPosition(caretPos);
 
     let intellisenseInput: IntelliSenseInput = { inputText: userInput, inputCaretPosition: caretPos };
@@ -349,28 +351,27 @@ const getCurrentTextInput=()=>{
 
   const addTextToOutput = (outputText: string) => {
     const updatedOutputs = [...outputs];
-    updatedOutputs.push(outputText);  
+    updatedOutputs.push(outputText);
     setOutputs(updatedOutputs);
   };
 
 
 
-
   return (
     <React.Fragment>
-    <h2>CLI </h2>
-    <div className="terminalContainer">
-      <Terminal
+      <h2>CLI </h2>
+      <div className="terminalContainer" >
+        <Terminal
           outputs={outputs}
           intelliSenseResults={intellisenseResults}
-  terminalInputChange={(event: any) => onTerminalInputChanged(event)}
-terminalInputKeyDown={onTerminalInputKeyDown}
-terminalIntelliSenseItemClick={onTerminalIntellisenseItemClick}
-terminalInputBlur={onTerminalInputBlur}
-terminalInputRef={cliInputRef}
-inputText={inputText} spinner={spinnerInfo} />
-  </div>
-  <canvas ref={intelliSensePositionCanvasRef} className="posHelperCanvas"/>
-  </React.Fragment>
+          terminalInputChange={(event: any) => onTerminalInputChanged(event)}
+          terminalInputKeyDown={onTerminalInputKeyDown}
+          terminalIntelliSenseItemClick={onTerminalIntellisenseItemClick}
+          terminalInputBlur={onTerminalInputBlur}
+          terminalInputRef={cliInputRef}
+          inputText={inputText} spinner={spinnerInfo} />
+      </div>
+      <canvas ref={intelliSensePositionCanvasRef} className="posHelperCanvas" />
+    </React.Fragment>
   );
 };

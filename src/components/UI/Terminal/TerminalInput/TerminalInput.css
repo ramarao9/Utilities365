@@ -11,6 +11,7 @@
 
 .terminal-inp-cont{
     width:100%;
+    position: relative;
 }
 
 .terminal-main-input{
@@ -29,9 +30,8 @@
 .intellisense-results{
     position: absolute;
     z-index: 999;
+    display: block;
     background-color: rgb(37, 37, 38);
-    /* max-width:250px; */
-    /* margin-left: 5px; */
 }
 
 .is-list-none{
