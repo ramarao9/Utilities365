@@ -1,10 +1,10 @@
-import { CliData } from "../../../interfaces/CliData";
+import { CliData, ActionParam } from "../../../interfaces/CliData";
 import { CLI_TARGET_GET } from "../Definitions/Target/Get"
-import { CLI_ACTION_PARAMS_GET_RECORDS } from "../Definitions/ActionParams/Get"
+import { CLI_ACTION_PARAMS_GET_RECORDS, CLI_ACTION_PARAMS_GET_ENTITY } from "../Definitions/ActionParams/Get"
 import { getEntities } from "../../CrmMetadataService"
 import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
 import { EntityMetadata } from "../../../interfaces/EntityMetadata"
-import { getCleanedCLIVerbs, getCLIVerbsForEntities } from "../../../helpers/cliutil";
+import { getCleanedCLIVerbs, getCLIVerbsForEntities, getLastParam } from "../../../helpers/cliutil";
 import { getEntityCollectionName } from "../../../helpers/metadatautil";
 
 export const getTargetForGet = async (cliDataVal: CliData) => {
@@ -24,17 +24,18 @@ export const getActionParamsForGet = async (userInput: string, cliDataVal: CliDa
     let cliResults: Array<CLIVerb> = [];
     switch (cliDataVal.target) {
 
-        case "entity":
+
+        case "attribute":
+            break;
+
+        case "attributes":
+            break;
+
+        case "entity":cliResults = await getActionsParamsForEntity(userInput, cliDataVal) as Array<CLIVerb>;
             break;
 
         case "entities":
             break;
-
-
-        case "attribute":
-        case "attributes":
-            break;
-
 
         case "org-detail":
             break;
@@ -47,6 +48,20 @@ export const getActionParamsForGet = async (userInput: string, cliDataVal: CliDa
     return cliResults;
 }
 
+export const getActionsParamsForEntity = async (userInput: string, cliDataVal: CliData) => {
+
+    let cliResults: Array<CLIVerb> = [];
+
+    let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
+
+    if (lastParam == undefined || lastParam.name == undefined)
+        return CLI_ACTION_PARAMS_GET_ENTITY;
+
+
+    return cliResults;
+}
+
+
 
 //Retrieves the CLI Verbs for either the parameter itself or for the data that needs to be set for the parameter
 const getCurrentActionParamVerbsForRecords = async (userInput: string, cliDataVal: CliData) => {
@@ -54,23 +69,20 @@ const getCurrentActionParamVerbsForRecords = async (userInput: string, cliDataVa
     let cliResults: Array<CLIVerb> = [];
     let actionParams = cliDataVal.actionParams;
 
-    if (!actionParams || actionParams.length === 0)
+    let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
+
+    if (lastParam == undefined || lastParam.name == undefined)
         return CLI_ACTION_PARAMS_GET_RECORDS;
 
-    let lastActionParam = actionParams[actionParams.length - 1];
-    let paramName = lastActionParam && lastActionParam.name ? `${lastActionParam.name.toLowerCase()}` : null;
 
-    if (paramName === null) {
-        return CLI_ACTION_PARAMS_GET_RECORDS;
-    }
-
-    let paramMatched = paramName ? CLI_ACTION_PARAMS_GET_RECORDS.find(x => x.name.toLowerCase() === paramName) : null;
-    let paramValue = lastActionParam.value;
+    let lastParamName = lastParam.name.toLowerCase();
+    let paramMatched = CLI_ACTION_PARAMS_GET_RECORDS.find(x => x.name.toLowerCase() === lastParamName);
+    let paramValue = lastParam.value;
     if (paramMatched) {//When the Param name is already populated, this indicates we need to provide the Verbs for the data present in the value
         cliResults = await getVerbsForODataQueryOptions(paramValue) as Array<CLIVerb>;
     }
-    else if (paramName && paramName.length > 0) {//No param has been completely matched.In this case just filter the results
-        cliResults = CLI_ACTION_PARAMS_GET_RECORDS.filter(x => x.name.toLowerCase().startsWith(paramName!!));
+    else if (lastParamName && lastParamName.length > 0) {//No param has been completely matched.In this case just filter the results
+        cliResults = CLI_ACTION_PARAMS_GET_RECORDS.filter(x => x.name.toLowerCase().startsWith(lastParamName!!));
     }
 
     return cliResults;

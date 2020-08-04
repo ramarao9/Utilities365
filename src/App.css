@@ -31,3 +31,25 @@
 .root-div{
   height: 100%;
 }
+
+::-webkit-scrollbar {
+  height: 7px !important;
+  width: 7px !important;
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 10px;
+  background: #ececec; 
+ 
+
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c6c6c6;
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  cursor: pointer;
+}

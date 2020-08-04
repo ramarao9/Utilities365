@@ -24,25 +24,19 @@
 
 
 /* width */
-::-webkit-scrollbar {
-    height: 7px !important;
-    width: 8px !important;
-  }
-  
+
   /* Track */
-  ::-webkit-scrollbar-track {
-    background: #000000; 
-    border-radius: 10px;
+  div.terminalContainer *::-webkit-scrollbar-track {
+    background: #282828; 
   }
    
   /* Handle */
- ::-webkit-scrollbar-thumb {
-    background: rgb(80,80,80); 
-    border-radius: 10px;
+  div.terminalContainer *::-webkit-scrollbar-thumb {
+    background: #666666; 
   }
   
   /* Handle on hover */
-  ::-webkit-scrollbar-thumb:hover {
+  div.terminalContainer *::-webkit-scrollbar-thumb:hover {
     background: #555; 
     cursor: pointer;
   }

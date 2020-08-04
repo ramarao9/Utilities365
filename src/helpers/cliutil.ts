@@ -2,7 +2,7 @@ import { CLIVerb, IntelliSenseType, MINIMUM_CHARS_FOR_INTELLISENSE } from "../in
 import { getEntities } from "../services/CrmMetadataService";
 import { getEntityCollectionName, getAttributeDisplayName, getEntityDisplayLabel } from "./metadatautil";
 import { EntityMetadata, AttributeMetadata, PicklistMetadata } from "../interfaces/EntityMetadata";
-import { CliData } from "../interfaces/CliData";
+import { CliData, ActionParam } from "../interfaces/CliData";
 
 export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => {
     cliVerbs = cliVerbs.map((x) => {
@@ -118,4 +118,22 @@ const getPicklistAttributesVerbs = (attributes: PicklistMetadata[]): Array<CLIVe
     });
 
     return picklistAttributeCliResults;
+}
+
+
+export const getLastParam=(cliDataVal: CliData) : ActionParam | undefined => {
+
+    let actionParams = cliDataVal.actionParams;
+
+    if (!actionParams || actionParams.length === 0)
+        return undefined;
+
+    let lastActionParam = actionParams[actionParams.length - 1];
+    let paramName = lastActionParam && lastActionParam.name ? `${lastActionParam.name.toLowerCase()}` : null;
+
+    if (paramName === null) {
+        return undefined;
+    }
+
+    return lastActionParam;
 }
