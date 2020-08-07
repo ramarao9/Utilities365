@@ -66,19 +66,11 @@ export const CLI: React.FC = () => {
     setInputText(updatedIntelliSenseInput.inputText);
     setIntelliSenseNavMode(false);
 
-    //now that we got the latest information let's update the data needed to get the intellisense results
-
-
-    // if(eventKey==="tab"|| eventKey==="click"){//Since a proper selection is made, there is no need to render the IntelliSenseResults
-    //   focusInputAndSetCaretPosition();
-    //   setIntelliSenseResults(getDefaultIntellisenseState());
-    // }
-    // else{
     let intellisenseInfo = await getIntelliSenseForText(updatedIntelliSenseInput);
     intellisenseInfo.currentPos = calculateIntelliSensePos(updatedIntelliSenseInput.inputCaretPosition);
     focusInputAndSetCaretPosition(updatedIntelliSenseInput.inputCaretPosition);
     setIntelliSenseResults(intellisenseInfo);
-    // }
+  
 
     setintelliSenseVerbCurrentIndex(0);
   }

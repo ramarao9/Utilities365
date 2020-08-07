@@ -3,6 +3,7 @@ import { getEntities } from "../services/CrmMetadataService";
 import { getEntityCollectionName, getAttributeDisplayName, getEntityDisplayLabel } from "./metadatautil";
 import { EntityMetadata, AttributeMetadata, PicklistMetadata } from "../interfaces/EntityMetadata";
 import { CliData, ActionParam } from "../interfaces/CliData";
+import { Action } from "redux";
 
 export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => {
     cliVerbs = cliVerbs.map((x) => {
@@ -13,17 +14,17 @@ export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => 
     if (cliVerbs.length > 0) {
 
         let verbsWithOrder = cliVerbs.filter(x => x.order);
-        let verbsWithoutOrder= cliVerbs.filter(x => !x.order);
+        let verbsWithoutOrder = cliVerbs.filter(x => !x.order);
 
-        verbsWithOrder.sort((a:any, b:any) => {
-            return  a.order > b.order ? 1 : -1
+        verbsWithOrder.sort((a: any, b: any) => {
+            return a.order > b.order ? 1 : -1
         });
 
         verbsWithoutOrder.sort((a, b) => {
             return a.name > b.name ? 1 : -1
         });
 
-        let sortedVerbs=[...verbsWithOrder,...verbsWithoutOrder];       
+        let sortedVerbs = [...verbsWithOrder, ...verbsWithoutOrder];
         sortedVerbs[0].isSelected = true;
         return sortedVerbs;
     }
@@ -31,7 +32,7 @@ export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => 
 }
 
 
-export const getEntityCLIVerbs = async (cliDataVal: CliData) => {
+export const getEntityCLIVerbs = async () => {
 
     let cliResults: Array<CLIVerb> = [];
     let entititesResults = await getCLIVerbsForEntitiesWrite();
@@ -121,7 +122,13 @@ const getPicklistAttributesVerbs = (attributes: PicklistMetadata[]): Array<CLIVe
 }
 
 
-export const getLastParam=(cliDataVal: CliData) : ActionParam | undefined => {
+
+export const currentParamHasValue = (cliDataVal: CliData): boolean => {
+    let lastActionParam = getLastParam(cliDataVal);
+    return (lastActionParam && lastActionParam.value && lastActionParam.value.length > 0);
+}
+
+export const getLastParam = (cliDataVal: CliData): ActionParam | undefined => {
 
     let actionParams = cliDataVal.actionParams;
 
@@ -136,4 +143,37 @@ export const getLastParam=(cliDataVal: CliData) : ActionParam | undefined => {
     }
 
     return lastActionParam;
+}
+
+
+
+
+
+export const getNameVerbsPartialOrNoMatch = (userInput: string, actionParam: ActionParam | undefined, verbs: CLIVerb[]): CLIVerb[] | undefined => {
+    let paramName = actionParam && actionParam.name ? actionParam.name.toLowerCase() : "";
+    let paramMatched = verbs.find(x => x.name.toLowerCase() === paramName);
+
+    if (userInput.endsWith(" ") && actionParam?.value) {
+        return verbs.filter(x=>x.name.toLowerCase()!==paramName.toLowerCase());
+    }
+    else if (paramMatched && !userInput.endsWith(" ") && !actionParam?.value) {
+        return [];
+    }
+    else if (paramMatched) {//When the Param name is already populated, this indicates we need to provide the Verbs for the param value, so return undefined here
+        return undefined;
+    }
+    else if (paramName.length > 0) {//No param has been completely matched.In this case just filter the results
+        return verbs.filter(x => x.name.toLowerCase().startsWith(paramName));
+    } else {
+        return verbs;
+    }
+}
+
+
+export const getFilteredVerbs = (nameToFilterOn: string, verbs: CLIVerb[]): CLIVerb[] => {
+
+    if (nameToFilterOn == null)
+        return verbs;
+
+    return verbs.filter(x => x.name.toLowerCase().startsWith(nameToFilterOn.toLowerCase()));
 }

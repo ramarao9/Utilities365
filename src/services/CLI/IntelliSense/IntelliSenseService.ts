@@ -8,13 +8,13 @@ import {
     ACTION_REMOVE_NAME, ACTION_UPDATE_NAME
 } from "../Definitions/ActionDefinitions"
 import { cursorTo } from "readline";
-import { getCleanedCLIVerbs, getEntityCLIVerbs } from "../../../helpers/cliutil";
+import { getCleanedCLIVerbs, getEntityCLIVerbs, getLastParam } from "../../../helpers/cliutil";
 import { getActionsParamsForWrite } from "./WriteIntelliSenseService";
 import { CRMOperation } from "../../../interfaces/CRMOperation";
-import { getTargetForOpen ,getActionParamsForOpen} from "./OpenIntelliSenseService";
+import { getTargetForOpen, getActionParamsForOpen } from "./OpenIntelliSenseService";
 import { getActionParamsForAdd, getTargetForAdd } from "./AddIntelliSenseService";
 import { getActionParamsForRemove, getTargetForRemove } from "./RemoveIntelliSenseService";
-
+import { currentParamHasValue } from "../../../helpers/cliutil";
 
 
 export const getIntelliSenseForText = async (intellisenseInput: IntelliSenseInput): Promise<CliIntelliSense> => {
@@ -78,9 +78,7 @@ const getIntelliSenseType = async (inputText: string, cliData: CliData) => {
         return IntelliSenseType.None;
     }
 
-    let lastActionParam = getLastActionParam(cliData);
-
-
+    let lastActionParam = getLastParam(cliData);
     let actionParamsPopulated = await isLastActionParamsPopulated(inputText, cliData);
     if (actionParamsPopulated) {
         return IntelliSenseType.None;
@@ -143,9 +141,30 @@ export const getUpdatedInputOnSelection = async (intellisenseInput: IntelliSense
         endIndexOfCurrentText = endIndexOfCurrentText + inputCaretPos;
     }
 
+
+
+    const cliDataForCurrentPos = getCliData(textBeforeCaret) as CliData;
+    let intellisenseTypeCurrentPos = await getIntelliSenseType(textBeforeCaret, cliDataForCurrentPos);
+    let lastParamForCurrentPos = getLastParam(cliDataForCurrentPos);
+
+
     let textToReplaceWith = selectedVerb.text ? selectedVerb.text : selectedVerb.name;
-    if (intellisenseType === IntelliSenseType.ActionParams) {
-        textToReplaceWith = "--" + textToReplaceWith;
+
+    if (lastParamForCurrentPos && lastParamForCurrentPos.value &&
+        selectedVerb.type === IntelliSenseType.ActionParamValue) {
+        textToReplaceWith = lastParamForCurrentPos.value + textToReplaceWith;//Handles special case when the param values have csv or other formats of data
+    }
+
+    if (intellisenseTypeCurrentPos === IntelliSenseType.ActionParams &&
+        selectedVerb.type !== IntelliSenseType.ActionParamValue) {
+
+        //e.g. when selection for --entity param is made and when user inputis 'get entity '
+        //e.g. when selection for --entity param is made and when user inputis 'get entity ent'
+        if (!lastParamForCurrentPos ||
+            (selectedVerb.type && selectedVerb.type == IntelliSenseType.ActionParams) ||
+            (lastParamForCurrentPos && !lastParamForCurrentPos.value && !currentInputText.endsWith(" "))) {
+            textToReplaceWith = "--" + textToReplaceWith;
+        }
     }
     updatedInput = replaceBetween(startIndexOfCurrentText, endIndexOfCurrentText, currentInputText, textToReplaceWith);
 
@@ -208,7 +227,7 @@ const isTargetPopulated = async (inputText: string, cliData: CliData) => {
 const isLastActionParamsPopulated = async (inputText: string, cliData: CliData) => {
 
 
-    let lastActionParam = getLastActionParam(cliData);
+    let lastActionParam = getLastParam(cliData);
 
     if (lastActionParam == null || lastActionParam === undefined)
         return false;
@@ -216,21 +235,17 @@ const isLastActionParamsPopulated = async (inputText: string, cliData: CliData) 
     let cliResults: Array<CLIVerb> = await getParamsIntelliSense(inputText, cliData);
 
 
-    let matchingVerbOnName = cliResults.find(x => x.name.toLowerCase() === lastActionParam!!.name.toLowerCase());
-    if (matchingVerbOnName != null) {
+    //If the parameter doesn't have a value than check to see if the Verb matches
+    let matchingVerbNameOnName = !lastActionParam.value ?
+        cliResults.find(x => x.name.toLowerCase() === lastActionParam!!.name.toLowerCase()) : null;
+    if (matchingVerbNameOnName != null) {
         return true;
     }
 
-    let matchingVerbOnText = cliResults.find(x => x.text && x.text.toLowerCase() === lastActionParam!!.name.toLowerCase());
-    return (matchingVerbOnText != null);
+    let matchingVerbNameOnText = !lastActionParam.value ?
+        cliResults.find(x => x.text && x.text.toLowerCase() === lastActionParam!!.name.toLowerCase()) : null;
+    return (matchingVerbNameOnText != null);
 
-}
-const getLastActionParam = (cliData: CliData): ActionParam | undefined => {
-    let actionParams = cliData.actionParams;
-    if (!actionParams || actionParams.length === 0)
-        return undefined;
-    let lastActionParam = actionParams[actionParams.length - 1];
-    return lastActionParam;
 }
 
 
@@ -238,11 +253,11 @@ const getTargetIntelliSense = async (cliDataVal: CliData) => {
 
     let cliResults: Array<CLIVerb> = [];
     switch (cliDataVal.action) {
-        case ACTION_ADD_NAME:cliResults = getTargetForAdd(cliDataVal);
+        case ACTION_ADD_NAME: cliResults = getTargetForAdd(cliDataVal);
             break;
 
         case ACTION_CREATE_NAME:
-        case ACTION_UPDATE_NAME: cliResults = await getEntityCLIVerbs(cliDataVal);
+        case ACTION_UPDATE_NAME: cliResults = await getEntityCLIVerbs();
             break;
 
         case ACTION_EXECUTE_NAME:
@@ -254,7 +269,7 @@ const getTargetIntelliSense = async (cliDataVal: CliData) => {
         case ACTION_OPEN_NAME: cliResults = await getTargetForOpen(cliDataVal);
             break;
 
-        case ACTION_REMOVE_NAME:cliResults = getTargetForRemove(cliDataVal);
+        case ACTION_REMOVE_NAME: cliResults = getTargetForRemove(cliDataVal);
             break;
 
     }
@@ -273,7 +288,7 @@ const getParamsIntelliSense = async (userInput: string, cliDataVal: CliData) => 
 
     let cliResults: Array<CLIVerb> = [];
     switch (cliDataVal.action) {
-        case ACTION_ADD_NAME:cliResults =  getActionParamsForAdd(userInput, cliDataVal);
+        case ACTION_ADD_NAME: cliResults = getActionParamsForAdd(userInput, cliDataVal);
             break;
 
         case ACTION_CREATE_NAME: cliResults = await getActionsParamsForWrite(userInput, cliDataVal, CRMOperation.Create);
@@ -288,16 +303,25 @@ const getParamsIntelliSense = async (userInput: string, cliDataVal: CliData) => 
         case ACTION_GET_NAME: cliResults = await getActionParamsForGet(userInput, cliDataVal);
             break;
 
-        case ACTION_OPEN_NAME:cliResults =  getActionParamsForOpen(userInput, cliDataVal);
+        case ACTION_OPEN_NAME: cliResults = getActionParamsForOpen(userInput, cliDataVal);
             break;
 
-        case ACTION_REMOVE_NAME:cliResults =  getActionParamsForRemove(userInput, cliDataVal);
+        case ACTION_REMOVE_NAME: cliResults = getActionParamsForRemove(userInput, cliDataVal);
             break;
     }
 
     let actionsParams = cliDataVal.actionParams;
+    let lastActionParam = getLastParam(cliDataVal);
+    if (lastActionParam && (lastActionParam.value || userInput.endsWith(" "))) {// when the param name has data but not the  value just show the avilable results
+        return cliResults; // Since each case could be unique we just return the values and each operation handles the best way to show these results
+    }
+    //if the action parameter has value than filter on the parameter values from the Cli results
+    else if (lastActionParam && lastActionParam.name && !lastActionParam.value) {//Require filter on the value of the parameter
+        cliResults = cliResults.filter(x => x.name.toLowerCase().startsWith(lastActionParam!!.name.toLowerCase()));
+    }
 
-    if (actionsParams && actionsParams.length > 0 && cliResults.length > 0) {
+    //filter on the name of the parameter
+    else if (actionsParams && actionsParams.length > 0 && cliResults.length > 0) {
         cliResults = cliResults.filter(x => x.name && actionsParams && actionsParams.findIndex(y => y.name === x.name.replace("--", "")) === -1);
     }
 

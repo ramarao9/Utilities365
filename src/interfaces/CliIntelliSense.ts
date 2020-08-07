@@ -29,7 +29,8 @@ export enum IntelliSenseType {
     None = 0,
     Action = 1,
     Target = 2,
-    ActionParams = 3
+    ActionParams = 3,
+    ActionParamValue=4
 }
 
 

@@ -94,6 +94,14 @@ const getEntity = async (cliData: CliData) => {
 
   let properties = propertiesParam ? getArrayFromCSV(propertiesParam.value) : undefined;
   let retrieveEntityResponse = await retrieveEntity(`LogicalName='${entityMetadata.LogicalName}'`, properties, expandQueryParam);
+
+  if(retrieveEntityResponse)
+  {
+    delete retrieveEntityResponse["@odata.context"];
+    delete retrieveEntityResponse["MetadataId"];
+    delete retrieveEntityResponse["oDataContext"];
+  }
+
   return retrieveEntityResponse;
 }
 
