@@ -20,14 +20,14 @@ export const update = async (key: string, updateRequest: any, collectionOrLogica
 }
 
 
-export const  executeUnboundFunction=async(functionName: string,parameters :any) => {
+export const executeUnboundFunction = async (functionName: string, parameters: any) => {
   let dynamicsWebAPIClient = getWebAPIClient(true);
-  return dynamicsWebAPIClient.executeUnboundFunction(functionName,parameters);
+  return dynamicsWebAPIClient.executeUnboundFunction(functionName, parameters);
 }
 
-export const executeFetchXml=async(collectionName:string,fetchXml:string)=>{
+export const executeFetchXml = async (collectionName: string, fetchXml: string) => {
   let dynamicsWebAPIClient = getWebAPIClient(true);
-  return dynamicsWebAPIClient.fetch(collectionName,fetchXml);
+  return dynamicsWebAPIClient.fetch(collectionName, fetchXml);
 }
 
 export const retrieveEntitites = async (properties?: Array<string>, filter?: string) => {
@@ -138,7 +138,10 @@ function getWebAPIClient(useTokenRefresh: Boolean) {
     baseUrl = baseUrl.slice(0, -1);
   }
 
-  var webApiConfig: any = { webApiUrl: baseUrl + "/api/data/v9.1/" };
+  var webApiConfig: any = {
+    webApiUrl: baseUrl + "/api/data/v9.1/",
+    includeAnnotations: "OData.Community.Display.V1.FormattedValue"
+  };
 
   const tokenExpired = hasTokenExpired();
 

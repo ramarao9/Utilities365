@@ -134,6 +134,8 @@ export const getUpdatedInputOnSelection = async (intellisenseInput: IntelliSense
     let textAfterCaret = currentInputText.substring(inputCaretPos);
     let endIndexOfCurrentText = textAfterCaret.indexOf(" ");
 
+
+
     if (endIndexOfCurrentText == -1) {
         endIndexOfCurrentText = currentInputText.length;
     }
@@ -141,18 +143,23 @@ export const getUpdatedInputOnSelection = async (intellisenseInput: IntelliSense
         endIndexOfCurrentText = endIndexOfCurrentText + inputCaretPos;
     }
 
-
-
     const cliDataForCurrentPos = getCliData(textBeforeCaret) as CliData;
     let intellisenseTypeCurrentPos = await getIntelliSenseType(textBeforeCaret, cliDataForCurrentPos);
     let lastParamForCurrentPos = getLastParam(cliDataForCurrentPos);
 
 
     let textToReplaceWith = selectedVerb.text ? selectedVerb.text : selectedVerb.name;
-
     if (lastParamForCurrentPos && lastParamForCurrentPos.value &&
         selectedVerb.type === IntelliSenseType.ActionParamValue) {
-        textToReplaceWith = lastParamForCurrentPos.value + textToReplaceWith;//Handles special case when the param values have csv or other formats of data
+
+        //Handles special case when the param values have csv or other formats of data
+        if (selectedVerb.delimiterForMerging) {
+            textToReplaceWith = mergeUsingDelimiter(lastParamForCurrentPos.value, textToReplaceWith, selectedVerb);
+            endIndexOfCurrentText = textBeforeCaret.length;
+        }
+        else {
+            textToReplaceWith = lastParamForCurrentPos.value + textToReplaceWith;
+        }
     }
 
     if (intellisenseTypeCurrentPos === IntelliSenseType.ActionParams &&
@@ -170,11 +177,16 @@ export const getUpdatedInputOnSelection = async (intellisenseInput: IntelliSense
 
 
     let lenDiffOldAndNewText = updatedInput.length - currentInputText.length;
-
     let updatedIntelliSenseInput: IntelliSenseInput = { inputText: updatedInput, inputCaretPosition: inputCaretPos + lenDiffOldAndNewText };
     return updatedIntelliSenseInput;
+}
 
 
+const mergeUsingDelimiter = (textToModify: string, textForReplacement: string, cliverb: CLIVerb): string => {
+    let delimiterToUse = cliverb.delimiterForMerging!!;
+    let textToModifyArr = textToModify.split(delimiterToUse);
+    textToModifyArr[textToModifyArr.length - 1] = textForReplacement;
+    return textToModifyArr.join(delimiterToUse);
 }
 
 const replaceBetween = function (start: number, end: number, textToReplace: string, replaceWith: string) {

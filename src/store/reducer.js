@@ -29,8 +29,14 @@ const reducer = (state = initialState, action) => {
 
     case actionTypes.SET_ENTITIES_ATTRIBUTE_COLLECTION:
       return {
-          ...state,
-          entitiesAttributeCollection:[...action.entitiesAttributeCollection]
+        ...state,
+        entitiesAttributeCollection: [...action.entitiesAttributeCollection]
+      };
+
+    case actionTypes.SET_ENTITIES_VIEW_DATA:
+      return {
+        ...state,
+        entitiesViewData: [...action.entitiesViewData]
       };
 
     case actionTypes.GET_CRM_USERS:
@@ -48,7 +54,7 @@ const reducer = (state = initialState, action) => {
     case actionTypes.SIGNOUT_USER:
       return {
         ...state,
-         tokenData: {},
+        tokenData: {},
         currentUserId: {},
         currentUser: {},
         crmUsers: [],

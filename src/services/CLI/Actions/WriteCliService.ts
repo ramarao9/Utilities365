@@ -118,9 +118,9 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
 
   let picklistAttributes = targetEntityMetadata.PicklistAttributes;
 
-  let dateTimeAttributes=targetEntityMetadata.DateTimeAttributes;
+  let dateTimeAttributes = targetEntityMetadata.DateTimeAttributes;
 
-  let lookupAttributes=targetEntityMetadata.LookupAttributes;
+  let lookupAttributes = targetEntityMetadata.LookupAttributes;
 
   if (cliData.actionParams != null) {
     for (let i = 0; i < cliData.actionParams.length; i++) {
@@ -135,11 +135,19 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
         if (attributeMetadata == null)
           throw new Error(`Invalid attribute ${attributeLogicalName}. Please check the attribute and try again`);
 
+        if (attributeValue === "null") {
+          createRequest[attributeLogicalName] = null;
+          continue;
+        }
+
         let attributeType: string = attributeMetadata["AttributeType"];
 
         switch (attributeType.toLowerCase()) {
 
-          case "datetime": let isValid: boolean = isValidDate(attributeValue);
+          case "datetime":
+
+
+            let isValid: boolean = isValidDate(attributeValue);
             if (!isValid) {
               throw new Error(`Invalid date format for ${attributeLogicalName}. Please specify it in a valid format and try again.`);
             }
@@ -188,7 +196,7 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
 
 
           case "lookup":
-          
+
             let attributeLookupMetadata = lookupAttributes.find(x => x.LogicalName === attributeLogicalName);
             let targetLookupEntity = attributeLookupMetadata!!.Targets[0];
             let targetLookupEntityMetadata = await getEntityMetadataBasic(targetLookupEntity) as EntityMetadata;
@@ -246,11 +254,15 @@ function formatDate(date: string) {
 }
 
 function isValidDate(dateStr: string): boolean {
+
+
   var parsedDate = Date.parse(dateStr);
   return !isNaN(parsedDate);
 }
 
 function getIntegerIfValid(numberStr: string) {
+
+
 
   let numberVal = parseInt(numberStr);
 

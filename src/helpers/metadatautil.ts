@@ -41,3 +41,10 @@ export const getAttributeDisplayName = (attributeMetadata: AttributeMetadata): s
         attributeMetadata.DisplayName.UserLocalizedLabel.Label : attributeMetadata.LogicalName;
     return attributeDisplayName;
 }
+
+
+export const deleteODataProperties=(odataObject:any)=>{
+    delete odataObject["@odata.context"];
+    delete odataObject["MetadataId"];
+    delete odataObject["oDataContext"];
+}

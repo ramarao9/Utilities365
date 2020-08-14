@@ -1,8 +1,10 @@
 
 import { CliData, ActionParam } from "../../../interfaces/CliData"
 import { CliResponse } from "../../../interfaces/CliResponse"
-import { retrieveMultiple, retrieveEntitites, retrieveEntity,retrieveRequest,
-   retrieveAttribute, retrieveAttributes,executeUnboundFunction,retrieve } from "../../../helpers/webAPIClientHelper"
+import {
+  retrieveMultiple, retrieveEntitites, retrieveEntity, retrieveRequest,
+  retrieveAttribute, retrieveAttributes, executeUnboundFunction, retrieve, executeFetchXml
+} from "../../../helpers/webAPIClientHelper"
 import { getErrorResponse } from "../CliResponseUtil";
 import { getArrayFromCSV, getParamVal, getAttributeMetadataName, getFirstLabelFromLocalizedLabels, isValidGuid } from "../../../helpers/common";
 import { getEntityMetadataBasic, getEntity as getEntityMetadata } from "../../CrmMetadataService"
@@ -19,6 +21,9 @@ import {
   getPrimaryIdAttribute, getFilterWhenAttributes, getOptionSetLabelValues,
   hasActionParamVal, parseQueryFunctionInFilterIfAny
 } from "../../../helpers/QueryHelper";
+import { deleteODataProperties } from "../../../helpers/metadatautil";
+import { getFetchXml } from "../../ViewService";
+import { removeODataTagsOnCollection } from "../../../helpers/cliutil";
 
 export const handleCrmGetActions = async (cliData: CliData) => {
   let cliResponse: CliResponse = { message: "", success: false, type: "json" };
@@ -95,8 +100,7 @@ const getEntity = async (cliData: CliData) => {
   let properties = propertiesParam ? getArrayFromCSV(propertiesParam.value) : undefined;
   let retrieveEntityResponse = await retrieveEntity(`LogicalName='${entityMetadata.LogicalName}'`, properties, expandQueryParam);
 
-  if(retrieveEntityResponse)
-  {
+  if (retrieveEntityResponse) {
     delete retrieveEntityResponse["@odata.context"];
     delete retrieveEntityResponse["MetadataId"];
     delete retrieveEntityResponse["oDataContext"];
@@ -168,6 +172,10 @@ const getAttributeData = async (cliData: CliData) => {
       properties,
       expandQueryParam
     );
+
+    if (retrieveAttributeResponse) {
+      deleteODataProperties(retrieveAttributeResponse);
+    }
 
     return retrieveAttributeResponse;
   }
@@ -267,21 +275,36 @@ const cleanAttributesData = (actionParams: ActionParam[], responseData: any): an
 
 const getRecords = async (cliData: CliData) => {
 
+  let viewParam = getActionParam("view", cliData.actionParams);
+  if (viewParam && viewParam.value) {
+    let responseData = await getRecordsByfetchXml(cliData.target, viewParam.value);
+    return responseData;
+  }
 
   let retrieveRequest = await getRequestBody(cliData);
 
   let retrieveResponse = await retrieveMultiple(retrieveRequest);
 
   let responseData = retrieveResponse.value;
-  if (responseData && responseData.length > 0) {
-    responseData.forEach(function (record: any) { delete record["@odata.etag"] });
-  }
+  removeODataTagsOnCollection(responseData);
 
   return responseData;
 
 };
 
 
+const getRecordsByfetchXml = async (entityName: string, viewName: string) => {
+
+  let fetchXml = await getFetchXml(viewName, entityName);
+  if (!fetchXml)
+    throw new Error(`Invalid view name provided. Please check the name and try again.`);
+
+  let fetchXmlResponse = await executeFetchXml(entityName, fetchXml);
+  let responseData = fetchXmlResponse.value;
+  removeODataTagsOnCollection(responseData)
+  return responseData;
+
+}
 
 
 //Returns the request body need to search Entity records
@@ -324,28 +347,28 @@ const getRequestBody = async (cliData: CliData) => {
   }
   else {
     //only bring the Primary Attribute when no attributes provided
-    retrieveMultipleRequest.select = entityMetadata.PrimaryNameAttribute ?[entityMetadata.PrimaryIdAttribute,entityMetadata.PrimaryNameAttribute] : [entityMetadata.PrimaryIdAttribute];
+    retrieveMultipleRequest.select = entityMetadata.PrimaryNameAttribute ? [entityMetadata.PrimaryIdAttribute, entityMetadata.PrimaryNameAttribute] : [entityMetadata.PrimaryIdAttribute];
   }
 
   if (!isValidId && topParam != null && topParam.value != null) {
     retrieveMultipleRequest.top = topParam.value;
   }
 
-  if(orderByParam && orderByParam.value){
-    retrieveMultipleRequest.orderBy=orderByParam.value.split(",");
+  if (orderByParam && orderByParam.value) {
+    retrieveMultipleRequest.orderBy = orderByParam.value.split(",");
   }
 
   return retrieveMultipleRequest;
 
 }
 
-const getOrgDetail=async ()=>{
+const getOrgDetail = async () => {
 
-  let parameters={
-    "AccessType":"Microsoft.Dynamics.CRM.EndpointAccessType'Default'"
+  let parameters = {
+    "AccessType": "Microsoft.Dynamics.CRM.EndpointAccessType'Default'"
   }
 
-  var orgDetailsResponse=await executeUnboundFunction("RetrieveCurrentOrganization",parameters);
+  var orgDetailsResponse = await executeUnboundFunction("RetrieveCurrentOrganization", parameters);
   return orgDetailsResponse;
 }
 

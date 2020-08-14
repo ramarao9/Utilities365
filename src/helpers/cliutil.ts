@@ -1,5 +1,5 @@
 import { CLIVerb, IntelliSenseType, MINIMUM_CHARS_FOR_INTELLISENSE } from "../interfaces/CliIntelliSense";
-import { getEntities } from "../services/CrmMetadataService";
+import { getEntities, getEntity } from "../services/CrmMetadataService";
 import { getEntityCollectionName, getAttributeDisplayName, getEntityDisplayLabel } from "./metadatautil";
 import { EntityMetadata, AttributeMetadata, PicklistMetadata } from "../interfaces/EntityMetadata";
 import { CliData, ActionParam } from "../interfaces/CliData";
@@ -17,11 +17,11 @@ export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => 
         let verbsWithoutOrder = cliVerbs.filter(x => !x.order);
 
         verbsWithOrder.sort((a: any, b: any) => {
-            return a.order > b.order ? 1 : -1
+            return (a.order > b.order) ? 1 : -1
         });
 
         verbsWithoutOrder.sort((a, b) => {
-            return a.name > b.name ? 1 : -1
+            return (a.name > b.name) ? 1 : -1
         });
 
         let sortedVerbs = [...verbsWithOrder, ...verbsWithoutOrder];
@@ -30,6 +30,23 @@ export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => 
     }
     return cliVerbs;
 }
+export const removeODataTagsOnCollection = (records: any) => {
+    if (records && records.length > 0) {
+        records.forEach(function (record: any) {
+            delete record["@odata.etag"]
+
+            let objKeys = Object.keys(record);
+            objKeys.forEach(x => {
+                if (x.indexOf("@OData.Community.Display.V1.FormattedValue") != -1) {
+                    delete record[x];
+                }
+            })
+
+
+        });
+    }
+}
+
 
 
 export const getEntityCLIVerbs = async () => {
@@ -74,27 +91,39 @@ export const getCLIVerbsForEntitiesWrite = async () => {
 }
 
 
+export const getCLIVerbsAttributes = async (entitySetName: string, intellisenseType?: IntelliSenseType, excludeFilters?: boolean) => {
+    let entityMetadata = await getEntity(entitySetName) as EntityMetadata;
 
-export const getCLIVerbsForAttributes = (entityMetadata: EntityMetadata): Array<CLIVerb> => {
+    let attributeCliResults: Array<CLIVerb> = getCLIVerbsForAttributes(entityMetadata, intellisenseType, excludeFilters);
+    return attributeCliResults;
+}
+
+export const getCLIVerbsForAttributes = (entityMetadata: EntityMetadata, intellisenseType?: IntelliSenseType, excludeFilters?: boolean): Array<CLIVerb> => {
     let attributeCliResults: Array<CLIVerb> = [];
     let attributes = entityMetadata.Attributes;
     let picklistAttributes = entityMetadata.PicklistAttributes;
-    attributeCliResults = getAttributesVerbs(attributes);
+    attributeCliResults = getAttributesVerbs(attributes, intellisenseType, excludeFilters);
     return attributeCliResults;
 }
 
 
-const getAttributesVerbs = (attributes: AttributeMetadata[]): Array<CLIVerb> => {
+
+
+const getAttributesVerbs = (attributes: AttributeMetadata[], intellisenseType?: IntelliSenseType, excludeFilters?: boolean): Array<CLIVerb> => {
 
     let attributeCliResults: Array<CLIVerb> = [];
-    attributes = attributes.filter(x => x.AttributeType !== "Uniqueidentifier" && (x.IsValidForCreate || x.IsValidForUpdate));
+
+    if (!excludeFilters) {
+        attributes = attributes.filter(x => x.AttributeType !== "Uniqueidentifier" && (x.IsValidForCreate || x.IsValidForUpdate));
+    }
+
 
     attributeCliResults = attributes.map((attributeMetadata: AttributeMetadata) => {
         let attributeDisplayname = getAttributeDisplayName(attributeMetadata);
         let cliVerb: CLIVerb = {
             name: `${attributeDisplayname}`,
             text: `${attributeMetadata.LogicalName}`,
-            type: IntelliSenseType.ActionParams
+            type: intellisenseType ?? IntelliSenseType.ActionParams
         }
 
         return cliVerb;
@@ -154,7 +183,7 @@ export const getNameVerbsPartialOrNoMatch = (userInput: string, actionParam: Act
     let paramMatched = verbs.find(x => x.name.toLowerCase() === paramName);
 
     if (userInput.endsWith(" ") && actionParam?.value) {
-        return verbs.filter(x=>x.name.toLowerCase()!==paramName.toLowerCase());
+        return verbs.filter(x => x.name.toLowerCase() !== paramName.toLowerCase());
     }
     else if (paramMatched && !userInput.endsWith(" ") && !actionParam?.value) {
         return [];
@@ -176,4 +205,28 @@ export const getFilteredVerbs = (nameToFilterOn: string, verbs: CLIVerb[]): CLIV
         return verbs;
 
     return verbs.filter(x => x.name.toLowerCase().startsWith(nameToFilterOn.toLowerCase()));
+}
+
+export const getVerbsFromCSV = (paramValueCSV: string, cliVerbsToFilter: CLIVerb[]): CLIVerb[] => {
+
+    let paramItems: string[] = paramValueCSV ? paramValueCSV.split(",") : [];
+    let lastItem = paramItems.length > 0 ? paramItems[paramItems.length - 1] : undefined;
+
+    //if the last item has an exact match to a Cli verb in that case do not show any addiitonal verbs
+    //In this case the user has made a selection, only if the last item does not have an exact match 
+    //and if is empty than execute next steps
+
+    if (lastItem && cliVerbsToFilter.findIndex(x => x.name.toLowerCase() === lastItem!!.toLowerCase()) !== -1) {
+        return [];
+    }
+
+    let filteredVerbs = cliVerbsToFilter.filter(x => x.name &&
+        paramItems.findIndex(y => y.toLowerCase() === x.name.toLowerCase()) === -1);
+
+    if (lastItem) {
+        filteredVerbs = filteredVerbs.filter(x => x.name.toLowerCase().startsWith(lastItem!!.toLowerCase()) ||
+            (x.text && x.text.toLowerCase().startsWith(lastItem!!.toLowerCase())));
+    }
+
+    return filteredVerbs;
 }

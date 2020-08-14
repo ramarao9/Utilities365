@@ -22,6 +22,9 @@ export interface CLIVerb {
     isSelected?:boolean;
     type?:number;
     order?:number;
+    delimiterForMerging?:string;
+    group?:string;
+    groupNumber?:number;
 }
 
 export enum IntelliSenseType {

@@ -1,11 +1,14 @@
 import { CliData, ActionParam } from "../../../interfaces/CliData";
 import { CLI_TARGET_GET } from "../Definitions/Target/Get"
-import { CLI_ACTION_PARAMS_GET_RECORDS, CLI_ACTION_PARAMS_GET_ENTITY, CLI_ACTION_PARAMS_GET_ENTITIES } from "../Definitions/ActionParams/Get"
-import { getEntities } from "../../CrmMetadataService"
+import { CLI_ACTION_PARAMS_GET_RECORDS, CLI_ACTION_PARAMS_GET_ENTITY, CLI_ACTION_PARAMS_GET_ENTITIES, CLI_ACTION_PARAMS_GET_ATTRIBUTE, CLI_ACTION_PARAMS_GET_ATTRIBUTES } from "../Definitions/ActionParams/Get"
+import { getEntities, getEntityMetadataBasic } from "../../CrmMetadataService"
 import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
 import { EntityMetadata } from "../../../interfaces/EntityMetadata"
-import { getCleanedCLIVerbs, getCLIVerbsForEntities, getLastParam, getNameVerbsPartialOrNoMatch, getEntityCLIVerbs, getFilteredVerbs } from "../../../helpers/cliutil";
+import { getCleanedCLIVerbs, getCLIVerbsForEntities, getLastParam, getNameVerbsPartialOrNoMatch, getEntityCLIVerbs, getFilteredVerbs, getVerbsFromCSV, getCLIVerbsAttributes } from "../../../helpers/cliutil";
 import { getEntityCollectionName } from "../../../helpers/metadatautil";
+import { getActionParam } from "../../../helpers/QueryHelper";
+import { getEntityViews } from "../../ViewService";
+import { ViewType } from "../../../interfaces/ViewData";
 
 export const getTargetForGet = async (cliDataVal: CliData) => {
 
@@ -25,28 +28,205 @@ export const getActionParamsForGet = async (userInput: string, cliDataVal: CliDa
     switch (cliDataVal.target) {
 
 
-        case "attribute":
+        case "attribute": cliResults = await getActionParamsForAttribute(userInput, cliDataVal) as Array<CLIVerb>;
             break;
 
-        case "attributes":
+        case "attributes": cliResults = await getActionParamsForAttributes(userInput, cliDataVal) as Array<CLIVerb>;
             break;
 
         case "entity": cliResults = await getActionsParamsForEntity(userInput, cliDataVal) as Array<CLIVerb>;
             break;
 
-        case "entities":
+        case "entities": cliResults = await getActionsParamsForEntities(userInput, cliDataVal) as Array<CLIVerb>;
             break;
 
         case "org-detail":
             break;
 
         //Get records 
-        default: cliResults = await getCurrentActionParamVerbsForRecords(userInput, cliDataVal) as Array<CLIVerb>;
+        default: cliResults = await getActionParamsForRecords(userInput, cliDataVal) as Array<CLIVerb>;
             break;
     }
 
     return cliResults;
 }
+
+
+const getActionParamsForAttribute = async (userInput: string, cliDataVal: CliData) => {
+
+
+    let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
+
+    let verbsWhenPartialOrNoMatch = getNameVerbsPartialOrNoMatch(userInput, lastParam, CLI_ACTION_PARAMS_GET_ATTRIBUTE);
+    if (verbsWhenPartialOrNoMatch)
+        return verbsWhenPartialOrNoMatch;
+
+    //Handle when Param completely matched
+    let cliResults: Array<CLIVerb> = [];
+    switch (lastParam?.name) {
+
+        case "entity": cliResults = await getEntityVerbs(lastParam);
+            break;
+
+        case "type": cliResults = await getAttributeVerbs(cliDataVal, lastParam);
+            break;
+
+        case "properties": cliResults = getAttributePropertiesVerbs(lastParam);
+            break;
+    }
+
+    return cliResults;
+
+
+}
+
+
+
+
+const getActionParamsForAttributes = async (userInput: string, cliDataVal: CliData) => {
+
+
+    let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
+
+    let verbsWhenPartialOrNoMatch = getNameVerbsPartialOrNoMatch(userInput, lastParam, CLI_ACTION_PARAMS_GET_ATTRIBUTES);
+    if (verbsWhenPartialOrNoMatch)
+        return verbsWhenPartialOrNoMatch;
+
+    //Handle when Param completely matched
+    let cliResults: Array<CLIVerb> = [];
+    switch (lastParam?.name) {
+
+        case "entity": cliResults = await getEntityVerbs(lastParam);
+            break;
+
+        case "type": cliResults = await getAttributesTypeVerbs(cliDataVal, lastParam);
+            break;
+
+        case "properties": cliResults = getAttributePropertiesVerbs(lastParam);
+            break;
+
+        case "expand": cliResults = await getAttributesExpandVerbs(cliDataVal, lastParam);
+            break;
+
+    }
+
+    return cliResults;
+
+
+}
+
+
+const getAttributesTypeVerbs = async (cliData: CliData, lastParam: ActionParam) => {
+
+    let cliResults: Array<CLIVerb> = [];
+    let attributeTypes = ["string", "integer", "boolean", "lookup", "picklist", "datetime", "money", "decimal"];
+
+    attributeTypes.forEach(x => {
+        let cliVerb: CLIVerb = { name: x, type: IntelliSenseType.ActionParamValue };
+        cliResults.push(cliVerb);
+    });
+
+    cliResults = getFilteredVerbs(lastParam.value, cliResults);
+    return cliResults;
+}
+
+const getAttributesExpandVerbs = async (cliData: CliData, lastParam: ActionParam) => {
+
+    let cliResults: Array<CLIVerb> = [];
+
+    let typeParam = getActionParam("type", cliData.actionParams);
+
+    if (!typeParam || (typeParam.name !== "optionset" && typeParam.name !== "picklist"))
+        return [];
+
+
+    let attributeExpand = ["OptionSet"];
+    attributeExpand.forEach(x => {
+        let cliVerb: CLIVerb = { name: x, type: IntelliSenseType.ActionParamValue };
+        cliResults.push(cliVerb);
+    });
+
+    return cliResults;
+}
+
+const getAttributeVerbs = async (cliData: CliData, lastParam: ActionParam) => {
+
+    let entityParam = getActionParam("entity", cliData.actionParams);
+
+    if (!entityParam)
+        return [];
+
+    let cliResults: Array<CLIVerb> = await getCLIVerbsAttributes(entityParam.value, IntelliSenseType.ActionParamValue, true);
+    cliResults = getFilteredVerbs(lastParam.value, cliResults);
+    return cliResults;
+}
+
+const getAttributePropertiesVerbs = (lastParam: ActionParam): CLIVerb[] => {
+
+    let attributeProperties = getPropertiesOnAttribute();
+    let attributePropertiesCliVerbs: CLIVerb[] = [];
+    attributeProperties.forEach(x => {
+        let cliVerb: CLIVerb = { name: x, type: IntelliSenseType.ActionParamValue, delimiterForMerging: "," };
+        attributePropertiesCliVerbs.push(cliVerb);
+    });
+
+    attributePropertiesCliVerbs = getVerbsFromCSV(lastParam.value, attributePropertiesCliVerbs);
+    return attributePropertiesCliVerbs;
+}
+
+
+
+
+const getPropertiesOnAttribute = (): string[] => {
+    return ["AttributeOf",
+        "AttributeType",
+        "AutoNumberFormat",
+        "CanBeSecuredForCreate",
+        "CanBeSecuredForRead",
+        "CanBeSecuredForUpdate",
+        "CanModifyAdditionalSettings",
+        "ColumnNumber",
+        "DefaultFormValue",
+        "DeprecatedVersion",
+        "Description",
+        "DisplayName",
+        "EntityLogicalName",
+        "ExternalName",
+        "FormulaDefinition",
+        "HasChanged",
+        "InheritsFrom",
+        "IntroducedVersion",
+        "IsAuditEnabled",
+        "IsCustomAttribute",
+        "IsCustomizable",
+        "IsDataSourceSecret",
+        "IsFilterable",
+        "IsGlobalFilterEnabled",
+        "IsLogical",
+        "IsManaged",
+        "IsPrimaryId",
+        "IsPrimaryName",
+        "IsRenameable",
+        "IsRequiredForForm",
+        "IsRetrievable",
+        "IsSearchable",
+        "IsSecured",
+        "IsSortableEnabled",
+        "IsValidForAdvancedFind",
+        "IsValidForCreate",
+        "IsValidForForm",
+        "IsValidForRead",
+        "IsValidForUpdate",
+        "LinkedAttributeId",
+        "LogicalName",
+        "MetadataId",
+        "RequiredLevel",
+        "SchemaName",
+        "SourceType",
+        "SourceTypeMask"];
+}
+
+
 
 export const getActionsParamsForEntity = async (userInput: string, cliDataVal: CliData) => {
 
@@ -60,10 +240,10 @@ export const getActionsParamsForEntity = async (userInput: string, cliDataVal: C
     let cliResults: Array<CLIVerb> = [];
     switch (lastParam?.name) {
 
-        case "entity": cliResults = await getEntityEntityVerbs(lastParam);
+        case "entity": cliResults = await getEntityVerbs(lastParam);
             break;
 
-        case "expand":
+        case "expand": cliResults = await getEntityExpandVerbs(lastParam);
             break;
 
         case "properties": cliResults = getEntityPropertiesVerbs(lastParam);
@@ -73,10 +253,21 @@ export const getActionsParamsForEntity = async (userInput: string, cliDataVal: C
     return cliResults;
 }
 
-const getEntityEntityVerbs = async (lastParam: ActionParam) => {
+const getEntityVerbs = async (lastParam: ActionParam) => {
     let cliResults: Array<CLIVerb> = await getEntityCLIVerbs();
     cliResults = getFilteredVerbs(lastParam.value, cliResults);
     return cliResults;
+}
+
+const getEntityExpandVerbs = async (lastParam: ActionParam) => {
+    let expandPropertiesCliVerbs: Array<CLIVerb> = [];
+    let expandProperties = ["Attributes", "Keys", "OneToManyRelationships", "ManyToOneRelationships", "ManyToManyRelationships"];
+    expandProperties.forEach(x => {
+        let cliVerb: CLIVerb = { name: x, type: IntelliSenseType.ActionParamValue, delimiterForMerging: "," };
+        expandPropertiesCliVerbs.push(cliVerb);
+    });
+    expandPropertiesCliVerbs = getVerbsFromCSV(lastParam.value, expandPropertiesCliVerbs);
+    return expandPropertiesCliVerbs;
 }
 
 const getEntityPropertiesVerbs = (lastParam: ActionParam): CLIVerb[] => {
@@ -84,26 +275,14 @@ const getEntityPropertiesVerbs = (lastParam: ActionParam): CLIVerb[] => {
     let entityProperties = getPropertiesOnEntity();
     let entityPropertiesCliVerbs: CLIVerb[] = [];
     entityProperties.forEach(x => {
-        let cliVerb: CLIVerb = { name: x, type: IntelliSenseType.ActionParamValue };
+        let cliVerb: CLIVerb = { name: x, type: IntelliSenseType.ActionParamValue, delimiterForMerging: "," };
         entityPropertiesCliVerbs.push(cliVerb);
     });
 
 
-    let propertiesCSV: string = lastParam.value;
-    let properties: string[] = propertiesCSV ? propertiesCSV.split(",") : [];
-    if (properties.length > 0 && !propertiesCSV.endsWith(",")) {
-        return [];
-    }
-
-    entityPropertiesCliVerbs = entityPropertiesCliVerbs.filter(x => x.name &&
-        properties.findIndex(y => y.toLowerCase() === x.name.toLowerCase()) === -1);
-
+    entityPropertiesCliVerbs = getVerbsFromCSV(lastParam.value, entityPropertiesCliVerbs);
     return entityPropertiesCliVerbs;
 }
-
-
-
-
 
 export const getActionsParamsForEntities = async (userInput: string, cliDataVal: CliData) => {
 
@@ -117,7 +296,7 @@ export const getActionsParamsForEntities = async (userInput: string, cliDataVal:
     let cliResults: Array<CLIVerb> = [];
     switch (lastParam?.name) {
 
-        case "entities": cliResults = await getEntitiesEntiesVerbs(lastParam);
+        case "entities": cliResults = await getEntitiesEntitiesVerbs(lastParam);
             break;
 
         case "filter":
@@ -130,17 +309,17 @@ export const getActionsParamsForEntities = async (userInput: string, cliDataVal:
     return cliResults;
 }
 
+const getEntitiesEntitiesVerbs = async (lastParam: ActionParam) => {
 
-const getEntitiesEntiesVerbs = async (lastParam: ActionParam) => {
     let cliResults: Array<CLIVerb> = await getEntityCLIVerbs();
+    cliResults.forEach(x => {
+        x.type = IntelliSenseType.ActionParamValue;
+        x.delimiterForMerging = ",";
+    })
 
-
-
+    cliResults = getVerbsFromCSV(lastParam.value, cliResults);
     return cliResults;
 }
-
-
-
 
 const getPropertiesOnEntity = (): string[] => {
     return ["ActivityTypeMask",
@@ -240,40 +419,107 @@ const getPropertiesOnEntity = (): string[] => {
 
 
 //Retrieves the CLI Verbs for either the parameter itself or for the data that needs to be set for the parameter
-const getCurrentActionParamVerbsForRecords = async (userInput: string, cliDataVal: CliData) => {
+const getActionParamsForRecords = async (userInput: string, cliDataVal: CliData) => {
 
-    let cliResults: Array<CLIVerb> = [];
-    let actionParams = cliDataVal.actionParams;
+    // let actionParams = cliDataVal.actionParams;
+
+    // let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
+
+    // if (lastParam == undefined || lastParam.name == undefined)
+    //     return CLI_ACTION_PARAMS_GET_RECORDS;
+
+
+    // let lastParamName = lastParam.name.toLowerCase();
+    // let paramMatched = CLI_ACTION_PARAMS_GET_RECORDS.find(x => x.name.toLowerCase() === lastParamName);
+    // let paramValue = lastParam.value;
+    // if (paramMatched) {//When the Param name is already populated, this indicates we need to provide the Verbs for the data present in the value
+    //     cliResults = await getVerbsForODataQueryOptions(paramValue) as Array<CLIVerb>;
+    // }
+    // else if (lastParamName && lastParamName.length > 0) {//No param has been completely matched.In this case just filter the results
+    //     cliResults = CLI_ACTION_PARAMS_GET_RECORDS.filter(x => x.name.toLowerCase().startsWith(lastParamName!!));
+    // }
+
+
+
 
     let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
 
-    if (lastParam == undefined || lastParam.name == undefined)
-        return CLI_ACTION_PARAMS_GET_RECORDS;
+    let verbsWhenPartialOrNoMatch = getNameVerbsPartialOrNoMatch(userInput, lastParam, CLI_ACTION_PARAMS_GET_RECORDS);
+    if (verbsWhenPartialOrNoMatch)
+        return verbsWhenPartialOrNoMatch;
 
+    //Handle when Param completely matched
+    let cliResults: Array<CLIVerb> = [];
+    switch (lastParam?.name) {
 
-    let lastParamName = lastParam.name.toLowerCase();
-    let paramMatched = CLI_ACTION_PARAMS_GET_RECORDS.find(x => x.name.toLowerCase() === lastParamName);
-    let paramValue = lastParam.value;
-    if (paramMatched) {//When the Param name is already populated, this indicates we need to provide the Verbs for the data present in the value
-        cliResults = await getVerbsForODataQueryOptions(paramValue) as Array<CLIVerb>;
-    }
-    else if (lastParamName && lastParamName.length > 0) {//No param has been completely matched.In this case just filter the results
-        cliResults = CLI_ACTION_PARAMS_GET_RECORDS.filter(x => x.name.toLowerCase().startsWith(lastParamName!!));
+        case "select": cliResults = await getRecordsSelectVerbs(cliDataVal, lastParam);
+            break;
+
+        case "filter":
+            break;
+
+        case "view": cliResults = await getRecordsViewVerbs(cliDataVal, lastParam);
+            break;
+
+        case "top": cliResults = getRecordsTopVerbs(cliDataVal, lastParam);
+            break;
     }
 
     return cliResults;
 }
 
 
-const getVerbsForODataQueryOptions = async (paramValue: string) => {
+const getRecordsSelectVerbs = async (cliData: CliData, lastParam: ActionParam) => {
+
+    let entityCollectionName = cliData.target;
+    let entityMetadata = await getEntityMetadataBasic(entityCollectionName);
+
+    let cliResults: Array<CLIVerb> = await getCLIVerbsAttributes(entityMetadata.LogicalName, IntelliSenseType.ActionParamValue, true);
+    cliResults.forEach(x => {
+        x.type = IntelliSenseType.ActionParamValue;
+        x.delimiterForMerging = ",";
+    })
+
+    cliResults = getVerbsFromCSV(lastParam.value, cliResults);
+    return cliResults;
+}
+
+
+const getRecordsViewVerbs = async (cliData: CliData, lastParam: ActionParam) => {
 
     let cliResults: Array<CLIVerb> = [];
 
+    let entityViewData = await getEntityViews(cliData.target);
+    let views = entityViewData.views
 
-    //identify if the param is top, filter or select and identify what dynamics verb results need to be shown
+    views.forEach(x => {
+        let group = (x.type == ViewType.SystemView) ? "System Views" : "My Views";
+        let groupOrder = (x.type == ViewType.SystemView) ? 1 : 2;
+        let cliVerb: CLIVerb = {
+            name: x.name,
+            type: IntelliSenseType.ActionParamValue,
+            group: group,
+            groupNumber: groupOrder
+        };
+        cliResults.push(cliVerb);
+    });
 
-
+    cliResults = getFilteredVerbs(lastParam.value, cliResults);
     return cliResults;
+}
 
+
+const getRecordsTopVerbs = (cliData: CliData, lastParam: ActionParam): Array<CLIVerb> => {
+
+    let properties = ["5", "10", "25", "50", "100", "250"];
+
+    let cliResults: Array<CLIVerb> = [];
+    properties.forEach(x => {
+        let cliVerb: CLIVerb = { name: x, type: IntelliSenseType.ActionParamValue };
+        cliResults.push(cliVerb);
+    });
+
+    cliResults = getFilteredVerbs(lastParam.value, cliResults);
+    return cliResults;
 
 }
