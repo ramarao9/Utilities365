@@ -4,6 +4,7 @@ import { getEntityCollectionName, getAttributeDisplayName, getEntityDisplayLabel
 import { EntityMetadata, AttributeMetadata, PicklistMetadata } from "../interfaces/EntityMetadata";
 import { CliData, ActionParam } from "../interfaces/CliData";
 import { Action } from "redux";
+import { Group } from "../interfaces/Group";
 
 export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => {
     cliVerbs = cliVerbs.map((x) => {
@@ -20,16 +21,54 @@ export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => 
             return (a.order > b.order) ? 1 : -1
         });
 
-        verbsWithoutOrder.sort((a, b) => {
-            return (a.name > b.name) ? 1 : -1
-        });
+        verbsWithoutOrder.sort(sortOnName);
 
         let sortedVerbs = [...verbsWithOrder, ...verbsWithoutOrder];
-        sortedVerbs[0].isSelected = true;
-        return sortedVerbs;
+        sortedVerbs.filter(x => !x.group).forEach(x => {
+            x.groupNumber = 0
+            x.group = "Default"
+        });
+
+        let groups: Array<Group> = getGroups(sortedVerbs);
+        let groupSortedVerbs: Array<CLIVerb> = [];
+        groups.forEach(x => {
+            let groupVerbs = sortedVerbs.filter(y => y.group === x.Name);
+            groupVerbs.sort(sortOnName);
+            groupSortedVerbs = [...groupSortedVerbs, ...groupVerbs];
+        })
+
+        if(groupSortedVerbs.length>0)
+        {
+            groupSortedVerbs[0].isSelected = true;
+        }
+       
+
+        return groupSortedVerbs;
     }
     return cliVerbs;
 }
+
+export const sortOnName = (a: CLIVerb, b: CLIVerb) => {
+    return (a.name > b.name) ? 1 : -1
+}
+
+export const getGroups = (sortedVerbs: Array<CLIVerb>) => {
+    let groupInfo = sortedVerbs.map(item => {
+        return { Name: item.group, Order: item.groupNumber };
+    });
+
+    let groups: Array<Group> = sortedVerbs.length > 0 ?
+        [...new Set(groupInfo.map(x => x.Name))].map(x => {
+            return groupInfo.find(y => y.Name === x)
+        }) as [] : [];
+
+    groups.sort((a: Group, b: Group) => {
+        return (a.Order > b.Order) ? 1 : -1
+    });
+
+    return groups;
+}
+
 export const removeODataTagsOnCollection = (records: any) => {
     if (records && records.length > 0) {
         records.forEach(function (record: any) {
@@ -91,8 +130,8 @@ export const getCLIVerbsForEntitiesWrite = async () => {
 }
 
 
-export const getCLIVerbsAttributes = async (entitySetName: string, intellisenseType?: IntelliSenseType, excludeFilters?: boolean) => {
-    let entityMetadata = await getEntity(entitySetName) as EntityMetadata;
+export const getCLIVerbsAttributes = async (entityLogicalName: string, intellisenseType?: IntelliSenseType, excludeFilters?: boolean) => {
+    let entityMetadata = await getEntity(entityLogicalName) as EntityMetadata;
 
     let attributeCliResults: Array<CLIVerb> = getCLIVerbsForAttributes(entityMetadata, intellisenseType, excludeFilters);
     return attributeCliResults;
@@ -204,7 +243,8 @@ export const getFilteredVerbs = (nameToFilterOn: string, verbs: CLIVerb[]): CLIV
     if (nameToFilterOn == null)
         return verbs;
 
-    return verbs.filter(x => x.name.toLowerCase().startsWith(nameToFilterOn.toLowerCase()));
+    return verbs.filter(x => x.name.toLowerCase().startsWith(nameToFilterOn.toLowerCase()) ||
+        (x.text && x.text.toLowerCase().startsWith(nameToFilterOn.toLowerCase())));
 }
 
 export const getVerbsFromCSV = (paramValueCSV: string, cliVerbsToFilter: CLIVerb[]): CLIVerb[] => {
@@ -216,12 +256,12 @@ export const getVerbsFromCSV = (paramValueCSV: string, cliVerbsToFilter: CLIVerb
     //In this case the user has made a selection, only if the last item does not have an exact match 
     //and if is empty than execute next steps
 
-    if (lastItem && cliVerbsToFilter.findIndex(x => x.name.toLowerCase() === lastItem!!.toLowerCase()) !== -1) {
+    if (lastItem && cliVerbsToFilter.findIndex(x => x.text && x.text.toLowerCase() === lastItem!!.toLowerCase()) !== -1) {
         return [];
     }
 
-    let filteredVerbs = cliVerbsToFilter.filter(x => x.name &&
-        paramItems.findIndex(y => y.toLowerCase() === x.name.toLowerCase()) === -1);
+    let filteredVerbs = cliVerbsToFilter.filter(x => (x.name && paramItems.findIndex(y => y.toLowerCase() === x.name!!.toLowerCase()) === -1) ||
+        (x.text && paramItems.findIndex(y => y.toLowerCase() === x.text!!.toLowerCase()) === -1));
 
     if (lastItem) {
         filteredVerbs = filteredVerbs.filter(x => x.name.toLowerCase().startsWith(lastItem!!.toLowerCase()) ||

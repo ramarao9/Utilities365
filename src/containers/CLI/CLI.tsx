@@ -48,10 +48,10 @@ export const CLI: React.FC = () => {
   }
 
   const onTerminalIntellisenseItemClick = async (ev: any, result: CLIVerb) => {
-    await retrieveAndSetIntelliSense(undefined, result, "click");
+    await retrieveAndSetIntelliSense(undefined, result);
   }
 
-  const retrieveAndSetIntelliSense = async (inputtoUse?: string, result?: CLIVerb | undefined, eventKey?: string) => {
+  const retrieveAndSetIntelliSense = async (inputtoUse?: string, result?: CLIVerb | undefined) => {
 
     console.log(`Entering retrieveAndSetIntelliSense...`);
 
@@ -91,7 +91,7 @@ export const CLI: React.FC = () => {
     if (ev.key === "Tab") {
       ev.preventDefault();
       let userInputText = getCurrentTextInput();//We use space as a delimiter when trying to indentify the IntelliSenseType(e.g. Action, target, ActionParams etc.)
-      retrieveAndSetIntelliSense(userInputText, undefined, ev.key.toLowerCase());
+      retrieveAndSetIntelliSense(userInputText, undefined);
       return;
     }
 
@@ -270,10 +270,7 @@ export const CLI: React.FC = () => {
   }
 
 
-  const performCLIAction = async () => {
-
-  }
-
+ 
   const clearTerminal = () => {
     setInputText("");
     setOutputs([]);
@@ -341,11 +338,6 @@ export const CLI: React.FC = () => {
 
   };
 
-  const addTextToOutput = (outputText: string) => {
-    const updatedOutputs = [...outputs];
-    updatedOutputs.push(outputText);
-    setOutputs(updatedOutputs);
-  };
 
 
 

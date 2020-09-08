@@ -32,13 +32,15 @@
     z-index: 999;
     display: block;
     background-color: rgb(37, 37, 38);
+    max-height: 150px;
+    overflow-y: auto;
 }
 
 .is-list-none{
     list-style-type: none;
     background-color: rgb(37, 37, 38);
-    max-height: 150px;
-    overflow-y: auto;
+    /* max-height: 150px;
+    overflow-y: auto; */
     width: 300px;
 }
 
@@ -46,7 +48,7 @@
 color: rgb(133,133,133);
 cursor: pointer;
 font-size: 12px;
-padding:0px 5px;
+padding:1px 5px;
 list-style-position:inside;
 white-space: nowrap;
 overflow: hidden;
@@ -59,6 +61,13 @@ text-overflow: ellipsis;
 
 .is-list-none li.selected{
     background-color:rgb(6,47,74);
+}
+
+.is-group-name{
+    font-weight: bold;
+    font-size: 12px;
+    color: ghostwhite;
+    padding:0px 5px;
 }
 
 .intsense-sub-title{

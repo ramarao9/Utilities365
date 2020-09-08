@@ -55,16 +55,17 @@ export const CLI_ACTION_PARAMS_GET_ENTITIES: Array<CLIVerb> = [ACTION_PARAMS_ENT
 
 
 
-
+export const GROUP_NAME_ODATA="OData";
+export const GROUP_NAME_FILTER_ATTRIBUTES="Filter on Attributes";
 export const ACTION_PARAM_GET_SELECT_NAME = "select";
 export const ACTION_PARAM_GET_TOP_NAME = "top";
 export const ACTION_PARAM_GET_ORDER_BY_NAME = "orderby";
 export const ACTION_PARAM_GET_VIEW_NAME = "view";
-export const ACTION_PARAMS_GET_FILTER: CLIVerb = { name: ACTION_PARAM_FILTER_NAME, description: "Provide the OData filter", type: IntelliSenseType.ActionParams };
-export const ACTION_PARAMS_GET_SELECT: CLIVerb = { name: ACTION_PARAM_GET_SELECT_NAME, description: "CSV of the attributes to be retrieved", type: IntelliSenseType.ActionParams };
-export const ACTION_PARAMS_GET_TOP: CLIVerb = { name: ACTION_PARAM_GET_TOP_NAME, description: "Limits the number of results returned", type: IntelliSenseType.ActionParams };
-export const ACTION_PARAMS_GET_ORDER_BY: CLIVerb = { name: ACTION_PARAM_GET_ORDER_BY_NAME, description: "Specify the order in which items are returned.", type: IntelliSenseType.ActionParams };
-export const ACTION_PARAMS_GET_VIEW: CLIVerb = { name: ACTION_PARAM_GET_VIEW_NAME, description: "Specify the system or user view", type: IntelliSenseType.ActionParams };
+export const ACTION_PARAMS_GET_FILTER: CLIVerb = { name: ACTION_PARAM_FILTER_NAME, description: "Provide the OData filter", type: IntelliSenseType.ActionParams, group:GROUP_NAME_ODATA,groupNumber:1};
+export const ACTION_PARAMS_GET_SELECT: CLIVerb = { name: ACTION_PARAM_GET_SELECT_NAME, description: "CSV of the attributes to be retrieved", type: IntelliSenseType.ActionParams, group:GROUP_NAME_ODATA,groupNumber:1 };
+export const ACTION_PARAMS_GET_TOP: CLIVerb = { name: ACTION_PARAM_GET_TOP_NAME, description: "Limits the number of results returned", type: IntelliSenseType.ActionParams, group:GROUP_NAME_ODATA,groupNumber:1 };
+export const ACTION_PARAMS_GET_ORDER_BY: CLIVerb = { name: ACTION_PARAM_GET_ORDER_BY_NAME, description: "Specify the order in which items are returned.", type: IntelliSenseType.ActionParams, group:GROUP_NAME_ODATA,groupNumber:1 };
+export const ACTION_PARAMS_GET_VIEW: CLIVerb = { name: ACTION_PARAM_GET_VIEW_NAME, description: "Specify the system or user view", type: IntelliSenseType.ActionParams, group:GROUP_NAME_ODATA,groupNumber:1 };
 export const CLI_ACTION_PARAMS_GET_RECORDS: Array<CLIVerb> = [ACTION_PARAMS_GET_FILTER,
     ACTION_PARAMS_GET_SELECT,
     ACTION_PARAMS_GET_TOP,

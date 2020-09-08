@@ -1,6 +1,6 @@
 import { CliData, ActionParam } from "../../../interfaces/CliData";
 import { CLI_TARGET_GET } from "../Definitions/Target/Get"
-import { CLI_ACTION_PARAMS_GET_RECORDS, CLI_ACTION_PARAMS_GET_ENTITY, CLI_ACTION_PARAMS_GET_ENTITIES, CLI_ACTION_PARAMS_GET_ATTRIBUTE, CLI_ACTION_PARAMS_GET_ATTRIBUTES } from "../Definitions/ActionParams/Get"
+import { CLI_ACTION_PARAMS_GET_RECORDS, CLI_ACTION_PARAMS_GET_ENTITY, CLI_ACTION_PARAMS_GET_ENTITIES, CLI_ACTION_PARAMS_GET_ATTRIBUTE, CLI_ACTION_PARAMS_GET_ATTRIBUTES, GROUP_NAME_FILTER_ATTRIBUTES } from "../Definitions/ActionParams/Get"
 import { getEntities, getEntityMetadataBasic } from "../../CrmMetadataService"
 import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
 import { EntityMetadata } from "../../../interfaces/EntityMetadata"
@@ -421,30 +421,17 @@ const getPropertiesOnEntity = (): string[] => {
 //Retrieves the CLI Verbs for either the parameter itself or for the data that needs to be set for the parameter
 const getActionParamsForRecords = async (userInput: string, cliDataVal: CliData) => {
 
-    // let actionParams = cliDataVal.actionParams;
-
-    // let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
-
-    // if (lastParam == undefined || lastParam.name == undefined)
-    //     return CLI_ACTION_PARAMS_GET_RECORDS;
-
-
-    // let lastParamName = lastParam.name.toLowerCase();
-    // let paramMatched = CLI_ACTION_PARAMS_GET_RECORDS.find(x => x.name.toLowerCase() === lastParamName);
-    // let paramValue = lastParam.value;
-    // if (paramMatched) {//When the Param name is already populated, this indicates we need to provide the Verbs for the data present in the value
-    //     cliResults = await getVerbsForODataQueryOptions(paramValue) as Array<CLIVerb>;
-    // }
-    // else if (lastParamName && lastParamName.length > 0) {//No param has been completely matched.In this case just filter the results
-    //     cliResults = CLI_ACTION_PARAMS_GET_RECORDS.filter(x => x.name.toLowerCase().startsWith(lastParamName!!));
-    // }
-
-
-
 
     let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
 
-    let verbsWhenPartialOrNoMatch = getNameVerbsPartialOrNoMatch(userInput, lastParam, CLI_ACTION_PARAMS_GET_RECORDS);
+    let entityMetadata: EntityMetadata = await getEntityMetadataBasic(cliDataVal.target);
+
+    if (!entityMetadata)
+        return;
+
+    let attributes: Array<CLIVerb> = await getCliVerbsForAttributesOnGet(entityMetadata.LogicalName);
+    let cliVerbs: CLIVerb[] = [...attributes,...CLI_ACTION_PARAMS_GET_RECORDS];
+    let verbsWhenPartialOrNoMatch = getNameVerbsPartialOrNoMatch(userInput, lastParam, cliVerbs);
     if (verbsWhenPartialOrNoMatch)
         return verbsWhenPartialOrNoMatch;
 
@@ -468,6 +455,17 @@ const getActionParamsForRecords = async (userInput: string, cliDataVal: CliData)
     return cliResults;
 }
 
+
+const getCliVerbsForAttributesOnGet=async (entityLogicalName:string)=>{
+    let attributes: Array<CLIVerb> = await getCLIVerbsAttributes(entityLogicalName, IntelliSenseType.ActionParams, true);
+
+    attributes.forEach(x=>{
+        x.group=GROUP_NAME_FILTER_ATTRIBUTES
+        x.groupNumber=20;
+    });
+
+    return attributes;
+}
 
 const getRecordsSelectVerbs = async (cliData: CliData, lastParam: ActionParam) => {
 

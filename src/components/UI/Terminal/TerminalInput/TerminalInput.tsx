@@ -1,6 +1,8 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import "./TerminalInput.css";
 import { CliIntelliSense, CLIVerb } from "../../../../interfaces/CliIntelliSense"
+import { Group } from "../../../../interfaces/Group";
+import { getGroups } from "../../../../helpers/cliutil";
 interface TerminalInp {
   terminalInputText: string;
   intelliSenseResults: CliIntelliSense;
@@ -15,22 +17,13 @@ interface TerminalInp {
 export const TerminalInput: React.FC<TerminalInp> = (terminalInpProp: TerminalInp) => {
 
 
-  const refs = useRef(new Array(terminalInpProp.intelliSenseResults.results.length));
-
-  useEffect(() => {
-    let results = terminalInpProp.intelliSenseResults.results;
-
-    if (results) {
-      let selectedItemIndex = results.findIndex(x => x.isSelected);
-      if (selectedItemIndex != -1) {
-        let selectedItem: any = refs.current[selectedItemIndex];
-        if (selectedItem) {
-          selectedItem.scrollIntoView();
-        }
-      }
+  const setScrollPosition= useCallback((el:any,isSelected:boolean| undefined) => {
+    if (el !== null && isSelected) {
+      el.scrollIntoView();
     }
+  }, []);
 
-  });
+
 
   let intellisenseStyle = {
     left: terminalInpProp.intelliSenseResults.currentPos.left
@@ -40,17 +33,37 @@ export const TerminalInput: React.FC<TerminalInp> = (terminalInpProp: TerminalIn
   let intelliSenseContent = null;
   if (terminalInpProp.intelliSenseResults && terminalInpProp.intelliSenseResults.results) {
     let results = terminalInpProp.intelliSenseResults.results;
-    if (results.length > 0) {
-      intelliSenseContent = (<div className="intellisense-results" style={intellisenseStyle}>
-        <ul className="is-list-none">
-          {results.map((resultItem: CLIVerb, index: number) => (
-            <li ref={el => refs.current[index] = el} key={resultItem.text ? `${resultItem.text}_${resultItem.name}` : resultItem.name} onMouseDown={event => terminalInpProp.onIntelliSenseItemClick(event, resultItem)} className={resultItem.isSelected ? 'selected' : ''}>
-              {resultItem.name}
-              {(resultItem.description !== "") ? (<span className="intsense-sub-title">{resultItem.description}</span>) : <span></span>}
-            </li>
-          ))}
-        </ul>
-      </div>);
+
+    const groups: Array<Group> = getGroups(results);
+
+    if (groups.length > 0) {
+
+      intelliSenseContent = (
+        <div className="intellisense-results" style={intellisenseStyle}>
+          {groups.map((group: Group, index: number) => {
+
+            let groupName = group.Name;
+            let hideGroup = (groups.length === 0 || (groups.length === 1 && groupName === "Default"));
+            let groupResults = results.filter(x => x.group === groupName);
+
+            return (
+              <div className="is-group" key={`${groupName}_${index}`}>
+                {!hideGroup ? <div className="is-group-name">
+                  <span>{groupName}</span>
+                </div> : null}
+                <ul className="is-list-none">
+                  {groupResults.map((resultItem: CLIVerb, index: number) => {
+                    return (<li ref={el=>setScrollPosition(el,resultItem.isSelected)}  key={resultItem.text ? `${groupName}_${resultItem.text}_${resultItem.name}` : `${groupName}_${resultItem.name}`} onMouseDown={event => terminalInpProp.onIntelliSenseItemClick(event, resultItem)} className={resultItem.isSelected ? 'selected' : ''}>
+                      {resultItem.name}
+                      {(resultItem.description !== "") ? (<span className="intsense-sub-title">{resultItem.description}</span>) : <span></span>}
+                    </li>)
+                  })}
+                </ul>
+              </div>
+            )
+          })}
+        </div>
+      );
     }
   }
 
@@ -70,7 +83,7 @@ export const TerminalInput: React.FC<TerminalInp> = (terminalInpProp: TerminalIn
           ref={terminalInpProp.inputRef}
         />
       </div>
-      {intelliSenseContent} 
+      {intelliSenseContent}
     </div>
   </div>);
 };

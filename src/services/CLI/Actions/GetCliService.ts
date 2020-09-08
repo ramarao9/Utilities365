@@ -340,6 +340,9 @@ const getRequestBody = async (cliData: CliData) => {
     let parsedFilter = parseQueryFunctionInFilterIfAny(filterParam.value);
     retrieveMultipleRequest.filter = parsedFilter;
   }
+  else {
+    retrieveMultipleRequest.top = 250;//Default records if no filter specified
+  }
 
   if (selectParam != null && selectParam.value != null) {
     let attributesCSV = selectParam.value as string;
