@@ -1,4 +1,4 @@
-import { Option, OptionData } from "../interfaces/EntityMetadata";
+import { Option, OptionData, EntityMetadata, AttributeMetadata } from "../interfaces/EntityMetadata";
 import { CliData, ActionParam } from "../interfaces/CliData"
 import { expand } from "../interfaces/expand";
 import { getArrayFromCSV, getParamVal, getAttributeMetadataName, getFirstLabelFromLocalizedLabels } from "../helpers/common";
@@ -125,7 +125,78 @@ ${labelValue}`;
 
 }
 
+export const buildFilterUsingAttributeParams = (entitymetadata: EntityMetadata, actionParams: Array<ActionParam>): string => {
 
+    let attributes = entitymetadata.Attributes;
+
+    let filterOperator=getFilterOperator(actionParams);
+    let filter: string = actionParams.reduce((acc: string, x: ActionParam, currentIndex: number): string => {
+        let attributeLogicalName = x.name.toLowerCase();
+        let attributeMetadata = attributes.find(x => x.LogicalName === attributeLogicalName);
+        if (attributeMetadata && x.value) {
+            let odataCondition = getODataCondition(x.value, attributeMetadata);
+
+
+            let operator = currentIndex === 0 ? "" : filterOperator;
+            if (odataCondition) {
+                acc += ` ${operator} ${odataCondition}`;
+            }
+        }
+
+        return acc;
+    }, "");
+
+
+    return filter.trim();
+}
+
+
+const getFilterOperator = (actionParams: Array<ActionParam>) => {
+    let filterOperatorParam = getActionParam("filterOperator", actionParams);
+    let operatorToUse = filterOperatorParam && filterOperatorParam.value ? filterOperatorParam.value : "and";
+    return operatorToUse;
+}
+
+const getODataCondition = (attQueryInfo: string, attributeMetadata: AttributeMetadata): string | undefined => {
+
+
+    let attQueryArr = attQueryInfo.split(' ');
+    let attValue = attQueryArr.length === 2 ? attQueryArr[1] : attQueryArr[0];
+    let condOperator = attQueryArr.length === 2 ? attQueryArr[0] : "eq";
+
+    let attValueOnFilter = getAttributeValueOnODataFilter(attValue, attributeMetadata);
+    if (!attValueOnFilter)
+        return attValueOnFilter;
+
+    let oDataCondition: string = `${attributeMetadata.LogicalName} ${condOperator} ${attValueOnFilter}`;
+    return oDataCondition;
+
+}
+
+
+const getAttributeValueOnODataFilter = (attValue: string, attributeMetadata: AttributeMetadata): string | undefined => {
+
+    let valueToUseForFilter = undefined;
+    switch (attributeMetadata.AttributeType) {
+
+        case "Memo":
+        case "String": valueToUseForFilter = `'${attValue}'`;
+            break;
+
+        case "Money":
+        case "DateTime":
+        case "Boolean":
+        case "Picklist":
+        case "Lookup":
+        case "Integer": valueToUseForFilter = `${attValue}`;
+            break;
+
+    }
+
+
+    return valueToUseForFilter;
+
+}
 
 export const parseQueryFunctionInFilterIfAny = (filter: string): string => {
 
@@ -137,7 +208,7 @@ export const parseQueryFunctionInFilterIfAny = (filter: string): string => {
 
         let functionNameLC = queryFunction.Name.toLowerCase();
 
-        while (runningFilterLowerCase.indexOf(functionNameLC+"(") != -1) {
+        while (runningFilterLowerCase.indexOf(functionNameLC + "(") != -1) {
 
             let indexOfCurrentFunction = runningFilterLowerCase.indexOf(functionNameLC);
             let substrFromCurrentFunctionIndex = parsedFilter.substr(indexOfCurrentFunction);

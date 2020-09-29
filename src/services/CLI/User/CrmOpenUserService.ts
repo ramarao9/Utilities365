@@ -69,7 +69,7 @@ export const handleUserActionWithNamedParams = async (
     );
   }
 
-  let responseData = matchedUsers.value;
+  let responseData: any = matchedUsers.value;
 
   if (responseData.length === 0) {
     return getCliResponse(

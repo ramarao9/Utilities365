@@ -10,7 +10,7 @@ export const getRoleId = async (roleName: string, businessUnitId: string) => {
 
     let retrieveMultipleResp = await retrieveMultiple(retrieveMultipleRequest);
 
-    let responseData = retrieveMultipleResp.value;
+    let responseData:any = retrieveMultipleResp.value;
     if (responseData.length === 0) {
         throw new Error(`No role with name ${roleName} exists. Please check the name and try again.`);
     }

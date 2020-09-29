@@ -3,10 +3,10 @@ import { getEntityMetadataBasic } from '../CrmMetadataService';
 
 import { retrieveMultiple } from '../../helpers/webAPIClientHelper';
 
-export async function getCRMRecord(cliData : any) {
+export async function getCRMRecord(cliData: any) {
 
 
-    let entityMetadata = await getEntityMetadataBasic(cliData.target);
+    let entityMetadata: any = await getEntityMetadataBasic(cliData.target);
 
 
     if (entityMetadata == null)
@@ -39,14 +39,22 @@ export async function getCRMRecord(cliData : any) {
 
 
 
-    let entity = results[0];
+    let entity: any = results[0];
+    let id: any = entity[entityMetadata.PrimaryIdAttribute];
+    let name: any = entity[entityMetadata.PrimaryNameAttribute];
+    let resp: any = {
+        entityReference: {
+            id: id,
+            logicalname: entityMetadata.LogicalName,
+            name: name
+        }
+    };
 
-    return { entityReference: { id: entity[entityMetadata.PrimaryIdAttribute], logicalname: entityMetadata.LogicalName, name : entity[entityMetadata.PrimaryNameAttribute]} };
-
+    return resp;
 }
 
 
-function getEntityFilter(entityMetadata : any, cliData : any) {
+function getEntityFilter(entityMetadata: any, cliData: any) {
 
     if (IsEmpty(cliData.actionParams) && IsEmpty(cliData.unnamedParam))
         return null;
@@ -56,8 +64,8 @@ function getEntityFilter(entityMetadata : any, cliData : any) {
         return entityMetadata.PrimaryNameAttribute + " eq '" + cliData.unnamedParam + "'";
 
 
-    let entityFilters : Array<any> = [];
-    cliData.actionParams.forEach((param : any) => {
+    let entityFilters: Array<any> = [];
+    cliData.actionParams.forEach((param: any) => {
         if (!IsEmpty(param.name) && !IsEmpty(param.value)) {
             entityFilters.push(param.name + " eq '" + param.value + "'");
         }

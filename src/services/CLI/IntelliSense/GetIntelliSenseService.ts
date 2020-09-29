@@ -1,9 +1,14 @@
 import { CliData, ActionParam } from "../../../interfaces/CliData";
 import { CLI_TARGET_GET } from "../Definitions/Target/Get"
-import { CLI_ACTION_PARAMS_GET_RECORDS, CLI_ACTION_PARAMS_GET_ENTITY, CLI_ACTION_PARAMS_GET_ENTITIES, CLI_ACTION_PARAMS_GET_ATTRIBUTE, CLI_ACTION_PARAMS_GET_ATTRIBUTES, GROUP_NAME_FILTER_ATTRIBUTES } from "../Definitions/ActionParams/Get"
+import {
+    CLI_ACTION_PARAMS_GET_RECORDS, CLI_ACTION_PARAMS_GET_ENTITY, CLI_ACTION_PARAMS_GET_ENTITIES,
+    CLI_ACTION_PARAMS_GET_ATTRIBUTE, CLI_ACTION_PARAMS_GET_ATTRIBUTES, GROUP_NAME_FILTER_ATTRIBUTES,
+    CLI_ACTION_PARAMS_GET_COMMON_CONDITIONS, CLI_ACTION_PARAMS_GET_NUMERIC_CONDITIONS,
+    CLI_ACTION_PARAMS_GET_STRING_CONDITIONS
+} from "../Definitions/ActionParams/Get"
 import { getEntities, getEntityMetadataBasic } from "../../CrmMetadataService"
 import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
-import { EntityMetadata } from "../../../interfaces/EntityMetadata"
+import { AttributeMetadata, EntityMetadata } from "../../../interfaces/EntityMetadata"
 import { getCleanedCLIVerbs, getCLIVerbsForEntities, getLastParam, getNameVerbsPartialOrNoMatch, getEntityCLIVerbs, getFilteredVerbs, getVerbsFromCSV, getCLIVerbsAttributes } from "../../../helpers/cliutil";
 import { getEntityCollectionName } from "../../../helpers/metadatautil";
 import { getActionParam } from "../../../helpers/QueryHelper";
@@ -430,7 +435,16 @@ const getActionParamsForRecords = async (userInput: string, cliDataVal: CliData)
         return;
 
     let attributes: Array<CLIVerb> = await getCliVerbsForAttributesOnGet(entityMetadata.LogicalName);
-    let cliVerbs: CLIVerb[] = [...attributes,...CLI_ACTION_PARAMS_GET_RECORDS];
+    let cliVerbs: CLIVerb[] = [...attributes, ...CLI_ACTION_PARAMS_GET_RECORDS];
+
+
+    let attributesMetadata = entityMetadata.Attributes;
+    let isAttribute = isLastParamAttribute(lastParam, attributesMetadata);
+    if (isAttribute) {
+        cliVerbs = getVerbsWhenAttributeOnGetRecords(lastParam!!, attributesMetadata);
+        return cliVerbs;
+    }
+
     let verbsWhenPartialOrNoMatch = getNameVerbsPartialOrNoMatch(userInput, lastParam, cliVerbs);
     if (verbsWhenPartialOrNoMatch)
         return verbsWhenPartialOrNoMatch;
@@ -450,18 +464,70 @@ const getActionParamsForRecords = async (userInput: string, cliDataVal: CliData)
 
         case "top": cliResults = getRecordsTopVerbs(cliDataVal, lastParam);
             break;
+
+        case "logicaloperator": cliResults = getRecordsLogicalOperatorVerbs(cliDataVal, lastParam);
+            break;
     }
 
     return cliResults;
 }
 
+//If the last param in the CLI is an attribute
+//e.g. get contacts --birthdate  in this example the last param birthdate is an attribute
+export const isLastParamAttribute = (lastParam: ActionParam | undefined, attributes: Array<AttributeMetadata>): Boolean => {
+    return lastParam != undefined &&
+        lastParam &&
+        (attributes.findIndex(x => x.LogicalName && x.LogicalName === lastParam.name) !== -1);
+}
 
-const getCliVerbsForAttributesOnGet=async (entityLogicalName:string)=>{
+export const getVerbsWhenAttributeOnGetRecords = (param: ActionParam, attributes: Array<AttributeMetadata>): Array<CLIVerb> => {
+    let cliResults: Array<CLIVerb> = [];
+    let attributeName = param.name!!;
+    let attributeMetadata = attributes.find(x => x.LogicalName === attributeName);
+    if (!attributeMetadata)
+        return cliResults;
+
+    cliResults = CLI_ACTION_PARAMS_GET_COMMON_CONDITIONS;
+    switch (attributeMetadata.AttributeType.toLowerCase()) {
+
+        case "decimal":
+        case "double":
+        case "money":
+        case "integer": cliResults = cliResults.concat(CLI_ACTION_PARAMS_GET_NUMERIC_CONDITIONS);
+            break;
+
+        case "datetime":
+            break;
+
+        case "uniqueidentifier":
+            break;
+
+        //String, Memo, Picklist, Boolean, Status, Lookup
+        default: cliResults = cliResults.concat(CLI_ACTION_PARAMS_GET_STRING_CONDITIONS);
+    }
+
+
+
+    if (param.value && param.value.length >= 2 &&
+        cliResults.findIndex(x => x.name && (x.name.toLowerCase().startsWith(param.value.toLowerCase()) ||
+            param.value.toLowerCase().startsWith(x.name.toLowerCase()))) !== -1) {
+        return []; // in this case the condition verb has already been filled, the user just needs to provide the value
+    }
+
+    if (param.value) {
+        cliResults = cliResults.filter(x => x.name.toLowerCase().startsWith(param.value.toLowerCase()));
+    }
+
+
+    return cliResults;
+}
+
+const getCliVerbsForAttributesOnGet = async (entityLogicalName: string) => {
     let attributes: Array<CLIVerb> = await getCLIVerbsAttributes(entityLogicalName, IntelliSenseType.ActionParams, true);
 
-    attributes.forEach(x=>{
-        x.group=GROUP_NAME_FILTER_ATTRIBUTES
-        x.groupNumber=20;
+    attributes.forEach(x => {
+        x.group = GROUP_NAME_FILTER_ATTRIBUTES
+        x.groupNumber = 20;
     });
 
     return attributes;
@@ -510,6 +576,22 @@ const getRecordsViewVerbs = async (cliData: CliData, lastParam: ActionParam) => 
 const getRecordsTopVerbs = (cliData: CliData, lastParam: ActionParam): Array<CLIVerb> => {
 
     let properties = ["5", "10", "25", "50", "100", "250"];
+
+    let cliResults: Array<CLIVerb> = [];
+    properties.forEach(x => {
+        let cliVerb: CLIVerb = { name: x, type: IntelliSenseType.ActionParamValue };
+        cliResults.push(cliVerb);
+    });
+
+    cliResults = getFilteredVerbs(lastParam.value, cliResults);
+    return cliResults;
+
+}
+
+
+const getRecordsLogicalOperatorVerbs = (cliData: CliData, lastParam: ActionParam): Array<CLIVerb> => {
+
+    let properties = ["and", "or"];
 
     let cliResults: Array<CLIVerb> = [];
     properties.forEach(x => {

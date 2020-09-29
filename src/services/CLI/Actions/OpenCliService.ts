@@ -94,7 +94,7 @@ const openEntity = async (cliData: CliData) => {
     retrieveMultipleRequest.filter = `uniquename eq 'Default'`;
 
     let retrieveResponse = await retrieveMultiple(retrieveMultipleRequest);
-    let responseData = retrieveResponse.value;
+    let responseData :any= retrieveResponse.value;
     let solutionRecord = responseData[0];
     let solutionId = solutionRecord.solutionid;
 
@@ -180,7 +180,7 @@ async function getCRMRecord(cliData: any) {
       "Multiple records found. Please refine the criteria and try again"
     );
 
-  let entity = results[0];
+  let entity :any= results[0];
 
   return {
     entityReference: {

@@ -64,7 +64,7 @@ const addRoleToUser = async (cliData: CliData) => {
 
 
 
-    let systemuser = await getUser(user);
+    let systemuser : any = await getUser(user);
     let roleId = await getRoleId(role,systemuser._businessunitid_value);
 
 

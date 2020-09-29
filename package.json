@@ -60,9 +60,9 @@
     "electron-builder": "^21.2.0",
     "electron-devtools-installer": "^2.2.4",
     "node-sass": "^4.14.1",
-    "react-scripts": "^3.4.1",
+    "react-scripts": "^3.4.3",
     "standard": "^14.3.1",
-    "typescript": "^3.7.2",
+    "typescript": "^3.9.7",
     "typescript-tslint-plugin": "^0.5.5",
     "wait-on": "^3.3.0"
   },

@@ -68,7 +68,7 @@ const getSystemViews = async (entityname: string): Promise<ViewData[]> => {
     };
 
     let retrieveMultipleResp = await retrieveMultiple(retrieveMultipleRequest);
-    let responseData = retrieveMultipleResp.value;
+    let responseData : any= retrieveMultipleResp.value;
     (responseData).forEach((entity: any) => {
 
 
@@ -97,7 +97,7 @@ const getUserViews = async (entityname: string): Promise<ViewData[]> => {
     };
 
     let retrieveMultipleResp = await retrieveMultiple(retrieveMultipleRequest);
-    let responseData = retrieveMultipleResp.value;
+    let responseData : any = retrieveMultipleResp.value;
     (responseData).forEach((entity: any) => {
 
         let view: ViewData = { name: entity.name, fetchXml: entity.fetchxml, id: entity.id, type: ViewType.UserView };

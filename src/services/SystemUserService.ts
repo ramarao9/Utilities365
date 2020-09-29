@@ -19,7 +19,7 @@ export const getUser = async (user: string) => {
 
     let retrieveMultipleResp = await retrieveMultiple(retrieveMultipleRequest);
 
-    let responseData = retrieveMultipleResp.value;
+    let responseData : any= retrieveMultipleResp.value;
     if (responseData.length === 0) {
         throw new Error(`No user exists. Please check the user information and try again.`);
     }

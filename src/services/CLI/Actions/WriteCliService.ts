@@ -214,7 +214,7 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
               }
               let retrieveResp = await retrieveAll(targetEntityCollectionName, [targetEntityPrimaryIdAttribute], filter);
               if (retrieveResp.value != null && retrieveResp.value.length === 1) {
-                let targetEnt = retrieveResp.value[0];
+                let targetEnt : any= retrieveResp.value[0];
                 targetGuid = targetEnt[targetEntityPrimaryIdAttribute];
               }
             }

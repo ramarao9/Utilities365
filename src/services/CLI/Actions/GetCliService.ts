@@ -19,7 +19,7 @@ import { EntityMetadata } from "../../../interfaces/EntityMetadata";
 import {
   getTypeQueryParam, getExpandQueryParam, getAlternateKey, getActionParam,
   getPrimaryIdAttribute, getFilterWhenAttributes, getOptionSetLabelValues,
-  hasActionParamVal, parseQueryFunctionInFilterIfAny
+  hasActionParamVal, parseQueryFunctionInFilterIfAny, buildFilterUsingAttributeParams
 } from "../../../helpers/QueryHelper";
 import { deleteODataProperties } from "../../../helpers/metadatautil";
 import { getFetchXml } from "../../ViewService";
@@ -98,7 +98,7 @@ const getEntity = async (cliData: CliData) => {
   let expandQueryParam = getExpandQueryParam(expandParam, undefined);
 
   let properties = propertiesParam ? getArrayFromCSV(propertiesParam.value) : undefined;
-  let retrieveEntityResponse = await retrieveEntity(`LogicalName='${entityMetadata.LogicalName}'`, properties, expandQueryParam);
+  let retrieveEntityResponse:any = await retrieveEntity(`LogicalName='${entityMetadata.LogicalName}'`, properties, expandQueryParam);
 
   if (retrieveEntityResponse) {
     delete retrieveEntityResponse["@odata.context"];
@@ -321,28 +321,21 @@ const getRequestBody = async (cliData: CliData) => {
   let isValidId = isValidGuid(cliData.unnamedParam);
 
 
-  let filterParam = getActionParam("filter", actionParams);
   let selectParam = getActionParam("select", actionParams);
   let topParam = getActionParam("top", actionParams);
   let orderByParam = getActionParam("orderby", actionParams);
-
   let retrieveMultipleRequest: any = {};
   retrieveMultipleRequest.collection = entityMetadata.EntitySetName;
 
 
-  if (isValidId) {
-    retrieveMultipleRequest.filter = `${entityMetadata.PrimaryIdAttribute} eq ${cliData.unnamedParam}`;
-  }
-  else if (cliData.unnamedParam) {
-    retrieveMultipleRequest.filter = `${entityMetadata.PrimaryNameAttribute} eq '${cliData.unnamedParam}'`;
-  }
-  else if (filterParam != null && filterParam.value != null) {
-    let parsedFilter = parseQueryFunctionInFilterIfAny(filterParam.value);
-    retrieveMultipleRequest.filter = parsedFilter;
-  }
-  else {
+  let filter = getFilterForQuery(cliData, entityMetadata);
+  if (filter === "") {
     retrieveMultipleRequest.top = 250;//Default records if no filter specified
   }
+  else{
+    retrieveMultipleRequest.filter=filter;
+  }
+
 
   if (selectParam != null && selectParam.value != null) {
     let attributesCSV = selectParam.value as string;
@@ -364,6 +357,35 @@ const getRequestBody = async (cliData: CliData) => {
   return retrieveMultipleRequest;
 
 }
+
+
+const getFilterForQuery = (cliData: CliData, entityMetadata: EntityMetadata) => {
+
+  let odataFilter: string = "";
+  let isValidId = isValidGuid(cliData.unnamedParam);
+
+  let filterParam = getActionParam("filter", cliData.actionParams);
+  
+  if (cliData.unnamedParam) {
+    odataFilter = isValidId ? `${entityMetadata.PrimaryIdAttribute} eq ${cliData.unnamedParam}` :
+      `${entityMetadata.PrimaryNameAttribute} eq '${cliData.unnamedParam}'`;
+    return odataFilter;
+  }
+
+  if (filterParam != null && filterParam.value != null) {
+    odataFilter = parseQueryFunctionInFilterIfAny(filterParam.value);
+    return odataFilter;
+  }
+
+  if (cliData.actionParams) {
+    odataFilter = buildFilterUsingAttributeParams(entityMetadata, cliData.actionParams);
+  }
+
+  return odataFilter;
+}
+
+
+
 
 const getOrgDetail = async () => {
 
