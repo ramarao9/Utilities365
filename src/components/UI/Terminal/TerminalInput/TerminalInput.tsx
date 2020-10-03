@@ -3,6 +3,7 @@ import "./TerminalInput.css";
 import { CliIntelliSense, CLIVerb } from "../../../../interfaces/CliIntelliSense"
 import { Group } from "../../../../interfaces/Group";
 import { getGroups } from "../../../../helpers/cliutil";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 interface TerminalInp {
   terminalInputText: string;
   intelliSenseResults: CliIntelliSense;
@@ -69,7 +70,8 @@ export const TerminalInput: React.FC<TerminalInp> = (terminalInpProp: TerminalIn
 
   return (<div className="terminal-input">
     <div>
-      <span className="terminal-prompt">&gt;</span>
+      <span className="terminal-prompt">
+        <FontAwesomeIcon icon="greater-than" color="lightgreen" style={{ height:'14px'}}   size="1x"/></span>
     </div>
     <div className="terminal-inp-cont">
       <div>

@@ -3,6 +3,8 @@ import { CliData, ActionParam } from "../interfaces/CliData"
 import { expand } from "../interfaces/expand";
 import { getArrayFromCSV, getParamVal, getAttributeMetadataName, getFirstLabelFromLocalizedLabels } from "../helpers/common";
 import { QueryFunction, FunctionParameter, FunctionReturnType } from "../interfaces/QueryFunction";
+import { CONDITION_OPERATORS, REGULAR_CONDITION_OPERATORS, STANDARD_QUERY_FUNCTION_CONDITION_OPERATORS } from "../services/CLI/Definitions/ActionParams/Get";
+import { ConditionOperatorType } from "../interfaces/ConditionOperatorType";
 
 export const getTypeQueryParam = (typeParam: ActionParam | undefined): string | undefined => {
 
@@ -129,7 +131,7 @@ export const buildFilterUsingAttributeParams = (entitymetadata: EntityMetadata, 
 
     let attributes = entitymetadata.Attributes;
 
-    let filterOperator=getFilterOperator(actionParams);
+    let filterOperator = getFilterOperator(actionParams);
     let filter: string = actionParams.reduce((acc: string, x: ActionParam, currentIndex: number): string => {
         let attributeLogicalName = x.name.toLowerCase();
         let attributeMetadata = attributes.find(x => x.LogicalName === attributeLogicalName);
@@ -157,24 +159,130 @@ const getFilterOperator = (actionParams: Array<ActionParam>) => {
     return operatorToUse;
 }
 
-const getODataCondition = (attQueryInfo: string, attributeMetadata: AttributeMetadata): string | undefined => {
+export const getODataCondition = (attQueryInfo: string, attributeMetadata: AttributeMetadata): string | undefined => {
 
+    let attValue = getAttValueFromAttQueryInfo(attQueryInfo);
+    let conditionOperator = attQueryInfo.toLowerCase().replace(attValue, '').trim();
 
-    let attQueryArr = attQueryInfo.split(' ');
-    let attValue = attQueryArr.length === 2 ? attQueryArr[1] : attQueryArr[0];
-    let condOperator = attQueryArr.length === 2 ? attQueryArr[0] : "eq";
+    if (conditionOperator === "") {
+        conditionOperator = "eq";
+    }
 
     let attValueOnFilter = getAttributeValueOnODataFilter(attValue, attributeMetadata);
-    if (!attValueOnFilter)
-        return attValueOnFilter;
 
-    let oDataCondition: string = `${attributeMetadata.LogicalName} ${condOperator} ${attValueOnFilter}`;
-    return oDataCondition;
+
+    let oDataCondition: string = '';
+    let conditionOperatorType = getConditionOperatorType(conditionOperator);
+    switch (conditionOperatorType) {
+
+
+        case ConditionOperatorType.StandardQueryFunction:
+            oDataCondition = `${conditionOperator}(${attributeMetadata.LogicalName},${attValueOnFilter})`;
+            break;
+
+
+        case ConditionOperatorType.Regular:
+            oDataCondition = `${attributeMetadata.LogicalName} ${conditionOperator} ${attValueOnFilter}`;
+            break;
+
+        case ConditionOperatorType.QueryFunction:
+            oDataCondition = getConditionWhenQueryFunction(attributeMetadata, conditionOperator, attValue);
+            break;
+
+    }
+
+
+    return oDataCondition.trim();
 
 }
 
 
+export const getConditionWhenQueryFunction = (attributeMetadata: AttributeMetadata,
+    queryFunction: string, attValue: string): string => {
+
+    let functionDefinition = getFunctionDefinitionCaseInsensitive(queryFunction);
+    let formattedCondition = functionDefinition.DeclarationTemplate;
+
+    let propertyName=`'${attributeMetadata.LogicalName}'`;
+    formattedCondition = formattedCondition.replace("@p1", propertyName);//p1 is always going to be the PropertyName/LogicalName
+
+    let totalPropertyValuesOnFunction = functionDefinition.Parameters.filter(x => x.Name.startsWith("PropertyValue")).length;
+
+    let functionParams = attValue.split("|");
+    for (var i = 0; i < totalPropertyValuesOnFunction; i++) {
+        let parameterType = functionDefinition.Parameters[i + 1].Type;
+        let parameterValue = functionParams[i];
+
+        let parsedParamValue = parseParamValueByType(parameterType, parameterValue);
+        formattedCondition = formattedCondition.replace(`@p${i + 2}`, parsedParamValue);
+    }
+    return formattedCondition;
+}
+
+
+export const parseParamValueByType = (parameterType: string, parameterValue: string): string => {
+    let parsedParamValue = "";
+
+    switch (parameterType) {
+
+        case "Collection(Edm.String)": parsedParamValue = `[${parameterValue.replace(/"/g, "'")}]`;
+            break;
+
+        case "Edm.Int64": parsedParamValue = replaceQuotes(parameterValue);
+            break;
+
+        case "Edm.String": parsedParamValue = replaceQuotes(parameterValue);
+            parsedParamValue = `'${parsedParamValue}'`;
+            break;
+    }
+
+    return parsedParamValue;
+}
+
+export const getFunctionDefinitionCaseInsensitive = (queryFunction: string): QueryFunction => {
+    let queryFunctions = getAvailableQueryFunctionNames();
+
+    let matchedQueryFunctionByCase = queryFunctions.filter(x => x.toLowerCase() === queryFunction.toLowerCase());
+
+    //When the QueryFunction is invalid, 
+    if (!matchedQueryFunctionByCase || matchedQueryFunctionByCase.length !== 1)
+        throw new Error(`Unrecognized query function. Please check the name and try again.`);
+
+    let queryFunctionProperCase = matchedQueryFunctionByCase[0];
+
+    let functionDefinition = getFunctionDefinition(queryFunctionProperCase);
+    return functionDefinition!!;
+}
+
+export const getConditionOperatorType = (conditionOperator: string): ConditionOperatorType => {
+
+    if (REGULAR_CONDITION_OPERATORS.indexOf(conditionOperator.toLowerCase()) !== -1) {
+        return ConditionOperatorType.Regular;
+    }
+    else if (STANDARD_QUERY_FUNCTION_CONDITION_OPERATORS.indexOf(conditionOperator.toLowerCase()) !== -1)
+        return ConditionOperatorType.StandardQueryFunction;
+    else
+        return ConditionOperatorType.QueryFunction;
+}
+
+//attQueryInfo is an Action Param Value which is in the format of '{condition operator} {att value}'
+export const getAttValueFromAttQueryInfo = (attQueryInfo: string) => {
+
+    let sortedConditionOperators = CONDITION_OPERATORS.sort(function (a, b) {
+        return b.length - a.length;//Desc
+    });
+
+    sortedConditionOperators.forEach(x => {
+        attQueryInfo = attQueryInfo.toLowerCase().replace(x.toLowerCase(), '');
+    });
+
+    return attQueryInfo.trim();
+}
+
 const getAttributeValueOnODataFilter = (attValue: string, attributeMetadata: AttributeMetadata): string | undefined => {
+
+    if (attValue === "")
+        return attValue;
 
     let valueToUseForFilter = undefined;
     switch (attributeMetadata.AttributeType) {
@@ -274,7 +382,7 @@ const replaceQuotes = (stText: string): string => {
 
 const getQueryFunctionMetadataList = (): QueryFunction[] => {
     let queryFunctions = Array<QueryFunction>();
-    let queryFunctionNames = getAvilableQueryFunctionNames();
+    let queryFunctionNames = getAvailableQueryFunctionNames();
 
     (queryFunctionNames).forEach(functionName => {
         let funcDefinition = getFunctionDefinition(functionName);
@@ -286,7 +394,7 @@ const getQueryFunctionMetadataList = (): QueryFunction[] => {
 }
 
 
-const getAvilableQueryFunctionNames = (): string[] => {
+const getAvailableQueryFunctionNames = (): string[] => {
 
 
     let queryFunctionNames: Array<string> = [

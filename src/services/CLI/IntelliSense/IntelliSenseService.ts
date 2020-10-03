@@ -158,7 +158,7 @@ export const getUpdatedInputOnSelection = async (intellisenseInput: IntelliSense
             endIndexOfCurrentText = textBeforeCaret.length;
         }
         else {
-            textToReplaceWith = lastParamForCurrentPos.value + textToReplaceWith;
+          //  textToReplaceWith = lastParamForCurrentPos.value + textToReplaceWith;
         }
     }
 

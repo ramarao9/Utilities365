@@ -4,7 +4,7 @@ import {
     CLI_ACTION_PARAMS_GET_RECORDS, CLI_ACTION_PARAMS_GET_ENTITY, CLI_ACTION_PARAMS_GET_ENTITIES,
     CLI_ACTION_PARAMS_GET_ATTRIBUTE, CLI_ACTION_PARAMS_GET_ATTRIBUTES, GROUP_NAME_FILTER_ATTRIBUTES,
     CLI_ACTION_PARAMS_GET_COMMON_CONDITIONS, CLI_ACTION_PARAMS_GET_NUMERIC_CONDITIONS,
-    CLI_ACTION_PARAMS_GET_STRING_CONDITIONS
+    CLI_ACTION_PARAMS_GET_STRING_CONDITIONS, CLI_ACTION_PARAMS_GET_LOOKUP_CONDITIONS, CLI_ACTION_PARAMS_GET_DATETIME_CONDITIONS
 } from "../Definitions/ActionParams/Get"
 import { getEntities, getEntityMetadataBasic } from "../../CrmMetadataService"
 import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
@@ -465,7 +465,7 @@ const getActionParamsForRecords = async (userInput: string, cliDataVal: CliData)
         case "top": cliResults = getRecordsTopVerbs(cliDataVal, lastParam);
             break;
 
-        case "logicaloperator": cliResults = getRecordsLogicalOperatorVerbs(cliDataVal, lastParam);
+        case "filteroperator": cliResults = getRecordsLogicalOperatorVerbs(cliDataVal, lastParam);
             break;
     }
 
@@ -496,7 +496,10 @@ export const getVerbsWhenAttributeOnGetRecords = (param: ActionParam, attributes
         case "integer": cliResults = cliResults.concat(CLI_ACTION_PARAMS_GET_NUMERIC_CONDITIONS);
             break;
 
-        case "datetime":
+        case "datetime":cliResults=cliResults.concat(CLI_ACTION_PARAMS_GET_DATETIME_CONDITIONS);
+            break;
+
+        case "lookup":cliResults = cliResults.concat(CLI_ACTION_PARAMS_GET_LOOKUP_CONDITIONS);
             break;
 
         case "uniqueidentifier":
@@ -509,8 +512,8 @@ export const getVerbsWhenAttributeOnGetRecords = (param: ActionParam, attributes
 
 
     if (param.value && param.value.length >= 2 &&
-        cliResults.findIndex(x => x.name && (x.name.toLowerCase().startsWith(param.value.toLowerCase()) ||
-            param.value.toLowerCase().startsWith(x.name.toLowerCase()))) !== -1) {
+        cliResults.findIndex(x => x.name && (x.name.toLowerCase()===param.value.toLowerCase() ||
+            param.value.toLowerCase()===x.name.toLowerCase())) !== -1) {
         return []; // in this case the condition verb has already been filled, the user just needs to provide the value
     }
 

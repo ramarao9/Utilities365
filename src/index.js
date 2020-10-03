@@ -21,10 +21,12 @@ import {
   faEraser,
   faSlash,
   faAngleDown,
+  faGreaterThan,
   faBan
 } from "@fortawesome/free-solid-svg-icons";
 library.add(
   faAngleDown,
+  faGreaterThan,
   faTimes,
   faSearch,
   faEraser,

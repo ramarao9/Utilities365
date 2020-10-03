@@ -343,7 +343,6 @@ export const CLI: React.FC = () => {
 
   return (
     <React.Fragment>
-      <h2>CLI </h2>
       <div className="terminalContainer" >
         <Terminal
           outputs={outputs}
