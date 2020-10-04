@@ -69,6 +69,14 @@
   "build": {
     "appId": "com.electron.utilities365",
     "productName": "Utilities365",
+    "mac": {
+      "target": "dmg",
+      "icon": "build/u365.icns"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/u365.ico"
+    },
     "directories": {
       "buildResources": "assets"
     },
