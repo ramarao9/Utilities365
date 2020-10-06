@@ -315,7 +315,7 @@ const getParamsIntelliSense = async (userInput: string, cliDataVal: CliData) => 
         case ACTION_GET_NAME: cliResults = await getActionParamsForGet(userInput, cliDataVal);
             break;
 
-        case ACTION_OPEN_NAME: cliResults = getActionParamsForOpen(userInput, cliDataVal);
+        case ACTION_OPEN_NAME: cliResults = await getActionParamsForOpen(userInput, cliDataVal);
             break;
 
         case ACTION_REMOVE_NAME: cliResults = getActionParamsForRemove(userInput, cliDataVal);

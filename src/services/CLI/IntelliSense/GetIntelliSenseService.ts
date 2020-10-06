@@ -33,23 +33,23 @@ export const getActionParamsForGet = async (userInput: string, cliDataVal: CliDa
     switch (cliDataVal.target) {
 
 
-        case "attribute": cliResults = await getActionParamsForAttribute(userInput, cliDataVal) as Array<CLIVerb>;
+        case "attribute": cliResults = await getActionParamsFor_Get_Attribute(userInput, cliDataVal) as Array<CLIVerb>;
             break;
 
-        case "attributes": cliResults = await getActionParamsForAttributes(userInput, cliDataVal) as Array<CLIVerb>;
+        case "attributes": cliResults = await getActionParamsFor_Get_Attributes(userInput, cliDataVal) as Array<CLIVerb>;
             break;
 
-        case "entity": cliResults = await getActionsParamsForEntity(userInput, cliDataVal) as Array<CLIVerb>;
+        case "entity": cliResults = await getActionsParamsFor_Get_Entity(userInput, cliDataVal) as Array<CLIVerb>;
             break;
 
-        case "entities": cliResults = await getActionsParamsForEntities(userInput, cliDataVal) as Array<CLIVerb>;
+        case "entities": cliResults = await getActionsParamsFor_Get_Entities(userInput, cliDataVal) as Array<CLIVerb>;
             break;
 
         case "org-detail":
             break;
 
         //Get records 
-        default: cliResults = await getActionParamsForRecords(userInput, cliDataVal) as Array<CLIVerb>;
+        default: cliResults = await getActionParamsFor_Get_Records(userInput, cliDataVal) as Array<CLIVerb>;
             break;
     }
 
@@ -57,7 +57,7 @@ export const getActionParamsForGet = async (userInput: string, cliDataVal: CliDa
 }
 
 
-const getActionParamsForAttribute = async (userInput: string, cliDataVal: CliData) => {
+const getActionParamsFor_Get_Attribute = async (userInput: string, cliDataVal: CliData) => {
 
 
     let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
@@ -70,7 +70,7 @@ const getActionParamsForAttribute = async (userInput: string, cliDataVal: CliDat
     let cliResults: Array<CLIVerb> = [];
     switch (lastParam?.name) {
 
-        case "entity": cliResults = await getEntityVerbs(lastParam);
+        case "entity": cliResults = await get_Entity_Param_Entity_Verbs(lastParam);
             break;
 
         case "type": cliResults = await getAttributeVerbs(cliDataVal, lastParam);
@@ -88,7 +88,7 @@ const getActionParamsForAttribute = async (userInput: string, cliDataVal: CliDat
 
 
 
-const getActionParamsForAttributes = async (userInput: string, cliDataVal: CliData) => {
+const getActionParamsFor_Get_Attributes = async (userInput: string, cliDataVal: CliData) => {
 
 
     let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
@@ -101,7 +101,7 @@ const getActionParamsForAttributes = async (userInput: string, cliDataVal: CliDa
     let cliResults: Array<CLIVerb> = [];
     switch (lastParam?.name) {
 
-        case "entity": cliResults = await getEntityVerbs(lastParam);
+        case "entity": cliResults = await get_Entity_Param_Entity_Verbs(lastParam);
             break;
 
         case "type": cliResults = await getAttributesTypeVerbs(cliDataVal, lastParam);
@@ -233,7 +233,7 @@ const getPropertiesOnAttribute = (): string[] => {
 
 
 
-export const getActionsParamsForEntity = async (userInput: string, cliDataVal: CliData) => {
+export const getActionsParamsFor_Get_Entity = async (userInput: string, cliDataVal: CliData) => {
 
     let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
 
@@ -245,26 +245,26 @@ export const getActionsParamsForEntity = async (userInput: string, cliDataVal: C
     let cliResults: Array<CLIVerb> = [];
     switch (lastParam?.name) {
 
-        case "entity": cliResults = await getEntityVerbs(lastParam);
+        case "entity": cliResults = await get_Entity_Param_Entity_Verbs(lastParam);
             break;
 
-        case "expand": cliResults = await getEntityExpandVerbs(lastParam);
+        case "expand": cliResults = await get_Entity_Param_Expand_Verbs(lastParam);
             break;
 
-        case "properties": cliResults = getEntityPropertiesVerbs(lastParam);
+        case "properties": cliResults = get_Entity_Param_Properties_Verbs(lastParam);
             break;
     }
 
     return cliResults;
 }
 
-const getEntityVerbs = async (lastParam: ActionParam) => {
+const get_Entity_Param_Entity_Verbs = async (lastParam: ActionParam) => {
     let cliResults: Array<CLIVerb> = await getEntityCLIVerbs();
     cliResults = getFilteredVerbs(lastParam.value, cliResults);
     return cliResults;
 }
 
-const getEntityExpandVerbs = async (lastParam: ActionParam) => {
+const get_Entity_Param_Expand_Verbs = async (lastParam: ActionParam) => {
     let expandPropertiesCliVerbs: Array<CLIVerb> = [];
     let expandProperties = ["Attributes", "Keys", "OneToManyRelationships", "ManyToOneRelationships", "ManyToManyRelationships"];
     expandProperties.forEach(x => {
@@ -275,7 +275,7 @@ const getEntityExpandVerbs = async (lastParam: ActionParam) => {
     return expandPropertiesCliVerbs;
 }
 
-const getEntityPropertiesVerbs = (lastParam: ActionParam): CLIVerb[] => {
+const get_Entity_Param_Properties_Verbs = (lastParam: ActionParam): CLIVerb[] => {
 
     let entityProperties = getPropertiesOnEntity();
     let entityPropertiesCliVerbs: CLIVerb[] = [];
@@ -289,7 +289,7 @@ const getEntityPropertiesVerbs = (lastParam: ActionParam): CLIVerb[] => {
     return entityPropertiesCliVerbs;
 }
 
-export const getActionsParamsForEntities = async (userInput: string, cliDataVal: CliData) => {
+export const getActionsParamsFor_Get_Entities = async (userInput: string, cliDataVal: CliData) => {
 
     let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
 
@@ -307,7 +307,7 @@ export const getActionsParamsForEntities = async (userInput: string, cliDataVal:
         case "filter":
             break;
 
-        case "properties": cliResults = getEntityPropertiesVerbs(lastParam);
+        case "properties": cliResults = get_Entity_Param_Properties_Verbs(lastParam);
             break;
     }
 
@@ -424,7 +424,7 @@ const getPropertiesOnEntity = (): string[] => {
 
 
 //Retrieves the CLI Verbs for either the parameter itself or for the data that needs to be set for the parameter
-const getActionParamsForRecords = async (userInput: string, cliDataVal: CliData) => {
+const getActionParamsFor_Get_Records = async (userInput: string, cliDataVal: CliData) => {
 
 
     let lastParam: ActionParam | undefined = getLastParam(cliDataVal);

@@ -31,8 +31,7 @@ export const handleCrmOpenActions = async (
 
   if (IsEmpty(target)) {
     return getErrorResponse(
-      `Unable to determine the target on which ${
-      cliData.action
+      `Unable to determine the target on which ${cliData.action
       } needs to be performed`
     );
 
@@ -94,7 +93,7 @@ const openEntity = async (cliData: CliData) => {
     retrieveMultipleRequest.filter = `uniquename eq 'Default'`;
 
     let retrieveResponse = await retrieveMultiple(retrieveMultipleRequest);
-    let responseData :any= retrieveResponse.value;
+    let responseData: any = retrieveResponse.value;
     let solutionRecord = responseData[0];
     let solutionId = solutionRecord.solutionid;
 
@@ -112,7 +111,7 @@ const openEntity = async (cliData: CliData) => {
   }
 }
 
-async function handleOpenRecordAction(cliData: any): Promise<CliResponse> {
+async function handleOpenRecordAction(cliData: CliData): Promise<CliResponse> {
   try {
     let result = await getCRMRecord(cliData);
     let targetRecord = result.entityReference;
@@ -126,14 +125,21 @@ async function handleOpenRecordAction(cliData: any): Promise<CliResponse> {
       openWindow(recordUrl, true);
     }
     else {
-      openRecord(targetRecord);
+      let mode = "UCI";//default
+      if (cliData.actionParams) {
+        let modeAP = getActionParam("mode", cliData.actionParams);
+        if (modeAP && modeAP.value) {
+          mode = modeAP.value;
+        }
+      }
+
+      openRecord(targetRecord, mode);
     }
 
 
 
     return getTextResponse(
-      `Record  ${targetRecord != null ? targetRecord.name : ""} with id ${
-      targetRecord != null ? targetRecord.id : ""
+      `Record  ${targetRecord != null ? targetRecord.name : ""} with id ${targetRecord != null ? targetRecord.id : ""
       } opened successfully!`,
       targetRecord
     );
@@ -173,14 +179,14 @@ async function getCRMRecord(cliData: any) {
   let results = await retrieveMultipleResponse.value;
 
   if (results == null || results.length === 0)
-    throw new Error("No match found");
+    throw new Error("No unique match found");
 
   if (results.length > 1)
     throw new Error(
       "Multiple records found. Please refine the criteria and try again"
     );
 
-  let entity :any= results[0];
+  let entity: any = results[0];
 
   return {
     entityReference: {
@@ -210,7 +216,9 @@ function getEntityFilter(entityMetadata: any, cliData: any) {
   let entityFilters = Array<string>();
   cliData.actionParams.forEach((param: ActionParam) => {
     if (!IsEmpty(param.name) && !IsEmpty(param.value)) {
-      entityFilters.push(param.name + " eq '" + param.value + "'");
+      if (param.name.toLowerCase() !== "mode") {
+        entityFilters.push(param.name + " eq '" + param.value + "'");
+      }
     }
   });
 
@@ -219,19 +227,15 @@ function getEntityFilter(entityMetadata: any, cliData: any) {
   return entityFilter;
 }
 
-function openRecord(entityreference: EntityReference) {
-  const userUrl = getRecordUrl(entityreference.logicalname, entityreference.id);
+function openRecord(entityreference: EntityReference, mode: string) {
+  const userUrl = getRecordUrl(entityreference.logicalname, entityreference.id, mode);
   openWindow(userUrl, true);
 }
 
-function getRecordUrl(logicalName: any, id: any) {
+function getRecordUrl(logicalName: string, id: string, mode: string) {
   const orgUrl = getCurrentOrgUrl();
-  const recordUrl =
-    orgUrl +
-    "/main.aspx?etn=" +
-    logicalName +
-    "&pagetype=entityrecord&id=%7B" +
-    id +
-    "%7D";
+
+  let uciParam = (mode && mode.toLowerCase() === "uci") ? "forceUCI=1&" : "";
+  const recordUrl = `${orgUrl}/main.aspx?${uciParam}etn=${logicalName}&pagetype=entityrecord&id=%7B${id}%7D`;
   return recordUrl;
 }
