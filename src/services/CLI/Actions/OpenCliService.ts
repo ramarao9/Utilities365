@@ -44,9 +44,16 @@ export const handleCrmOpenActions = async (
     case "search": cliResponse = openAdvFind();
       break;
 
+    case "new-record": cliResponse = openNewRecord(cliData);
+      break;
+
 
     case "entity": cliResponse = await openEntity(cliData);
       break;
+
+    case "view": cliResponse = openView(cliData);
+      break;
+
 
 
     //Default is opening the entity record using the params
@@ -66,6 +73,84 @@ const openAdvFind = () => {
   return getTextResponse("Advanced Find opened successfully!");
 }
 
+
+const openNewRecord = (cliData: CliData): CliResponse => {
+
+  try {
+
+    if (!cliData.actionParams)
+      return getErrorResponse(`Need to provide atleast the entity param`);
+
+    let entityParam = getActionParam("entity", cliData.actionParams!!);
+
+    if (!entityParam || !entityParam.value)
+      return getErrorResponse(`Please specify the entity to open the new record form.`);
+
+    let entityName: string = entityParam.value;
+
+    let appParam = getActionParam("app", cliData.actionParams!!);
+    let formParam = getActionParam("form", cliData.actionParams!!);
+
+    let appIdQueryParam = "";
+    if (appParam && appParam.value) {
+      appIdQueryParam = `appid=${appParam.value}&`;
+    }
+
+    let url = `${getCurrentOrgUrl()}/main.aspx?${appIdQueryParam}etn=${entityName}&pagetype=entityrecord`;
+    openWindow(url, true);
+
+    return getTextResponse(`New record for entity ${entityName} opened successfully!`);
+  }
+  catch (error) {
+    return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`)
+  }
+
+}
+
+
+const openView = (cliData: CliData) => {
+
+  try {
+
+    if (!cliData.actionParams)
+      return getErrorResponse(`Need to provide atleast the entity param`);
+
+    let entityParam = getActionParam("entity", cliData.actionParams!!);
+
+    if (!entityParam || !entityParam.value)
+      return getErrorResponse(`Please specify the entity to open the entity view.`);
+
+    let entityName: string = entityParam.value;
+
+    let appParam = getActionParam("app", cliData.actionParams!!);
+    let viewParam = getActionParam("view", cliData.actionParams!!);
+    let modeParam = getActionParam("mode", cliData.actionParams!!);
+
+    let appIdQueryParam = "";
+    let modeQueryParam = "";
+    if (appParam && appParam.value) {
+      appIdQueryParam = `appid=${appParam.value}&`;
+    }
+    else if (modeParam && modeParam.value) {
+      modeQueryParam = (modeParam.value.toLowerCase() === "classic") ? "forceclassic=1&" : "forceUci=1&";
+    }
+
+
+    let viewIdQueryParam = "";
+    if (viewParam && viewParam.value) {
+      viewIdQueryParam = `viewid=%7b${viewParam.value}%7d&`;
+    }
+
+    let url = `${getCurrentOrgUrl()}/main.aspx?${modeQueryParam}${appIdQueryParam}${viewIdQueryParam}etn=${entityName}&pagetype=entitylist&viewtype=1039`;
+    openWindow(url, true);
+
+    return getTextResponse(`View for entity ${entityName} opened successfully!`);
+  }
+  catch (error) {
+    return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`)
+  }
+
+}
 
 const openEntity = async (cliData: CliData) => {
   try {

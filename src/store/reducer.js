@@ -6,7 +6,8 @@ const initialState = {
   currentUserId: null,
   entities: [],
   entitiesAttributeCollection: [],
-  currentUser: null
+  currentUser: null,
+  apps:[]
 };
 
 const reducer = (state = initialState, action) => {
@@ -61,6 +62,13 @@ const reducer = (state = initialState, action) => {
         entities: [],
         entitiesAttributeCollection: []
       };
+
+      case actionTypes.SET_APPS:
+        return {
+          ...state,
+          apps: [...action.apps]
+        };
+  
 
     case actionTypes.SET_CURRENT_USER:
       return {

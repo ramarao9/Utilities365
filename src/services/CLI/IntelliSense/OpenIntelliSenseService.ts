@@ -1,13 +1,15 @@
 import { ActionParam, CliData } from "../../../interfaces/CliData";
 import { CLIVerb, IntelliSenseType, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
-import { getCLIVerbsAttributes, getCLIVerbsForEntitiesWrite, getFilteredVerbs, getLastParam, getNameVerbsPartialOrNoMatch } from "../../../helpers/cliutil";
+import { getCLIVerbsAttributes, getCLIVerbsForEntitiesWrite, getEntityCLIVerbs, getFilteredVerbs, getLastParam, getNameVerbsPartialOrNoMatch } from "../../../helpers/cliutil";
 import { CLI_TARGET_OPEN, GROUP_NAME_OPEN_ENTITIES } from "../Definitions/Target/Open";
-import { CLI_ACTION_PARAMS_OPEN_GENERIC, CLI_ACTION_PARAMS_OPEN_RECORD } from "../Definitions/ActionParams/Open";
+import { CLI_ACTION_PARAMS_OPEN_GENERIC, CLI_ACTION_PARAMS_OPEN_NEW_RECORD, CLI_ACTION_PARAMS_OPEN_RECORD, CLI_ACTION_PARAMS_OPEN_VIEW } from "../Definitions/ActionParams/Open";
 import { EntityMetadata } from "../../../interfaces/EntityMetadata";
 import { getEntityMetadataBasic } from "../../CrmMetadataService";
 import { Switch } from "react-router";
 import { Action } from "redux";
 import { GROUP_NAME_FILTER_ATTRIBUTES } from "../Definitions/ActionParams/Get";
+import { AppModule } from "../../../interfaces/Entities/AppModule";
+import { getAppModules } from "../../AppModuleService";
 
 
 export const getTargetForOpen = async (cliDataVal: CliData) => {
@@ -39,10 +41,10 @@ export const getActionParamsForOpen = async (userInput: string, cliDataVal: CliD
 
         case "entity": cliResults = cliResults.concat(CLI_ACTION_PARAMS_OPEN_GENERIC);
 
-        case "view":
+        case "view": cliResults = await getActionParams_View(userInput, cliDataVal);
             break;
 
-        case "new-record":
+        case "new-record": cliResults = await getActionParams_New_Record(userInput, cliDataVal);
             break;
 
         case "entity-form":
@@ -56,6 +58,90 @@ export const getActionParamsForOpen = async (userInput: string, cliDataVal: CliD
 
     return cliResults;
 }
+
+export const getActionParams_New_Record = async (userInput: string, cliDataVal: CliData) => {
+
+    let cliResults: Array<CLIVerb> = [];
+
+    let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
+    cliResults = cliResults.concat(CLI_ACTION_PARAMS_OPEN_NEW_RECORD);
+
+    let verbsWhenPartialOrNoMatch = getNameVerbsPartialOrNoMatch(userInput, lastParam, cliResults);
+    if (verbsWhenPartialOrNoMatch)
+        return verbsWhenPartialOrNoMatch;
+
+
+    //When Param Name has exact match the verbs are for the Param Value
+    switch (lastParam?.name) {
+        case "entity": cliResults = await get_Entity_Verbs(lastParam);
+            break;
+
+        case "app": cliResults = await get_App_Verbs(lastParam);
+            break;
+    }
+
+
+    return cliResults;
+
+
+}
+
+
+export const get_App_Verbs = async (lastParam: ActionParam) => {
+    let cliResults: CLIVerb[] = [];
+
+    let appModules: Array<AppModule> = await getAppModules();
+    appModules.forEach(x => {
+        let appModuleVerb: CLIVerb = { name: x.name, text: x.id, type: IntelliSenseType.ActionParamValue };
+        cliResults.push(appModuleVerb);
+    })
+
+    cliResults = getFilteredVerbs(lastParam.value, cliResults);
+    return cliResults;
+}
+
+
+export const get_Entity_Verbs = async (lastParam: ActionParam) => {
+    let cliResults: Array<CLIVerb> = await getEntityCLIVerbs();
+    cliResults.forEach(x => {
+        x.type = IntelliSenseType.ActionParamValue;
+    })
+
+    cliResults = getFilteredVerbs(lastParam.value, cliResults);
+    return cliResults;
+}
+
+
+export const getActionParams_View = async (userInput: string, cliDataVal: CliData) => {
+
+    let cliResults: Array<CLIVerb> = [];
+
+    let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
+    cliResults = cliResults.concat(CLI_ACTION_PARAMS_OPEN_VIEW);
+
+    let verbsWhenPartialOrNoMatch = getNameVerbsPartialOrNoMatch(userInput, lastParam, cliResults);
+    if (verbsWhenPartialOrNoMatch)
+        return verbsWhenPartialOrNoMatch;
+
+
+    //When Param Name has exact match the verbs are for the Param Value
+    switch (lastParam?.name) {
+        case "entity": cliResults = await get_Entity_Verbs(lastParam);
+            break;
+
+        case "app": cliResults = await get_App_Verbs(lastParam);
+            break;
+
+        case "mode": cliResults = get_Modes_Verbs(lastParam);
+            break;
+    }
+
+
+    return cliResults;
+
+
+}
+
 
 export const getActionParams_Open_Records = async (userInput: string, cliDataVal: CliData) => {
     let cliResults: Array<CLIVerb> = [];
@@ -78,7 +164,7 @@ export const getActionParams_Open_Records = async (userInput: string, cliDataVal
 
     //When Param Name has exact match the verbs are for the Param Value
     switch (lastParam?.name) {
-        case "mode": cliResults = get_Open_Records_Modes_Verbs(lastParam);
+        case "mode": cliResults = get_Modes_Verbs(lastParam);
             break;
     }
 
@@ -87,7 +173,7 @@ export const getActionParams_Open_Records = async (userInput: string, cliDataVal
 }
 
 
-const get_Open_Records_Modes_Verbs = (lastParam: ActionParam) => {
+const get_Modes_Verbs = (lastParam: ActionParam) => {
 
     let properties = ["Classic", "UCI"];
 
