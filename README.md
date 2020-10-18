@@ -1,6 +1,6 @@
 # Utilities365
 
-Refer to the [releases](https://github.com/ramarao9/Utilities365/releases) section for the compiled zip file.
+Refer to the [Releases](https://github.com/ramarao9/Utilities365/releases) section for the compiled zip file.
 
 Refer to the [Wiki](https://github.com/ramarao9/Utilities365/wiki) for documentation on the individual components. 
 
