@@ -8,6 +8,7 @@ export const ACTION_PARAM_PROPERTIES_NAME = "properties";
 export const ACTION_PARAM_FILTER_NAME = "filter";
 export const ACTION_PARAM_FILTER_OPERATOR_NAME = "filteroperator"
 export const ACTION_PARAM_EXPAND_NAME = "expand";
+export const ACTION_PARAM_CONTAINS_NAME = "contains";
 
 
 export const ACTION_PARAM_ATTRIBUTE_ALL_NAME = "all";
@@ -25,12 +26,14 @@ export const CLI_ACTION_PARAMS_GET_ATTRIBUTE: Array<CLIVerb> = [ACTION_PARAM_ATT
 
 export const ACTION_PARAM_ATTRIBUTES_TYPE_NAME = "type";
 export const ACTION_PARAM_ATTRIBUTES_ENTITY: CLIVerb = { name: ACTION_PARAM_ENTITY_NAME, type: IntelliSenseType.ActionParams };
-export const ACTION_PARAM_ATTRIBUTES_TYPE: CLIVerb = { name: ACTION_PARAM_ATTRIBUTES_TYPE_NAME, description: "Proivde the attribute type", type: IntelliSenseType.ActionParams };
+export const ACTION_PARAM_ATTRIBUTES_CONTAINS: CLIVerb = { name: ACTION_PARAM_CONTAINS_NAME, type: IntelliSenseType.ActionParams, description:"Use contains on attribute logical name." };
+export const ACTION_PARAM_ATTRIBUTES_TYPE: CLIVerb = { name: ACTION_PARAM_ATTRIBUTES_TYPE_NAME, description: "Provide the attribute type", type: IntelliSenseType.ActionParams };
 export const ACTION_PARAM_ATTRIBUTES_PROPERTIES: CLIVerb = { name: ACTION_PARAM_PROPERTIES_NAME, description: "CSV of the properties", type: IntelliSenseType.ActionParams };
 export const ACTION_PARAM_ATTRIBUTES_EXPAND: CLIVerb = { name: ACTION_PARAM_EXPAND_NAME, description: "Use to retrieve additional information", type: IntelliSenseType.ActionParams };
 export const CLI_ACTION_PARAMS_GET_ATTRIBUTES: Array<CLIVerb> = [ACTION_PARAM_ATTRIBUTES_ENTITY,
     ACTION_PARAM_ATTRIBUTES_TYPE,
     ACTION_PARAM_ATTRIBUTES_PROPERTIES,
+    ACTION_PARAM_ATTRIBUTES_CONTAINS,
     ACTION_PARAM_ATTRIBUTES_EXPAND];
 
 

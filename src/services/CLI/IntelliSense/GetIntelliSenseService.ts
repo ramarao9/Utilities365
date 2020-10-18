@@ -1,5 +1,5 @@
 import { CliData, ActionParam } from "../../../interfaces/CliData";
-import { CLI_TARGET_GET } from "../Definitions/Target/Get"
+import { CLI_TARGET_GET, GROUP_NAME_GET_ENTITIES } from "../Definitions/Target/Get"
 import {
     CLI_ACTION_PARAMS_GET_RECORDS, CLI_ACTION_PARAMS_GET_ENTITY, CLI_ACTION_PARAMS_GET_ENTITIES,
     CLI_ACTION_PARAMS_GET_ATTRIBUTE, CLI_ACTION_PARAMS_GET_ATTRIBUTES, GROUP_NAME_FILTER_ATTRIBUTES,
@@ -18,13 +18,24 @@ import { ViewType } from "../../../interfaces/ViewData";
 export const getTargetForGet = async (cliDataVal: CliData) => {
 
     let cliResults: Array<CLIVerb> = [];
-    let entititesResults = await getCLIVerbsForEntities();
+    let entititesResults = await getCliVerbsForEntitiesOn_Get_Records();
     cliResults = cliResults.concat(CLI_TARGET_GET);//Default targets
     cliResults = cliResults.concat(entititesResults);
     cliResults = getCleanedCLIVerbs(cliResults);
     return cliResults;
 }
 
+
+const getCliVerbsForEntitiesOn_Get_Records = async () => {
+    let entities: Array<CLIVerb> = await getCLIVerbsForEntities();
+
+    entities.forEach(x => {
+        x.group = GROUP_NAME_GET_ENTITIES
+        x.groupNumber = 20;
+    });
+
+    return entities;
+}
 
 
 

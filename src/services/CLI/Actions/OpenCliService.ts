@@ -218,7 +218,8 @@ async function handleOpenRecordAction(cliData: CliData): Promise<CliResponse> {
         }
       }
 
-      openRecord(targetRecord, mode);
+      let appId = getAppId(cliData);
+      openRecord(targetRecord, mode, appId);
     }
 
 
@@ -231,6 +232,22 @@ async function handleOpenRecordAction(cliData: CliData): Promise<CliResponse> {
   } catch (error) {
     return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
   }
+}
+
+
+const getAppId = (cliData: CliData) => {
+
+  if (!cliData.actionParams)
+    return "";
+
+  let appParam = getActionParam("app", cliData.actionParams);
+  let appId = "";
+
+  if (appParam && appParam.value) {
+    appId = appParam.value;
+  }
+
+  return appId;
 }
 
 async function getCRMRecord(cliData: any) {
@@ -301,7 +318,7 @@ function getEntityFilter(entityMetadata: any, cliData: any) {
   let entityFilters = Array<string>();
   cliData.actionParams.forEach((param: ActionParam) => {
     if (!IsEmpty(param.name) && !IsEmpty(param.value)) {
-      if (param.name.toLowerCase() !== "mode") {
+      if (param.name.toLowerCase() !== "mode" && param.name.toLowerCase() !== "app") {
         entityFilters.push(param.name + " eq '" + param.value + "'");
       }
     }
@@ -312,15 +329,19 @@ function getEntityFilter(entityMetadata: any, cliData: any) {
   return entityFilter;
 }
 
-function openRecord(entityreference: EntityReference, mode: string) {
-  const userUrl = getRecordUrl(entityreference.logicalname, entityreference.id, mode);
+function openRecord(entityreference: EntityReference, mode: string, appId: string) {
+  const userUrl = getRecordUrl(entityreference.logicalname, entityreference.id, mode, appId);
   openWindow(userUrl, true);
 }
 
-function getRecordUrl(logicalName: string, id: string, mode: string) {
+function getRecordUrl(logicalName: string, id: string, mode: string, appId?: string) {
   const orgUrl = getCurrentOrgUrl();
 
   let uciParam = (mode && mode.toLowerCase() === "uci") ? "forceUCI=1&" : "";
+
+  if (appId && appId !== "") {
+    uciParam = `appid=${appId}&`;
+  }
   const recordUrl = `${orgUrl}/main.aspx?${uciParam}etn=${logicalName}&pagetype=entityrecord&id=%7B${id}%7D`;
   return recordUrl;
 }

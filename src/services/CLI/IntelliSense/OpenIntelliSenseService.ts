@@ -166,6 +166,9 @@ export const getActionParams_Open_Records = async (userInput: string, cliDataVal
     switch (lastParam?.name) {
         case "mode": cliResults = get_Modes_Verbs(lastParam);
             break;
+
+        case "app": cliResults = await get_App_Verbs(lastParam);
+            break;
     }
 
     return cliResults;
