@@ -164,7 +164,11 @@ export const getODataCondition = (attQueryInfo: string, attributeMetadata: Attri
     let attValue = getAttValueFromAttQueryInfo(attQueryInfo);
     let conditionOperator = attQueryInfo.toLowerCase().replace(attValue, '').trim();
 
-    if (conditionOperator === "") {
+    if(attributeMetadata.AttributeType==="DateTime" && conditionOperator==="")
+    {
+        conditionOperator = "on";
+    }
+    else if (conditionOperator === "") {
         conditionOperator = "eq";
     }
 
@@ -203,7 +207,7 @@ export const getConditionWhenQueryFunction = (attributeMetadata: AttributeMetada
     let functionDefinition = getFunctionDefinitionCaseInsensitive(queryFunction);
     let formattedCondition = functionDefinition.DeclarationTemplate;
 
-    let propertyName=`'${attributeMetadata.LogicalName}'`;
+    let propertyName = `'${attributeMetadata.LogicalName}'`;
     formattedCondition = formattedCondition.replace("@p1", propertyName);//p1 is always going to be the PropertyName/LogicalName
 
     let totalPropertyValuesOnFunction = functionDefinition.Parameters.filter(x => x.Name.startsWith("PropertyValue")).length;
@@ -272,9 +276,19 @@ export const getAttValueFromAttQueryInfo = (attQueryInfo: string) => {
         return b.length - a.length;//Desc
     });
 
+    let operatorsRegular = ["eq", "ne", "gt", "lt", "on", "ge", "le"]
     sortedConditionOperators.forEach(x => {
-        attQueryInfo = attQueryInfo.toLowerCase().replace(x.toLowerCase(), '');
+        if (operatorsRegular.indexOf(x.toLowerCase()) === -1) {
+            attQueryInfo = attQueryInfo.toLowerCase().replace(x.toLowerCase(), '');
+        }
     });
+
+    operatorsRegular.forEach(x => {
+        if (attQueryInfo.toLowerCase().startsWith(`${x} `)) {
+            attQueryInfo = attQueryInfo.toLowerCase().replace(`${x} `, '');
+        }
+    });
+
 
     return attQueryInfo.trim();
 }
