@@ -16,11 +16,21 @@ steps:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
 
+- task: SonarCloudPrepare@1
+  inputs:
+    SonarCloud: 'SonarCloudUT365'
+    organization: 'ramarao9'
+    scannerMode: 'CLI'
+    configMode: 'manual'
+    cliProjectKey: 'ramarao9_Utilities365'
+    cliProjectName: 'Utilities365'
+    cliSources: '.'
 - script: |
     npm install
     npm run build
     npm run pack
   displayName: 'npm install, build and pack'
+- task: SonarCloudAnalyze@1
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(Build.BinariesDirectory)'
@@ -33,3 +43,7 @@ steps:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'drop'
     publishLocation: 'Container'
+
+- task: SonarCloudPublish@1
+  inputs:
+    pollingTimeoutSec: '300'
