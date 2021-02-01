@@ -289,7 +289,10 @@ const getTargetIntelliSense = async (cliDataVal: CliData) => {
     let targetName = cliDataVal.target;
     if (targetName && targetName.length >= MINIMUM_CHARS_FOR_INTELLISENSE) {
         cliResults = cliResults.filter(x => x.name.toLowerCase().startsWith(targetName.toLowerCase()) ||
-            x.text && x.text.toLowerCase().startsWith(targetName.toLowerCase()));
+        x.name.toLowerCase().replace(/\s+/g, '').startsWith(targetName.toLowerCase()) ||
+            x.text && (x.text.toLowerCase().startsWith(targetName.toLowerCase()) ||
+            x.text.toLowerCase().replace(/\s+/g, '').startsWith(targetName.toLowerCase())
+            ));
     }
 
     return cliResults;

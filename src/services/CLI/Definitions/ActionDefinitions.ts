@@ -25,4 +25,5 @@ export const CLI_ACTIONS: Array<CLIVerb> = [ACTION_ADD,
                                             ACTION_GET,
                                             ACTION_OPEN,
                                             ACTION_REMOVE,
-                                            ACTION_UPDATE];
+                                            ACTION_UPDATE,
+                                            ACTION_CLEAR];

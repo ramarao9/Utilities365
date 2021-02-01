@@ -35,14 +35,15 @@ export const hasActionParam = (paramname: string, params: Array<ActionParam> | u
     return (params.findIndex(x => x.name.toLowerCase() === paramname.toLowerCase()) != -1);
 }
 
-export const getReferencingEntityNavPropertyName = (referencingAttribute: string, relationships: Array<Relationship>): string | undefined => {
+export const getReferencingEntityNavPropertyName = (referencedEntity : string,referencingAttribute: string, relationships: Array<Relationship>): string | undefined => {
 
-    let relationship = getRelationship(referencingAttribute, relationships);
+    let relationship = getRelationship(referencedEntity,referencingAttribute, relationships);
     return (relationship) ? relationship.ReferencingEntityNavigationPropertyName : undefined;
 }
 
-export const getRelationship = (referencingAttribute: string, relationships: Array<Relationship>): Relationship | undefined => {
-    return relationships.find(x => x.ReferencingAttribute.toLowerCase() === referencingAttribute.toLowerCase());
+export const getRelationship = (referencedEntity : string,referencingAttribute: string, relationships: Array<Relationship>): Relationship | undefined => {
+    return relationships.find(x => x.ReferencedEntity.toLowerCase()===referencedEntity.toLowerCase() &&
+        x.ReferencingAttribute.toLowerCase() === referencingAttribute.toLowerCase());
 }
 
 
@@ -120,6 +121,14 @@ export const isValidGuid = (id: string | undefined): boolean => {
     if (!isValid) {
         isValid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id);
     }
+
+    if(!isValid)
+    {
+        var regexGuid = /^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$/gi;
+        isValid= regexGuid.test(id);
+    }
+   
+
     return isValid;
 }
 

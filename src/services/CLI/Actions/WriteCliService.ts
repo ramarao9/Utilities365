@@ -4,7 +4,7 @@ import { CliData } from "../../../interfaces/CliData"
 import { CliResponse } from "../../../interfaces/CliResponse"
 import { EntityMetadata, PicklistMetadata, Option, OptionData, AttributeMetadata } from "../../../interfaces/EntityMetadata"
 import { getErrorResponse, getTextResponse } from "../CliResponseUtil";
-import { getActionParam, removeActionParam, getArrayFromCSV, hasActionParam, getReferencingEntityNavPropertyName } from "../../../helpers/common";
+import { getActionParam, removeActionParam, getArrayFromCSV, hasActionParam, getReferencingEntityNavPropertyName, isValidGuid } from "../../../helpers/common";
 import {
   getEntityMetadataBasic,
   getEntity
@@ -14,6 +14,7 @@ import {
   STR_ERROR_OCCURRED
 } from "../../../helpers/strings";
 import { string } from "prop-types";
+import { EntityReference } from "../../../interfaces/EntityReference";
 
 export const handleCrmCreateActions = async (cliData: CliData) => {
   let cliResponse: CliResponse = { message: "", success: false, type: "" };
@@ -195,18 +196,26 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
             break;
 
 
+          case "customer":
           case "lookup":
 
+
+            let lookup = ParseLookupStringIntoEntityReference(attributeValue)!!;
             let attributeLookupMetadata = lookupAttributes.find(x => x.LogicalName === attributeLogicalName);
-            let targetLookupEntity = attributeLookupMetadata!!.Targets[0];
+            let targetGuid = lookup.id;
+            let targetLookupEntity = lookup.logicalname;
+
+            if (attributeType.toLowerCase() === "lookup") {
+              targetLookupEntity = attributeLookupMetadata!!.Targets[0]
+            }
+
             let targetLookupEntityMetadata = await getEntityMetadataBasic(targetLookupEntity) as EntityMetadata;
             let targetEntityPrimaryIdAttribute = targetLookupEntityMetadata.PrimaryIdAttribute;
             let targetEntityPrimaryNameAttribute = targetLookupEntityMetadata.PrimaryNameAttribute;
             let targetEntityCollectionName = targetLookupEntityMetadata.LogicalCollectionName;
 
-
-            let targetGuid = null;
-            let guidIsValid = isValidGuid(attributeValue);
+         
+            let guidIsValid = isValidGuid(targetGuid);
             if (!guidIsValid) {
               let filter: string = `${targetEntityPrimaryNameAttribute} eq '${attributeValue}'`;
               if (attributeValue.indexOf("$filter") != -1) {
@@ -214,21 +223,20 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
               }
               let retrieveResp = await retrieveAll(targetEntityCollectionName, [targetEntityPrimaryIdAttribute], filter);
               if (retrieveResp.value != null && retrieveResp.value.length === 1) {
-                let targetEnt : any= retrieveResp.value[0];
+                let targetEnt: any = retrieveResp.value[0];
                 targetGuid = targetEnt[targetEntityPrimaryIdAttribute];
               }
-            }
-            else {
-              targetGuid = attributeValue;
+              else{
+                continue;
+              }
             }
             if (targetGuid != null) {
-              let navigationProperty = getReferencingEntityNavPropertyName(attributeLogicalName, targetEntityMetadata.ManyToOneRelationships);
+              let navigationProperty = getReferencingEntityNavPropertyName(targetLookupEntity,attributeLogicalName, targetEntityMetadata.ManyToOneRelationships);
               createRequest[`${navigationProperty}@odata.bind`] = `${targetEntityCollectionName}(${targetGuid})`;
             }
             break;
 
-          case "customer"://Todo :-Not supported at this time, might need to revisit in the future
-            break;
+
 
           default: createRequest[attributeLogicalName] = attributeValue === "null" ? null : attributeValue;
             break;
@@ -316,9 +324,23 @@ function getAvailableOptionsJSON(attributePicklistmetadata: PicklistMetadata): s
   return optionsJSON;
 }
 
-function isValidGuid(id: string): boolean {
-  let isValid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
-  return isValid;
+
+
+export const ParseLookupStringIntoEntityReference = (lookupString: string): EntityReference | undefined => {
+
+
+  if (IsEmpty(lookupString))
+    return undefined;
+
+  let lookupArr = lookupString.split('_');
+
+
+  let logicalName = lookupArr.length === 2 ? lookupArr[0] : '';
+  let id = lookupArr.length === 2 ? lookupArr[1] : lookupArr[0];
+
+  let lookup: EntityReference = { logicalname:logicalName, id:id, name:'' };
+  return lookup;
+
 }
 
 export default handleCrmCreateActions;
