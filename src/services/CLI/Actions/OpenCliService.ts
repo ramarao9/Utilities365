@@ -337,7 +337,7 @@ function openRecord(entityreference: EntityReference, mode: string, appId: strin
 function getRecordUrl(logicalName: string, id: string, mode: string, appId?: string) {
   const orgUrl = getCurrentOrgUrl();
 
-  let uciParam = (mode && mode.toLowerCase() === "uci") ? "forceUCI=1&" : "";
+  let uciParam = (mode && mode.toLowerCase() === "classic") ? "forceClassic=1&" : "";
 
   if (appId && appId !== "") {
     uciParam = `appid=${appId}&`;

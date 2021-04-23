@@ -98,7 +98,7 @@ const getEntity = async (cliData: CliData) => {
   let expandQueryParam = getExpandQueryParam(expandParam, undefined);
 
   let properties = propertiesParam ? getArrayFromCSV(propertiesParam.value) : undefined;
-  let retrieveEntityResponse:any = await retrieveEntity(`LogicalName='${entityMetadata.LogicalName}'`, properties, expandQueryParam);
+  let retrieveEntityResponse: any = await retrieveEntity(`LogicalName='${entityMetadata.LogicalName}'`, properties, expandQueryParam);
 
   if (retrieveEntityResponse) {
     delete retrieveEntityResponse["@odata.context"];
@@ -332,8 +332,8 @@ const getRequestBody = async (cliData: CliData) => {
   if (filter === "") {
     retrieveMultipleRequest.top = 250;//Default records if no filter specified
   }
-  else{
-    retrieveMultipleRequest.filter=filter;
+  else {
+    retrieveMultipleRequest.filter = filter;
   }
 
 
@@ -343,7 +343,8 @@ const getRequestBody = async (cliData: CliData) => {
   }
   else {
     //only bring the Primary Attribute when no attributes provided
-    retrieveMultipleRequest.select = entityMetadata.PrimaryNameAttribute ? [entityMetadata.PrimaryIdAttribute, entityMetadata.PrimaryNameAttribute] : [entityMetadata.PrimaryIdAttribute];
+    retrieveMultipleRequest.select = entityMetadata.PrimaryNameAttribute && entityMetadata.LogicalName !== "activityparty" ?
+      [entityMetadata.PrimaryIdAttribute, entityMetadata.PrimaryNameAttribute] : [entityMetadata.PrimaryIdAttribute];
   }
 
   if (!isValidId && topParam != null && topParam.value != null) {
@@ -365,7 +366,7 @@ const getFilterForQuery = (cliData: CliData, entityMetadata: EntityMetadata) => 
   let isValidId = isValidGuid(cliData.unnamedParam);
 
   let filterParam = getActionParam("filter", cliData.actionParams);
-  
+
   if (cliData.unnamedParam) {
     odataFilter = isValidId ? `${entityMetadata.PrimaryIdAttribute} eq ${cliData.unnamedParam}` :
       `${entityMetadata.PrimaryNameAttribute} eq '${cliData.unnamedParam}'`;

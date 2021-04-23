@@ -29,7 +29,7 @@ export const getExpandQueryParam = (expandParam: ActionParam | undefined, type: 
             });
         }
     }
-    else if (type && type.indexOf("Picklist") != -1) {
+    else if (type && (type.indexOf("Picklist") != -1 || type.indexOf("State")!=-1)) {
         let expandObj: expand = { property: "OptionSet" };
         expandArr.push(expandObj);
     }
@@ -164,8 +164,7 @@ export const getODataCondition = (attQueryInfo: string, attributeMetadata: Attri
     let attValue = getAttValueFromAttQueryInfo(attQueryInfo);
     let conditionOperator = attQueryInfo.toLowerCase().replace(attValue, '').trim();
 
-    if(attributeMetadata.AttributeType==="DateTime" && conditionOperator==="")
-    {
+    if (attributeMetadata.AttributeType === "DateTime" && conditionOperator === "") {
         conditionOperator = "on";
     }
     else if (conditionOperator === "") {
@@ -310,6 +309,7 @@ const getAttributeValueOnODataFilter = (attValue: string, attributeMetadata: Att
         case "Boolean":
         case "Picklist":
         case "Lookup":
+        case "Uniqueidentifier":
         case "Integer": valueToUseForFilter = `${attValue}`;
             break;
 

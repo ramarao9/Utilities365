@@ -40,6 +40,7 @@ export const getActionParamsForOpen = async (userInput: string, cliDataVal: CliD
     switch (cliDataVal.target) {
 
         case "entity": cliResults = cliResults.concat(CLI_ACTION_PARAMS_OPEN_GENERIC);
+            break;
 
         case "view": cliResults = await getActionParams_View(userInput, cliDataVal);
             break;

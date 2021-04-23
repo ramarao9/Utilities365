@@ -19,6 +19,7 @@ export interface CLIVerb {
     description?: string;
     usage?: string ;
     text?: string ;
+    alternateText?: string ;
     isSelected?:boolean;
     type?:number;
     order?:number;

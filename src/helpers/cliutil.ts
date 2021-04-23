@@ -165,6 +165,10 @@ const getAttributesVerbs = (attributes: AttributeMetadata[], intellisenseType?: 
             type: intellisenseType ?? IntelliSenseType.ActionParams
         }
 
+        if(attributeMetadata.AttributeType==="Lookup" || attributeMetadata.AttributeType==="Customer"){
+            cliVerb.alternateText=`_${attributeMetadata.LogicalName}_value`;
+        }
+
         return cliVerb;
     });
 

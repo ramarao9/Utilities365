@@ -148,7 +148,7 @@ export const getUpdatedInputOnSelection = async (intellisenseInput: IntelliSense
     let lastParamForCurrentPos = getLastParam(cliDataForCurrentPos);
 
 
-    let textToReplaceWith = selectedVerb.text ? selectedVerb.text : selectedVerb.name;
+    let textToReplaceWith = selectedVerb.alternateText ? selectedVerb.alternateText :( selectedVerb.text ? selectedVerb.text : selectedVerb.name);
     if (lastParamForCurrentPos && lastParamForCurrentPos.value &&
         selectedVerb.type === IntelliSenseType.ActionParamValue) {
 
@@ -158,7 +158,7 @@ export const getUpdatedInputOnSelection = async (intellisenseInput: IntelliSense
             endIndexOfCurrentText = textBeforeCaret.length;
         }
         else {
-          //  textToReplaceWith = lastParamForCurrentPos.value + textToReplaceWith;
+            //  textToReplaceWith = lastParamForCurrentPos.value + textToReplaceWith;
         }
     }
 
@@ -289,9 +289,9 @@ const getTargetIntelliSense = async (cliDataVal: CliData) => {
     let targetName = cliDataVal.target;
     if (targetName && targetName.length >= MINIMUM_CHARS_FOR_INTELLISENSE) {
         cliResults = cliResults.filter(x => x.name.toLowerCase().startsWith(targetName.toLowerCase()) ||
-        x.name.toLowerCase().replace(/\s+/g, '').startsWith(targetName.toLowerCase()) ||
+            x.name.toLowerCase().replace(/\s+/g, '').startsWith(targetName.toLowerCase()) ||
             x.text && (x.text.toLowerCase().startsWith(targetName.toLowerCase()) ||
-            x.text.toLowerCase().replace(/\s+/g, '').startsWith(targetName.toLowerCase())
+                x.text.toLowerCase().replace(/\s+/g, '').startsWith(targetName.toLowerCase())
             ));
     }
 

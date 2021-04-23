@@ -1,12 +1,12 @@
 .tdWs{
     white-space: pre;
-    font-size: 14px;
-    color:#ccc;
+    font-size: 13px;
+    color:#4894fe;
     font-family:BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
 }
 
 .th-table{
-    font-size:14px !important;
+    font-size:13px !important;
     font-weight:600 !important;
 }
 
@@ -17,11 +17,16 @@
 
  
 
-.table-container table thead td, .table thead th {
+.table-container table thead th {
   border-width: 0 0 1px !important;
-  color: grey !important;
+  color: #fff !important;
 }
 
+
+.table-container table thead td{
+  border-width: 0 0 1px !important;
+  color: #4894fe !important;
+}
 
 /* width */
 

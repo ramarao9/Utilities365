@@ -135,7 +135,7 @@ const getActionParamsFor_Get_Attributes = async (userInput: string, cliDataVal: 
 const getAttributesTypeVerbs = async (cliData: CliData, lastParam: ActionParam) => {
 
     let cliResults: Array<CLIVerb> = [];
-    let attributeTypes = ["string", "integer", "boolean", "lookup", "picklist", "datetime", "money", "decimal"];
+    let attributeTypes = ["string", "integer", "boolean", "lookup", "picklist", "datetime", "money", "decimal","state"];
 
     attributeTypes.forEach(x => {
         let cliVerb: CLIVerb = { name: x, type: IntelliSenseType.ActionParamValue };
