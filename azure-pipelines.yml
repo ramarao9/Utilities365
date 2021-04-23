@@ -37,10 +37,19 @@ steps:
 - script: |
     npm run pack
   displayName: 'Pack Electron Dist'
-- task: SonarCloudAnalyze@1
+
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Write your commands here
+      
+      echo 'Source Directory'
+      
+      echo $(Build.SourcesDirectory)
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.BinariesDirectory)/dist/win-unpacked'
+    rootFolderOrFile: '$(Build.SourcesDirectory)/dist/win-unpacked'
     includeRootFolder: true
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
@@ -51,6 +60,7 @@ steps:
     ArtifactName: 'drop'
     publishLocation: 'Container'
 
+- task: SonarCloudAnalyze@1
 - task: SonarCloudPublish@1
   inputs:
     pollingTimeoutSec: '300'
