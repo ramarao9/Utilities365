@@ -27,13 +27,20 @@ steps:
     cliSources: '.'
 - script: |
     npm install
+  displayName: 'npm install'
+
+- script: |
     npm run build
     npm run pack
-  displayName: 'npm install, build and pack'
+  displayName: 'npm build'
+
+- script: |
+    npm run pack
+  displayName: 'Pack Electron Dist'
 - task: SonarCloudAnalyze@1
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.BinariesDirectory)'
+    rootFolderOrFile: '$(Build.BinariesDirectory)/dist/win-unpacked'
     includeRootFolder: true
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
