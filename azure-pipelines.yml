@@ -11,12 +11,19 @@ strategy:
   matrix:
     mac:
       imageName: 'macOS-latest'
+
     windows:
       imageName: 'windows-latest'
 
 pool:
   vmImage: $(imageName)
 
+variables:
+ - name: distFolder
+   ${{ if eq(variables['imageName'], 'windows-latest') }}: 
+    value: 'win-unpacked'
+   ${{ if eq(variables['imageName'], 'macOS-latest') }}: 
+    value: 'mac'
 
 steps:
 - task: NodeTool@0
@@ -57,7 +64,7 @@ steps:
       echo $(Build.SourcesDirectory)
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.SourcesDirectory)/dist/win-unpacked/'
+    rootFolderOrFile: '$(Build.SourcesDirectory)/dist/$(distFolder)/'
     includeRootFolder: false
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
