@@ -47,11 +47,6 @@ steps:
 - script: |
     npm run build
     npm run pack
-<<<<<<< HEAD
-  displayName: 'npm install, build and pack'
-  
-- task: SonarCloudAnalyze@1
-=======
   displayName: 'npm build'
 
 - script: |
@@ -67,7 +62,6 @@ steps:
       echo 'Source Directory'
       
       echo $(Build.SourcesDirectory)
->>>>>>> bd57eff0049348bae37a61f28b40815adf190868
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(Build.SourcesDirectory)/dist/$(distFolder)/'
