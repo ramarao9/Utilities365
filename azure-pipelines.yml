@@ -7,8 +7,23 @@ trigger:
 - main
 - master
 
+strategy:
+  matrix:
+    mac:
+      imageName: 'macOS-latest'
+
+    windows:
+      imageName: 'windows-latest'
+
 pool:
-  vmImage: 'windows-latest'
+  vmImage: $(imageName)
+
+variables:
+ - name: distFolder
+   ${{ if eq(variables['imageName'], 'windows-latest') }}: 
+    value: 'win-unpacked'
+   ${{ if eq(variables['imageName'], 'macOS-latest') }}: 
+    value: 'mac'
 
 steps:
 - task: NodeTool@0
@@ -27,17 +42,38 @@ steps:
     cliSources: '.'
 - script: |
     npm install
+  displayName: 'npm install'
+
+- script: |
     npm run build
     npm run pack
+<<<<<<< HEAD
   displayName: 'npm install, build and pack'
   
 - task: SonarCloudAnalyze@1
+=======
+  displayName: 'npm build'
+
+- script: |
+    npm run pack
+  displayName: 'Pack Electron Dist'
+
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+      # Write your commands here
+      
+      echo 'Source Directory'
+      
+      echo $(Build.SourcesDirectory)
+>>>>>>> bd57eff0049348bae37a61f28b40815adf190868
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.BinariesDirectory)'
-    includeRootFolder: true
+    rootFolderOrFile: '$(Build.SourcesDirectory)/dist/$(distFolder)/'
+    includeRootFolder: false
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)_$(Agent.OS).zip'
     replaceExistingArchive: true
 - task: PublishBuildArtifacts@1
   inputs:
@@ -45,6 +81,7 @@ steps:
     ArtifactName: 'drop'
     publishLocation: 'Container'
 
+- task: SonarCloudAnalyze@1
 - task: SonarCloudPublish@1
   inputs:
     pollingTimeoutSec: '300'
