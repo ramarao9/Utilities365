@@ -30,6 +30,7 @@ steps:
     npm run build
     npm run pack
   displayName: 'npm install, build and pack'
+  
 - task: SonarCloudAnalyze@1
 - task: ArchiveFiles@2
   inputs:
