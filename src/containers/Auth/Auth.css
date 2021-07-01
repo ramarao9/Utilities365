@@ -28,6 +28,10 @@
 }
 
 
+.auth-label{
+    min-width: 160px !important;
+}
+
 .orgs-cont{
 max-height:190px;
 overflow-y: auto;

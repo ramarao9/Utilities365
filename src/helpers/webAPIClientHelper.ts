@@ -4,12 +4,15 @@ import * as actionTypes from "../store/actions";
 import * as crmUtil from "./crmutil";
 import { getConnection, updateToken } from "../services/LocalStorageService";
 import { expand } from "../interfaces/expand";
-import AdalNode from "adal-node";
+import MsalNode from "@azure/msal-node"
+import AuthProvider from "./Auth/AuthHelper";
+
 
 
 
 export const create = async (createRequest: any, collectionOrLogicalName: string) => {
   let dynamicsWebAPIClient = getWebAPIClient(true);
+
   return dynamicsWebAPIClient.create(createRequest, collectionOrLogicalName);
 }
 
@@ -133,7 +136,9 @@ export const getCurrentOrgUrl = () => {
 function getWebAPIClient(useTokenRefresh: Boolean) {
   const currentToken = getTokenFromStore();
 
-  let baseUrl = currentToken.resource;
+
+  let currentConnection = getCurrentConnectionFromStore()
+  let baseUrl = currentConnection.orgUrl;
   if (baseUrl.endsWith("/")) {
     baseUrl = baseUrl.slice(0, -1);
   }
@@ -143,73 +148,29 @@ function getWebAPIClient(useTokenRefresh: Boolean) {
     includeAnnotations: "OData.Community.Display.V1.FormattedValue"
   };
 
-  const tokenExpired = hasTokenExpired();
 
-  if (tokenExpired || useTokenRefresh) {
-    //Need to use for UnboundExecute Action
-    webApiConfig.onTokenRefresh = acquireTokenForRefresh;
-  }
+  webApiConfig.onTokenRefresh = acquireTokenForRefresh;
+
 
   let dynamicsWebAPIClient = new DynamicsWebApi(webApiConfig);
 
   return dynamicsWebAPIClient;
 }
 
-function acquireTokenForRefresh(dynamicsWebApiCallback: any) {
+const acquireTokenForRefresh = async (dynamicsWebApiCallback: any) => {
   //check the token from the store
   const tokenData = getTokenFromStore();
-  function adalCallback(error: any, token: any) {
-    if (!error) {
-      //call DynamicsWebApi callback only when a token has been retrieved
-      dynamicsWebApiCallback(token);
-      //Update the token in the store
-      updateTokenInStore(token);
-      //update the token in local storage
-      updateToken(token);
-    } else {
-      console.log("Token has not been retrieved. Error: " + error.stack);
-    }
-  }
 
-  let tenantId = tokenData.tenantId;
-  let authorizationEndpointUri = "";
-  if (tenantId) {
-    authorizationEndpointUri = crmUtil.getAuthorizationEndpoint(
-      tokenData.tenantId
-    );
-  } else {
-    authorizationEndpointUri = tokenData._authority;
-  }
-
-  var authContext = new AdalNode.AuthenticationContext(
-    authorizationEndpointUri
-  );
-
-  let connectionInfo = getConnection(tokenData.resource);
+  let currentConnection = getCurrentConnectionFromStore()
 
 
-  let tooManyTokenRequestsinShortPeriod = tooManyRequestsForToken(tokenData.expiresOn);
-  let tokenExpired = hasTokenExpired();
-  if (tooManyTokenRequestsinShortPeriod && !tokenExpired) {
-    dynamicsWebApiCallback(tokenData);
-  }
-  else if (tokenData.refreshToken) {
-    authContext.acquireTokenWithRefreshToken(
-      tokenData.refreshToken,
-      connectionInfo.appId,
-      "",
-      tokenData.resource,
-      adalCallback
-    );
-  } else {
-    authContext.acquireTokenWithClientCredentials(
-      connectionInfo.orgUrl,
-      connectionInfo.appId,
-      connectionInfo.clientSecret,
-      adalCallback
-    );
 
-  }
+  let authProvider: AuthProvider = getAuthProviderFromStore();
+  let token = await authProvider.getToken(currentConnection);
+
+
+  dynamicsWebApiCallback(token?.accessToken);
+
 }
 
 function setTokenOnRequestIfValid(request: any) {
@@ -231,6 +192,19 @@ function hasTokenExpired() {
 function getTokenFromStore() {
   const currentState = store.getState();
   return currentState != null ? currentState.tokenData : null;
+}
+
+
+function getCurrentConnectionFromStore() {
+  const currentState = store.getState();
+  return currentState != null ? currentState.currentConnection : null;
+}
+
+
+
+function getAuthProviderFromStore() {
+  const currentState = store.getState();
+  return currentState != null ? currentState.authProvider : null;
 }
 
 function updateTokenInStore(tokenData: any) {

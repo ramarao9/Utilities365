@@ -1,22 +1,24 @@
+import { AuthConnection } from "../interfaces/Auth/AuthConnection";
+import { ConnectionUI } from "../interfaces/Auth/Connection";
 
 
 const Store = window.require("electron-store");
 
 
-export const setConfigData = (key:any, value:any) => {
+export const setConfigData = (key: any, value: any) => {
   const localUserConfigStore = new Store();
 
   localUserConfigStore.set(key, value);
 };
 
-export const getConfigData = (key:any) => {
+export const getConfigData = (key: any) => {
   const localUserConfigStore = new Store();
 
   let configData = localUserConfigStore.get(key);
   return configData;
 };
 
-export const getConnections = () => {
+export const getConnections = (): Array<AuthConnection> => {
   let connections = getConfigData("Connections");
 
   if (connections == null) {
@@ -26,32 +28,51 @@ export const getConnections = () => {
   return connections;
 };
 
-export const saveConnection = (connectionInfo: any) => {
+export const saveConnection = (connectionInfo: AuthConnection) => {
   let connections = getConnections();
 
-  connections = connections.filter((x:any) => x.orgUrl !== connectionInfo.orgUrl);
-  connections.push(connectionInfo);
+
+  let existingConnectionIndex = connections.findIndex((x: AuthConnection) => (x.orgUrl === connectionInfo.orgUrl && x.appId === connectionInfo.appId));
+
+  if (existingConnectionIndex != -1) {
+    connections[existingConnectionIndex] = connectionInfo;
+  }
+  else {
+    connections.push(connectionInfo);
+  }
+
+
+
+
 
   setConfigData("Connections", connections);
 };
 
-export const getConnection = (orgUrl:any) => {
+
+
+export const getConnection = (connectionInfo: AuthConnection) => {
   let connections = getConnections();
 
-  let connection = connections.find((x:any) => x.orgUrl === orgUrl);
+  let connection = connections.find((x: any) => x.orgUrl === connectionInfo.orgUrl && x.appId===connectionInfo.appId);
   return connection;
 };
 
-export const removeConnection = (orgUrl:any) => {
+export const removeConnection = (connectionInfo: AuthConnection) => {
   let connections = getConnections();
-  connections = connections.filter((x:any)=> x.orgUrl !== orgUrl);
+
+  let existingConnectionIndex = connections.findIndex((x: AuthConnection) => (x.orgUrl === connectionInfo.orgUrl && x.appId === connectionInfo.appId));
+  connections.splice(existingConnectionIndex,1);
+
   setConfigData("Connections", connections);
 
   return connections;
 };
 
-export const updateToken = (tokenData:any) => {
+export const updateToken = (tokenData: any) => {
   let connection = getConnection(tokenData.resource);
-  connection.accessToken = tokenData;
-  saveConnection(connection);
+  if (connection) {
+    connection.accessToken = tokenData;
+    saveConnection(connection);
+  }
+
 };
