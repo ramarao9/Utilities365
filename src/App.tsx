@@ -1,7 +1,7 @@
 import React, { Component, ReactNode } from "react";
 import { Route, Switch, Redirect } from "react-router-dom";
 import Home from "./containers/Home/Home";
-import Auth from "./containers/Auth/Auth";
+import {Auth} from "./containers/Auth/Auth";
 import Layout from "./hoc/Layout/Layout";
 import GuidSearch from "./containers/GuidSearch/GuidSearch";
 import { CLI } from "./containers/CLI/CLI";

@@ -205,8 +205,19 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
             let targetGuid = lookup.id;
             let targetLookupEntity = lookup.logicalname;
 
-            if (attributeType.toLowerCase() === "lookup") {
+            if (attributeType.toLowerCase() === "lookup" && attributeLookupMetadata!!.Targets.length === 1) {
               targetLookupEntity = attributeLookupMetadata!!.Targets[0]
+            }
+            else {
+
+              if (targetLookupEntity == null || targetLookupEntity === "") {
+
+                let possibleTargets = attributeLookupMetadata!!.Targets.join(",")
+
+                throw new Error(`Unable to determine the target lookup entity for ${attributeLogicalName}. Please specify one of the following values ${possibleTargets} in the format entityLogicalName_id e.g. campaign_ab37ae59-afe4-eb11-bacb-0022480860c9 and try again.`);
+              }
+
+
             }
 
             let targetLookupEntityMetadata = await getEntityMetadataBasic(targetLookupEntity) as EntityMetadata;
@@ -214,7 +225,7 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
             let targetEntityPrimaryNameAttribute = targetLookupEntityMetadata.PrimaryNameAttribute;
             let targetEntityCollectionName = targetLookupEntityMetadata.LogicalCollectionName;
 
-         
+
             let guidIsValid = isValidGuid(targetGuid);
             if (!guidIsValid) {
               let filter: string = `${targetEntityPrimaryNameAttribute} eq '${attributeValue}'`;
@@ -226,16 +237,19 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
                 let targetEnt: any = retrieveResp.value[0];
                 targetGuid = targetEnt[targetEntityPrimaryIdAttribute];
               }
-              else{
+              else {
                 continue;
               }
             }
             if (targetGuid != null) {
-              let navigationProperty = getReferencingEntityNavPropertyName(targetLookupEntity,attributeLogicalName, targetEntityMetadata.ManyToOneRelationships);
+              let navigationProperty = getReferencingEntityNavPropertyName(targetLookupEntity, attributeLogicalName, targetEntityMetadata.ManyToOneRelationships);
               createRequest[`${navigationProperty}@odata.bind`] = `${targetEntityCollectionName}(${targetGuid})`;
             }
             break;
 
+
+          case "partylist":
+            break;
 
 
           default: createRequest[attributeLogicalName] = attributeValue === "null" ? null : attributeValue;
@@ -338,7 +352,7 @@ export const ParseLookupStringIntoEntityReference = (lookupString: string): Enti
   let logicalName = lookupArr.length === 2 ? lookupArr[0] : '';
   let id = lookupArr.length === 2 ? lookupArr[1] : lookupArr[0];
 
-  let lookup: EntityReference = { logicalname:logicalName, id:id, name:'' };
+  let lookup: EntityReference = { logicalname: logicalName, id: id, name: '' };
   return lookup;
 
 }

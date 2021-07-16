@@ -62,7 +62,13 @@ export const CLI: React.FC = () => {
 
     let userInputText = inputtoUse ? inputtoUse : getCurrentTextInput();
     let intellisenseInput: IntelliSenseInput = { inputText: userInputText, inputCaretPosition: inputCaretPosition };
+
+   
+    
+
     let updatedIntelliSenseInput = await getUpdatedInputOnSelection(intellisenseInput, result);
+   
+
     setInputText(updatedIntelliSenseInput.inputText);
     setIntelliSenseNavMode(false);
 

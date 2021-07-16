@@ -1,37 +1,40 @@
-.Input
-{
-    width:100%;
-    padding:10px;
+.Input {
+    width: 100%;
+    padding: 10px;
     box-sizing: border-box;
 }
 
-.Label
-{
+.Label {
     font-weight: bold;
-    display:block;
-    margin-bottom:8px;
+    display: block;
+    margin-bottom: 8px;
 }
 
-.InputElement
-{
-    outline:none;
-    border:1px solid #ccc;
+.InputElement {
+    outline: none;
+    border: 1px solid #ccc;
     background-color: white;
-    font:inherit;
-    padding:6px 10px;
-    display:block;
+    font: inherit;
+    padding: 6px 10px;
+    display: block;
     width: 100%;
     box-sizing: border-box;
 }
 
-.InputElement :focus
-{
-outline:none;
-background-color: #ccc;
+.InputElement :focus {
+    outline: none;
+    background-color: #ccc;
 }
 
-.Invalid
-{
-    border:1px solid red;
-background-color: #FDA49A;
+.Invalid {
+    border: 1px solid red;
+    background-color: #FDA49A;
+}
+
+
+.req-indicator {
+    color: red;
+    font-weight: 600;
+    font-size: 16px;
+    align-self: center;
 }

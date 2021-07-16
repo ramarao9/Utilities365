@@ -22,10 +22,9 @@ function createWindow() {
   
     //the below will show some security errors but since this is just local development it should be fine.
     mainWindow = new BrowserWindow({
-      webPreferences: { webSecurity: false, nodeIntegration: true },
+      webPreferences: {webSecurity:false, nodeIntegration: true },
       width: 1100,
-      height: 768,
-      allowRunningInsecureContent: true
+      height: 768
     });
 
     mainWindow.loadURL("http://localhost:3000");
