@@ -34,8 +34,10 @@ const input = (props) => {
     }
 
 
-
-
+    let reqIndicatorSp = null;
+    if (props.required) {
+        reqIndicatorSp=<span className="req-indicator">*</span>
+    }
 
 
     switch (props.elementType) {
@@ -186,7 +188,7 @@ const input = (props) => {
 
         <div className="field is-horizontal">
             <div className={fieldLabelClasses.join(' ')}>
-                <label className="label">{props.label}</label>
+                <label className="label">{props.label} {reqIndicatorSp}</label>
             </div>
             {fieldControl}
         </div>

@@ -3,13 +3,21 @@
  * Licensed under the MIT License.
  */
 const fs = window.require('fs');
+const electron = window.require('electron');
 
-const CACHE_LOCATION = "./data/cache.json";
+
+const getCacheLocation = () => {
+    const userDataPath = (electron.app || electron.remote.app).getPath('userData');
+
+    return `${userDataPath}\\cache.json`;
+}
 
 const beforeCacheAccess = async (cacheContext: any) => {
+    let cacheLocation = getCacheLocation();
+
     return new Promise<void>(async (resolve, reject) => {
-        if (fs.existsSync(CACHE_LOCATION)) {
-            fs.readFile(CACHE_LOCATION, "utf-8", (err: any, data: any) => {
+        if (fs.existsSync(cacheLocation)) {
+            fs.readFile(cacheLocation, "utf-8", (err: any, data: any) => {
                 if (err) {
                     reject();
                 } else {
@@ -18,7 +26,7 @@ const beforeCacheAccess = async (cacheContext: any) => {
                 }
             });
         } else {
-            fs.writeFile(CACHE_LOCATION, cacheContext.tokenCache.serialize(), (err: any) => {
+            fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (err: any) => {
                 if (err) {
                     reject();
                 }
@@ -28,8 +36,9 @@ const beforeCacheAccess = async (cacheContext: any) => {
 };
 
 const afterCacheAccess = async (cacheContext: any) => {
+    let cacheLocation = getCacheLocation();
     if (cacheContext.cacheHasChanged) {
-        await fs.writeFile(CACHE_LOCATION, cacheContext.tokenCache.serialize(), (err: any) => {
+        await fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (err: any) => {
             if (err) {
                 console.log(err);
             }

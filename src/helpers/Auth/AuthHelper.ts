@@ -27,46 +27,59 @@ export default class AuthProvider {
     }
 
 
-    public getToken = async (connectionInfo: AuthConnection) => {
+    public getToken = async (connectionInfo: AuthConnection, onAuthWidowClosed?: () => any) => {
+
+        let errorMessage = null;
         let authResponse: AuthenticationResult | null = null;
+        let authWindow: any = null;
+        try {
+            const account = await this.getAccount(connectionInfo);
 
-        const account = await this.getAccount(connectionInfo);
 
+            if (connectionInfo.authType === "Client Credentials") {
 
-        if (connectionInfo.authType === "Client Credentials") {
+                if (account) {
+                    authResponse = await this.getTokenSilentConfidential(account, connectionInfo);
+                }
+                else {
+                    authResponse = await this.getTokenByClientCredentials(connectionInfo);
+                }
 
-            if (account) {
-                authResponse = await this.getTokenSilentConfidential(account, connectionInfo);
             }
             else {
-                authResponse = await this.getTokenByClientCredentials(connectionInfo);
-            }
 
-        }
-        else {
+                authWindow = new BrowserWindow({
+                    width: 800,
+                    height: 600,
+                    show: false
+                });
 
-            let authWindow: any = new BrowserWindow({
-                width: 800,
-                height: 600,
-                show: false
-            });
+                authWindow.on("closed", () => {
+                    authWindow = null;
 
-            authWindow.on("closed", () => {
-                authWindow = null;
+                    if (onAuthWidowClosed) {
+                        onAuthWidowClosed();
+                    }
 
-            });
+                });
 
-            if (account) {
-                authResponse = await this.getTokenSilentPublic(authWindow, account, connectionInfo);
-            } else {
-                try {
+                if (account) {
+                    authResponse = await this.getTokenSilentPublic(authWindow, account, connectionInfo);
+                } else {
+
                     authResponse = await this.getTokenInteractive(authWindow, connectionInfo);
-                }
-                catch (err) {
-                    if (authWindow)
-                        authWindow.destroy();
+
                 }
             }
+        }
+        catch (err) {
+
+            errorMessage = err.message;
+
+            if (authWindow)
+                authWindow.destroy();
+
+            return errorMessage;
         }
 
         return authResponse || null;
@@ -239,7 +252,7 @@ export default class AuthProvider {
 
 
 
- 
+
 
 
     getOrgConnectionCache = (connectionInfo: AuthConnection): TokenCache => {

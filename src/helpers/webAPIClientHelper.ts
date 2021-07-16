@@ -129,8 +129,9 @@ export const disassociate = async (collection: string, primaryKey: string, relat
 
 
 export const getCurrentOrgUrl = () => {
-  let token = getTokenFromStore();
-  return token.resource;
+  let currentConnection = getCurrentConnectionFromStore()
+  return currentConnection.orgUrl;
+ 
 };
 
 function getWebAPIClient(useTokenRefresh: Boolean) {

@@ -24,6 +24,7 @@ export interface ConnectionUI {
 
 export interface ConnectionElement {
     label: string;
+    required?:boolean;
     elementType: string;
     elementConfig: ConnectionElementConfig;
     isHidden: boolean;

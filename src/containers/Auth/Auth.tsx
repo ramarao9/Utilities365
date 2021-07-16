@@ -27,14 +27,6 @@ import isEmpty from "is-empty";
 import { Connection, ConnectionElement, ConnectionUI } from "../../interfaces/Auth/Connection";
 import { AuthConnection } from "../../interfaces/Auth/AuthConnection";
 import { AuthenticationResult, AuthorizationUrlRequest } from "@azure/msal-node";
-// import { getAccount, getAuthorizationUrlFromOrgUrl, getMSALConfidentialClient, getMSALPublicClient, getToken, getTokenByClientCredentials } from "../../helpers/Auth/AuthHelper";
-import { StoreState } from "../../interfaces/Store/StoreState";
-const isDev = window.require("electron-is-dev");
-const { BrowserWindow } = window.require("electron").remote;
-
-
-
-
 
 
 const MSFT_APP_ID = "51f81489-12ee-4a9e-aaae-a2591f45987d";
@@ -48,6 +40,7 @@ export const Auth: React.FC = () => {
     let newOrgConnection: ConnectionUI = {
       name: {
         label: "Name",
+        required: true,
         elementType: "input",
         elementConfig: {
           type: "text",
@@ -58,6 +51,7 @@ export const Auth: React.FC = () => {
       },
       orgUrl: {
         label: "Org URL",
+        required: true,
         elementType: "input",
         elementConfig: {
           type: "text",
@@ -68,6 +62,7 @@ export const Auth: React.FC = () => {
       },
       authType: {
         label: "Auth Type",
+        required: true,
         elementType: "radio",
         elementConfig: {
           type: "radio",
@@ -89,6 +84,7 @@ export const Auth: React.FC = () => {
 
       applicationId: {
         label: "Azure AD Application Id",
+        required: true,
         elementType: "input",
         elementConfig: {
           type: "text",
@@ -185,6 +181,9 @@ export const Auth: React.FC = () => {
       msftAppEl.isHidden = useClientCredentials;
       replyUrlEl.isHidden = useClientCredentials;
       clientSecretEl.isHidden = useClientCredentials === false;
+      clientSecretEl.required = useClientCredentials;
+
+      replyUrlEl.required = !useClientCredentials;
 
       if (useClientCredentials) {
         applicationIdEl.value = "";
@@ -219,12 +218,83 @@ export const Auth: React.FC = () => {
 
   const connectClick = async (event: any) => {
 
+    let isValidConnection = validateConnection();
+
+
+    if (!isValidConnection) {
+      event.preventDefault();
+      return;
+    }
 
     const connectionInfo = await getNewConnectionInfo();
     await connectToOrg(connectionInfo);
 
-
   };
+
+
+  const validateConnection = (): boolean => {
+
+    let validConnection = true;
+
+
+    let validationError = getValidationError();
+
+    if (validationError != null) {
+      validConnection = false;
+      setConnectionError(validationError);
+    }
+
+
+    return validConnection;
+  }
+
+
+  const getValidationError = (): string | null => {
+    let validationError = null;
+
+    const connectionInfo: ConnectionUI = {
+      ...newOrgConnection
+    };
+
+    let errorTemplate = "Please provide {0} for the connection";
+
+    const connName: string | undefined = connectionInfo.name.value;
+    if (!connName)
+      return errorTemplate.replace("{0}", connectionInfo.name.label);
+
+    const orgUrl: string | undefined = connectionInfo.orgUrl.value;
+    if (!orgUrl)
+      return errorTemplate.replace("{0}", connectionInfo.orgUrl.label);
+
+
+
+    const authType: string | undefined = connectionInfo.authType.value;
+    if (!authType)
+      return errorTemplate.replace("{0}", connectionInfo.authType.label);
+
+    const appId: string | undefined = connectionInfo.applicationId.value;
+    if (!appId)
+      return errorTemplate.replace("{0}", connectionInfo.applicationId.label);
+
+
+    var useClientCredentials = (connectionInfo.authType.value === "Client Credentials");
+
+    if (useClientCredentials) {
+      const clientSecret = connectionInfo.clientSecret.value;
+      if (!clientSecret)
+        return errorTemplate.replace("{0}", connectionInfo.clientSecret.label);
+    }
+    else {
+      const replyUrl = connectionInfo.replyUrl.value;
+      if (!replyUrl)
+        return errorTemplate.replace("{0}", connectionInfo.replyUrl.label);
+    }
+
+
+
+
+    return validationError;
+  }
 
   const connectToOrg = async (connectionInfo: AuthConnection) => {
 
@@ -234,13 +304,13 @@ export const Auth: React.FC = () => {
 
 
       let authProvider: AuthProvider = getAuthProviderFromStore();
-      let token = await authProvider.getToken(connectionInfo);
+      let tokenResult = await authProvider.getToken(connectionInfo,onAuthWindowClosed);
       setConnectionInProcess(false);
-      if (token == null) {
-        setConnectionError("An error occurred while retrieving the token. Please try again.");
+      if (typeof tokenResult === "string") {
+        setConnectionError("An error occurred while retrieving the token. Please try again. Error: " + tokenResult);
       }
       else {
-        await navigateToHome(token, connectionInfo);
+        await navigateToHome(tokenResult, connectionInfo);
       }
     }
     catch (ex) {
@@ -254,13 +324,17 @@ export const Auth: React.FC = () => {
 
 
 
+  const onAuthWindowClosed = () => {
+    setConnectionError("Authentication has been cancelled. Please try again.");
+  }
+
 
   const getNewConnectionInfo = async () => {
     const newConnectionInfo = {
       ...newOrgConnection
     };
     const connName: string = newConnectionInfo.name.value!!;
-    const orgUrl: string = newConnectionInfo.orgUrl.value!!;
+    let orgUrl: string = newConnectionInfo.orgUrl.value!!;
     const authType: string = newConnectionInfo.authType.value!!;
     const appId: string = newConnectionInfo.applicationId.value!!;
     const replyUrl = newConnectionInfo.replyUrl.value;
@@ -270,10 +344,13 @@ export const Auth: React.FC = () => {
 
     const scope = orgUrl && orgUrl.endsWith("/") ? `${orgUrl.slice(0, -1)}/.default` : `${orgUrl}/.default`;
 
+
+
     const useMSFTApp = newConnectionInfo.useMSFTApp.value === "true";
 
     const authorizationUrl: string = await getAuthorizationUrlFromOrgUrl(orgUrl);
-    const authorityUrl = authorizationUrl.replace("oauth2/authorize", "");
+    const authorityUrl = authorizationUrl ? authorizationUrl.replace("oauth2/authorize", "") : undefined;
+
 
     const connectionInfo: AuthConnection = {
       name: connName,
@@ -626,6 +703,7 @@ export const Auth: React.FC = () => {
               elementConfig={connectionEle.config.elementConfig}
               size="is-small"
               labelStyle="auth-label"
+              required={connectionEle.config.required}
               isHidden={connectionEle.config.isHidden}
               value={connectionEle.config.value}
               checked={connectionEle.config.checked}
