@@ -16,7 +16,7 @@ import {
   batchRetrieveMultipleRequests
 } from "../../helpers/webAPIClientHelper";
 
-const { clipboard } = window.require("electron");
+
 
 const GuidSearch = () => {
 
@@ -192,9 +192,9 @@ const GuidSearch = () => {
   const updateMatchedRecord = (result, url) => {
     let record = { ...matchedRecord };
 
-    record.entity =result!=null? result.LogicalName:"";
-    record.value = result!=null? result.Name :"";
-    record.url = result!=null? url:"";
+    record.entity = result != null ? result.LogicalName : "";
+    record.value = result != null ? result.Name : "";
+    record.url = result != null ? url : "";
 
     setMatchedRecord(record);
   };
@@ -297,7 +297,7 @@ const GuidSearch = () => {
 
       setAllEntitiesCheck(allEntitiesChk);
     } else if (id === "matchedInput") {
-      clipboard.writeText(matchedRecord.url);
+      window.Electron.clipboard.writeText(matchedRecord.url);
     }
   };
 
@@ -322,48 +322,48 @@ const GuidSearch = () => {
   if (!IsEmpty(matchedRecord.value)) {
     matchedRecordUI = (
 
-          <div className="notification match-cont">
-            <div className="notification-title">
-              <h3 className="title is-4">Match found!</h3>
-            </div>
-            <div className="record-info">
+      <div className="notification match-cont">
+        <div className="notification-title">
+          <h3 className="title is-4">Match found!</h3>
+        </div>
+        <div className="record-info">
 
-              <div className="match-entity">
-                <Input
-                  id={matchedRecord.id}
-                  elementType={matchedRecord.elementType}
-                  elementConfig={matchedRecord.elementConfig}
-                  size="is-small"
-                  inputState={matchedRecord.inputState}
-                  value={matchedRecord.entity}
-                  label="Entity"
-                />
-              </div>
+          <div className="match-entity">
+            <Input
+              id={matchedRecord.id}
+              elementType={matchedRecord.elementType}
+              elementConfig={matchedRecord.elementConfig}
+              size="is-small"
+              inputState={matchedRecord.inputState}
+              value={matchedRecord.entity}
+              label="Entity"
+            />
+          </div>
 
-              <div className="match-record">
-                <Input
-                  id={matchedRecord.id}
-                  elementType={matchedRecord.elementType}
-                  elementConfig={matchedRecord.elementConfig}
-                  size="is-small"
-                  inputState={matchedRecord.inputState}
-                  value={matchedRecord.value}
-                  label="Name"
-                />
-              </div>
+          <div className="match-record">
+            <Input
+              id={matchedRecord.id}
+              elementType={matchedRecord.elementType}
+              elementConfig={matchedRecord.elementConfig}
+              size="is-small"
+              inputState={matchedRecord.inputState}
+              value={matchedRecord.value}
+              label="Name"
+            />
+          </div>
 
-              <div className="match-record-link">
-                <AnchorButton
-                  iconName="copy"
-                  classes={["is-small","matched-link"]}
-                  iconClasses={["has-text-grey-darker"]}
-                  toolTip="Copy URL to clipboard"
-                  clicked={event => inputChangedHandler(event, matchedRecord.id)}
-                />
-              </div>
-            </div>
-          </div>      
-   
+          <div className="match-record-link">
+            <AnchorButton
+              iconName="copy"
+              classes={["is-small", "matched-link"]}
+              iconClasses={["has-text-grey-darker"]}
+              toolTip="Copy URL to clipboard"
+              clicked={event => inputChangedHandler(event, matchedRecord.id)}
+            />
+          </div>
+        </div>
+      </div>
+
     );
   }
 

@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow , Menu} = require("electron");
+const { app, BrowserWindow, Menu } = require("electron");
 const isDev = require("electron-is-dev");
 const path = require("path");
 
@@ -11,18 +11,33 @@ const path = require("path");
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
+const installExtensions = async () => {
+  const installer = require('electron-devtools-installer');
+  const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
+  const extensions = ['REACT_DEVELOPER_TOOLS'];
+
+  return installer
+    .default(
+      extensions.map((name) => installer[name]),
+      forceDownload
+    )
+    .catch(console.log);
+};
+
+
 function createWindow() {
 
-  
+
 
 
   // Create the browser window.
   if (isDev) {
 
-  
+    installExtensions();
+
     //the below will show some security errors but since this is just local development it should be fine.
     mainWindow = new BrowserWindow({
-      webPreferences: {webSecurity:false, nodeIntegration: true },
+      webPreferences: { webSecurity: false, nodeIntegration: true, preload: path.join(__dirname, 'preload.js'), contextIsolation: false },
       width: 1100,
       height: 768
     });
@@ -33,21 +48,21 @@ function createWindow() {
     mainWindow.webContents.on("will-redirect", (event, newUrl) => {
       console.log("will-redirect" + newUrl);
     });
-  
+
     mainWindow.webContents.on("did-redirect-navigation", (event, newUrl) => {
       console.log("did-redirect-navigation" + newUrl);
     });
-  
+
     mainWindow.webContents.on("did-navigate", (event, newUrl) => {
       console.log("did-navigate" + newUrl);
     });
-  
+
     mainWindow.webContents.on("did-navigate-in-page", (event, newUrl) => {
       console.log("did-navigate-in-page" + newUrl);
     });
-  
+
     // Open the DevTools.
-     mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools()
   } else {
 
     Menu.setApplicationMenu(null);
@@ -55,14 +70,14 @@ function createWindow() {
     mainWindow = new BrowserWindow({
       width: 1100,
       height: 768,
-      webPreferences: { nodeIntegration: true },
+      webPreferences: { nodeIntegration: true, preload: path.join(__dirname, 'preload.js'), },
       icon: path.join(__dirname, '../build/u365.ico')
     });
 
     let filePath = path.join(__dirname, '../build/index.html')
     mainWindow.loadFile(filePath);
 
-   
+
   }
 
 

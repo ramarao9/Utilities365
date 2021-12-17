@@ -101,7 +101,7 @@ const openNewRecord = (cliData: CliData): CliResponse => {
 
     return getTextResponse(`New record for entity ${entityName} opened successfully!`);
   }
-  catch (error) {
+  catch (error : any) {
     return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`)
   }
 
@@ -146,7 +146,7 @@ const openView = (cliData: CliData) => {
 
     return getTextResponse(`View for entity ${entityName} opened successfully!`);
   }
-  catch (error) {
+  catch (error : any) {
     return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`)
   }
 
@@ -191,7 +191,7 @@ const openEntity = async (cliData: CliData) => {
     return getTextResponse(`Entity ${name} opened successfully!`);
 
   }
-  catch (error) {
+  catch (error : any) {
     return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
   }
 }
@@ -229,7 +229,7 @@ async function handleOpenRecordAction(cliData: CliData): Promise<CliResponse> {
       } opened successfully!`,
       targetRecord
     );
-  } catch (error) {
+  } catch (error : any) {
     return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
   }
 }

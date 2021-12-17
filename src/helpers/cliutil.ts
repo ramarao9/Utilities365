@@ -37,11 +37,10 @@ export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => 
             groupSortedVerbs = [...groupSortedVerbs, ...groupVerbs];
         })
 
-        if(groupSortedVerbs.length>0)
-        {
+        if (groupSortedVerbs.length > 0) {
             groupSortedVerbs[0].isSelected = true;
         }
-       
+
 
         return groupSortedVerbs;
     }
@@ -137,18 +136,18 @@ export const getCLIVerbsAttributes = async (entityLogicalName: string, intellise
     return attributeCliResults;
 }
 
-export const getCLIVerbsForAttributes = (entityMetadata: EntityMetadata, intellisenseType?: IntelliSenseType, excludeFilters?: boolean): Array<CLIVerb> => {
+export const getCLIVerbsForAttributes = (entityMetadata: EntityMetadata, intellisenseType?: IntelliSenseType, excludeFilters?: boolean, isWriteOperation: boolean = false): Array<CLIVerb> => {
     let attributeCliResults: Array<CLIVerb> = [];
     let attributes = entityMetadata.Attributes;
     let picklistAttributes = entityMetadata.PicklistAttributes;
-    attributeCliResults = getAttributesVerbs(attributes, intellisenseType, excludeFilters);
+    attributeCliResults = getAttributesVerbs(attributes, intellisenseType, excludeFilters,isWriteOperation);
     return attributeCliResults;
 }
 
 
 
 
-const getAttributesVerbs = (attributes: AttributeMetadata[], intellisenseType?: IntelliSenseType, excludeFilters?: boolean): Array<CLIVerb> => {
+const getAttributesVerbs = (attributes: AttributeMetadata[], intellisenseType?: IntelliSenseType, excludeFilters?: boolean, isWriteOperation: boolean = false): Array<CLIVerb> => {
 
     let attributeCliResults: Array<CLIVerb> = [];
 
@@ -165,8 +164,8 @@ const getAttributesVerbs = (attributes: AttributeMetadata[], intellisenseType?: 
             type: intellisenseType ?? IntelliSenseType.ActionParams
         }
 
-        if(attributeMetadata.AttributeType==="Lookup" || attributeMetadata.AttributeType==="Customer"){
-            cliVerb.alternateText=`_${attributeMetadata.LogicalName}_value`;
+        if (!isWriteOperation && (attributeMetadata.AttributeType === "Lookup" || attributeMetadata.AttributeType === "Customer")) {
+            cliVerb.alternateText = `_${attributeMetadata.LogicalName}_value`;
         }
 
         return cliVerb;
@@ -222,7 +221,7 @@ export const getLastParam = (cliDataVal: CliData): ActionParam | undefined => {
 
 
 export const getNameVerbsPartialOrNoMatch = (userInput: string, actionParam: ActionParam | undefined, verbs: CLIVerb[]): CLIVerb[] | undefined => {
-    let paramName = actionParam && actionParam.name ? actionParam.name.toLowerCase() : "";
+    let paramName = actionParam && actionParam.name ? actionParam.name.toLowerCase().trim() : "";
     let paramMatched = verbs.find(x => x.name.toLowerCase() === paramName);
 
     if (userInput.endsWith(" ") && actionParam?.value) {
@@ -235,7 +234,8 @@ export const getNameVerbsPartialOrNoMatch = (userInput: string, actionParam: Act
         return undefined;
     }
     else if (paramName.length > 0) {//No param has been completely matched.In this case just filter the results
-        return verbs.filter(x => x.name.toLowerCase().startsWith(paramName));
+        return verbs.filter(x => x.name.toLowerCase().startsWith(paramName) ||
+            x.name.replace(/\s/g, "").toLowerCase().startsWith(paramName));
     } else {
         return verbs;
     }

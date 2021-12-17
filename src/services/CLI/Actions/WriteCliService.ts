@@ -15,6 +15,9 @@ import {
 } from "../../../helpers/strings";
 import { string } from "prop-types";
 import { EntityReference } from "../../../interfaces/EntityReference";
+import { ActivityParty, ParticipationTypeMask } from "../../../interfaces/Entities/ActivityParty";
+import { getEntityCollectionName } from "../../../helpers/metadatautil";
+import { PartyList } from "../../../interfaces/Entities/PartyList";
 
 export const handleCrmCreateActions = async (cliData: CliData) => {
   let cliResponse: CliResponse = { message: "", success: false, type: "" };
@@ -25,7 +28,7 @@ export const handleCrmCreateActions = async (cliData: CliData) => {
     cliResponse.message = `Created! Id:${createResponse}`;
     cliResponse.response = createResponse;
   }
-  catch (error) {
+  catch (error : any) {
     console.log(error);
     return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
   }
@@ -53,7 +56,7 @@ export const handleCrmUpdateActions = async (cliData: CliData) => {
       cliResponse.type = "json";
     }
   }
-  catch (error) {
+  catch (error:any) {
     console.log(error);
     return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
   }
@@ -122,6 +125,9 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
   let dateTimeAttributes = targetEntityMetadata.DateTimeAttributes;
 
   let lookupAttributes = targetEntityMetadata.LookupAttributes;
+
+
+
 
   if (cliData.actionParams != null) {
     for (let i = 0; i < cliData.actionParams.length; i++) {
@@ -248,7 +254,10 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
             break;
 
 
-          case "partylist":
+          case "partylist": let activityParties = await buildActivityParties(targetEntityMetadata.LogicalName, attributeLogicalName, attributeValue);
+            if (activityParties == null)
+              throw new Error(`Unable to parse the value provided for ${attributeLogicalName} into a Party List. Please try in the following format 'targetentity1_targetguid1|targetentity2_targetguid2' e.g. contact_49a0e5b9-88df-e311-b8e5-6c3be5a8b200|account_6FEF4DE5-9B40-496E-B4BE-71CDBE16B664.`);
+            createRequest[attributeLogicalName] = activityParties;
             break;
 
 
@@ -261,6 +270,85 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
 
   return createRequest;
 };
+
+
+const getNavigationPropertyForActivityParty = async (entity: string) => {
+  let activityPartyEntityMetadata: EntityMetadata = await getEntity("activityparty");
+
+  let entityActivityPartyRelationship = activityPartyEntityMetadata.ManyToOneRelationships.find(x => x.ReferencedEntity === entity);
+
+  if (entityActivityPartyRelationship == null)
+    return null;
+
+  let navigationproperty = entityActivityPartyRelationship.ReferencedEntityNavigationPropertyName;
+  return navigationproperty;
+}
+
+
+const buildActivityParties = async (entity: string, partyListAttribute: string, attributeValue: string) => {
+
+
+
+
+  let delimitedparties = attributeValue.split("|");
+
+  let partyList: PartyList = {};
+
+  let activityParties: Array<ActivityParty> = [];
+
+  for (var i = 0; i < delimitedparties.length; i++) {
+
+    let delimitedParty = delimitedparties[i];
+
+    let entityReference = ParseLookupStringIntoEntityReference(delimitedParty);
+
+    let targetEntityMetadata = await getEntityMetadataBasic(entityReference!!.logicalname);
+
+    let participationTypeMask = getParticipationTypeMask(entity, partyListAttribute);
+    let activityparty: ActivityParty = { "partyid@odata.bind": `/${targetEntityMetadata.EntitySetName}(${entityReference?.id})`, participationtypemask: participationTypeMask };
+    activityParties.push(activityparty);
+
+  }
+
+  if (activityParties.length === 0)
+    return null;
+
+  let navigationProperty = await getNavigationPropertyForActivityParty(entity);
+  if (navigationProperty == null)
+    return null;
+
+  partyList[navigationProperty] = activityParties;
+
+  return partyList;
+
+
+}
+
+
+const getParticipationTypeMask = (entity: string, partyListAttribute: string): number => {
+
+
+  switch (partyListAttribute) {
+
+    case "to": return ParticipationTypeMask.ToRecipient
+
+    case "cc": return ParticipationTypeMask.CCRecipient
+
+    case "bcc": return ParticipationTypeMask.BCCRecipient
+
+
+  }
+
+  if (partyListAttribute.toLowerCase().includes("customer")) {
+    return ParticipationTypeMask.Customer;
+  }
+
+  if (partyListAttribute.toLowerCase().includes("owner")) {
+    return ParticipationTypeMask.Owner;
+  }
+
+  return -1;
+}
 
 //Formats date to yyyy-MM-dd
 function formatDate(date: string) {

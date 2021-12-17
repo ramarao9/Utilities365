@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useState, useRef } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate  } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux'
 import { connect } from "react-redux";
 import ErrorMessage from "../../components/UI/ErrorMessage/ErrorMessage";
@@ -137,7 +137,7 @@ export const Auth: React.FC = () => {
   const [connections, setConnections] = useState<Array<AuthConnection>>(getConnections());
 
   const dispatch = useDispatch()
-  const history = useHistory();
+  const navigate = useNavigate();
 
 
   const newConnectionEleChangedHandler = (event: any, inputIdentifier: string) => {
@@ -374,7 +374,7 @@ export const Auth: React.FC = () => {
     let authorizationUrl = null;
     try {
       await axios.get(`${orgUrl}/api/data`);
-    } catch (error) {
+    } catch (error : any) {
       let response = error.response;
       let responseHeaders = response.headers;
 
@@ -440,7 +440,7 @@ export const Auth: React.FC = () => {
 
     await setUserInfo(tokenObj, connectionInfo);
 
-    history.push("/home");
+    navigate("/home");
   }
 
 
@@ -721,7 +721,7 @@ export const Auth: React.FC = () => {
         }
       </div>
 
-      < div className="buttons is-right" >
+      <div className="buttons is-right" >
         <AnchorButton
           clicked={(event: any) => connectClick(event)}
           label="Connect"

@@ -1,4 +1,3 @@
-
 import {
     AuthorizationCodeRequest, AuthenticationResult, AuthorizationUrlRequest,
     SilentFlowRequest, AccountInfo, Configuration, ConfidentialClientApplication
@@ -72,7 +71,7 @@ export default class AuthProvider {
                 }
             }
         }
-        catch (err) {
+        catch (err : any) {
 
             errorMessage = err.message;
 

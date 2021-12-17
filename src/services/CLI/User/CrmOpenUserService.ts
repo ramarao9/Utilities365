@@ -60,7 +60,7 @@ export const handleUserActionWithNamedParams = async (
       filter,
       null
     );
-  } catch (error) {
+  } catch (error: any) {
     return getCliResponse(
       "message",
       null,

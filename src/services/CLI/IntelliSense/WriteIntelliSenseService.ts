@@ -20,7 +20,7 @@ export const getActionsParamsForWrite = async (userInput: string, cliDataVal: Cl
         cliResults = cliResults.concat(CLI_ACTION_PARAMS_UPDATE_RECORDS);//Default targets
     }
 
-    let attributeVerbs = getCLIVerbsForAttributes(entityMetadata);
+    let attributeVerbs = getCLIVerbsForAttributes(entityMetadata, undefined, undefined, true);
     cliResults = cliResults.concat(attributeVerbs);
 
     let actionParams = cliDataVal.actionParams;
@@ -43,7 +43,7 @@ export const getActionsParamsForWrite = async (userInput: string, cliDataVal: Cl
     }
 
     if (paramName && paramName.length > 0) {//No param has been completely matched.In this case just filter the results
-        cliResults = cliResults.filter(x =>(x.text && x.text!!.toLowerCase().startsWith(paramName!!)) ||
+        cliResults = cliResults.filter(x => (x.text && x.text!!.toLowerCase().startsWith(paramName!!)) ||
             x.name.toLowerCase().startsWith(paramName!!));
     }
 

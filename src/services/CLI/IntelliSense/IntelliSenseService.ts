@@ -148,7 +148,7 @@ export const getUpdatedInputOnSelection = async (intellisenseInput: IntelliSense
     let lastParamForCurrentPos = getLastParam(cliDataForCurrentPos);
 
 
-    let textToReplaceWith = selectedVerb.alternateText ? selectedVerb.alternateText :( selectedVerb.text ? selectedVerb.text : selectedVerb.name);
+    let textToReplaceWith = selectedVerb.alternateText ? selectedVerb.alternateText : (selectedVerb.text ? selectedVerb.text : selectedVerb.name);
     if (lastParamForCurrentPos && lastParamForCurrentPos.value &&
         selectedVerb.type === IntelliSenseType.ActionParamValue) {
 
@@ -332,7 +332,10 @@ const getParamsIntelliSense = async (userInput: string, cliDataVal: CliData) => 
     }
     //if the action parameter has value than filter on the parameter values from the Cli results
     else if (lastActionParam && lastActionParam.name && !lastActionParam.value) {//Require filter on the value of the parameter
-        cliResults = cliResults.filter(x => x.name.toLowerCase().startsWith(lastActionParam!!.name.toLowerCase()));
+        let actionParamName = lastActionParam!!.name.toLowerCase();
+        cliResults = cliResults.filter(x => x.name.toLowerCase().startsWith(actionParamName) ||
+            x.name.replace(/\s/g, "").toLowerCase().startsWith(actionParamName)
+        );
     }
 
     //filter on the name of the parameter

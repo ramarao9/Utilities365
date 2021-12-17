@@ -1,5 +1,5 @@
 import React, { FunctionComponent, useState, useRef } from "react";
-import { Redirect } from "react-router";
+
 import store from "../../store/store";
 import * as crmUtil from "../../helpers/crmutil";
 import * as actionTypes from "../../store/actions";

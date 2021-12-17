@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "bulma/css/bulma.css";
 import "./NavigationItems.css";
-import { NavLink, useHistory ,useLocation} from "react-router-dom";
+import { NavLink, useNavigate ,useLocation} from "react-router-dom";
 import DropDownMenu from "../../UI/DropDownMenu/DropDownMenu";
 import {MenuItem} from "../../../interfaces/MenuItem";
 import {UserInfo} from "../../../interfaces/UserInfo";
@@ -16,7 +16,7 @@ interface NavProps{
 
 
 export const NavigationItems: React.FC<NavProps> = (navProps:NavProps) => {
-  let history = useHistory();
+  let navigate = useNavigate();
   let location = useLocation();
 
     const [isActive, setIsActive] = useState<boolean>(false); 
@@ -37,7 +37,7 @@ if(navProps.onUserSignout){
 setSelectedNavItem("home");
 
       let { from } :any= location.state || { from: { pathname: "/" } };
-      history.replace(from);
+      navigate(from,{ replace: true });
         break;
 
       default:
@@ -88,13 +88,13 @@ navEndUI=  (<div className="userInfo">
     <div className={`navbar-menu ${(isActive ? "is-active" : "")}`}>
       {/* navbar start, navbar end  */}
       <div className="navbar-start">
-      <NavLink className={`navbar-item ${selectedNavItem == "home" ? "is-active" : ""}`} onClick={ev => onNavItemClick(ev, "home")} exact to="/home">
+      <NavLink className={`navbar-item ${selectedNavItem == "home" ? "is-active" : ""}`} onClick={ev => onNavItemClick(ev, "home")}  to="/home">
       Home
     </NavLink>
-    <NavLink className={`navbar-item ${selectedNavItem == "cli" ? "is-active" : ""}`} onClick={ev => onNavItemClick(ev, "cli")} exact to="/cli">
+    <NavLink className={`navbar-item ${selectedNavItem == "cli" ? "is-active" : ""}`} onClick={ev => onNavItemClick(ev, "cli")}  to="/cli">
       CLI
     </NavLink>
-    <NavLink className={`navbar-item ${selectedNavItem == "gs" ? "is-active" : ""}`} onClick={ev => onNavItemClick(ev, "gs")} exact to="/guidsearch">
+    <NavLink className={`navbar-item ${selectedNavItem == "gs" ? "is-active" : ""}`} onClick={ev => onNavItemClick(ev, "gs")}  to="/guidsearch">
     Guid Search
     </NavLink>
       </div>

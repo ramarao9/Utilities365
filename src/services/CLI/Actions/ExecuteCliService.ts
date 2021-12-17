@@ -24,7 +24,7 @@ export const handleCrmExecuteActions = async (cliData: CliData) => {
         }
         cliResponse.success = true;
     }
-    catch (error) {
+    catch (error : any) {
         console.log(error);
         return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
     }

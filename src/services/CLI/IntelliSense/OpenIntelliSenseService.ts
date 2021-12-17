@@ -5,7 +5,7 @@ import { CLI_TARGET_OPEN, GROUP_NAME_OPEN_ENTITIES } from "../Definitions/Target
 import { CLI_ACTION_PARAMS_OPEN_GENERIC, CLI_ACTION_PARAMS_OPEN_NEW_RECORD, CLI_ACTION_PARAMS_OPEN_RECORD, CLI_ACTION_PARAMS_OPEN_VIEW } from "../Definitions/ActionParams/Open";
 import { EntityMetadata } from "../../../interfaces/EntityMetadata";
 import { getEntityMetadataBasic } from "../../CrmMetadataService";
-import { Switch } from "react-router";
+
 import { Action } from "redux";
 import { GROUP_NAME_FILTER_ATTRIBUTES } from "../Definitions/ActionParams/Get";
 import { AppModule } from "../../../interfaces/Entities/AppModule";

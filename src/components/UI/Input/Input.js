@@ -36,7 +36,7 @@ const input = (props) => {
 
     let reqIndicatorSp = null;
     if (props.required) {
-        reqIndicatorSp=<span className="req-indicator">*</span>
+        reqIndicatorSp = <span className="req-indicator">*</span>
     }
 
 
@@ -47,6 +47,7 @@ const input = (props) => {
 
             inputElement = <input
                 {...props.elementConfig}
+                key={props.id}
                 id={props.id}
                 checked={props.checked}
                 onChange={props.changed}
@@ -61,6 +62,7 @@ const input = (props) => {
 
             if (props.refrnc) {
                 inputElement = <input
+                    key={props.id}
                     ref={props.refrnc}
                     onChange={props.changed}
                     className={inputClasses.join(' ')}
@@ -69,6 +71,7 @@ const input = (props) => {
             }
             else {
                 inputElement = <input
+                    key={props.id}
                     onChange={props.changed}
                     className={inputClasses.join(' ')}
                     {...props.elementConfig}
@@ -82,6 +85,7 @@ const input = (props) => {
         case ('password'):
             inputClasses.push('input');
             inputElement = <input
+                key={props.id}
                 onChange={props.changed}
                 className={inputClasses.join(' ')}
                 {...props.elementConfig}
@@ -89,6 +93,7 @@ const input = (props) => {
             break;
         case ('textarea'):
             inputElement = <textarea
+                key={props.id}
                 onChange={props.changed}
                 className={inputClasses.join(' ')}
                 {...props.elementConfig}
@@ -97,6 +102,7 @@ const input = (props) => {
 
         case ('select'):
             inputElement = <select
+                key={props.id}
                 className={inputClasses.join(' ')}
                 onChange={props.changed}
                 value={props.value} >
@@ -115,7 +121,7 @@ const input = (props) => {
 
             inputClasses.push('is-checkradio');
             inputElement = <React.Fragment>
-                <div className="field">
+                <div key={props.id} className="field">
                     {props.elementConfig.options.map((option, i) => (
                         <React.Fragment key={option + "_" + i}>
                             <input type="radio"
@@ -137,6 +143,7 @@ const input = (props) => {
         default:
             inputClasses.push('input');
             inputElement = <input
+                key={props.id}
                 onChange={props.changed}
                 placeholder={props.placeholder}
                 className={inputClasses.join(' ')}
