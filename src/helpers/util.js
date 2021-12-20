@@ -1,7 +1,9 @@
 
-
+const electron = window.require('electron');
 
 export function openWindow(url, useNativeChrome) {
 
-    window.Electron.shell.openExternal(url)
+    electron.shell.openExternal(url);
+
+
 }

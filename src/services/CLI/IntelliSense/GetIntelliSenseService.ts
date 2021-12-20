@@ -9,7 +9,7 @@ import {
 import { getEntities, getEntityMetadataBasic } from "../../CrmMetadataService"
 import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
 import { AttributeMetadata, EntityMetadata } from "../../../interfaces/EntityMetadata"
-import { getCleanedCLIVerbs, getCLIVerbsForEntities, getLastParam, getNameVerbsPartialOrNoMatch, getEntityCLIVerbs, getFilteredVerbs, getVerbsFromCSV, getCLIVerbsAttributes } from "../../../helpers/cliutil";
+import { getCleanedCLIVerbs, getCLIVerbsForEntities, getLastParam, getNameVerbsPartialOrNoMatch, getEntityCLIVerbs, getFilteredVerbs, getVerbsFromCSV, getCLIVerbsAttributes, isLastParamAttribute } from "../../../helpers/cliutil";
 import { getEntityCollectionName } from "../../../helpers/metadatautil";
 import { getActionParam } from "../../../helpers/QueryHelper";
 import { getEntityViews } from "../../ViewService";
@@ -483,13 +483,7 @@ const getActionParamsFor_Get_Records = async (userInput: string, cliDataVal: Cli
     return cliResults;
 }
 
-//If the last param in the CLI is an attribute
-//e.g. get contacts --birthdate  in this example the last param birthdate is an attribute
-export const isLastParamAttribute = (lastParam: ActionParam | undefined, attributes: Array<AttributeMetadata>): Boolean => {
-    return lastParam != undefined &&
-        lastParam &&
-        (attributes.findIndex(x => x.LogicalName && x.LogicalName === lastParam.name) !== -1);
-}
+
 
 export const getVerbsWhenAttributeOnGetRecords = (param: ActionParam, attributes: Array<AttributeMetadata>): Array<CLIVerb> => {
     let cliResults: Array<CLIVerb> = [];

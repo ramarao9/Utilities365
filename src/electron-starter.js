@@ -37,7 +37,7 @@ function createWindow() {
 
     //the below will show some security errors but since this is just local development it should be fine.
     mainWindow = new BrowserWindow({
-      webPreferences: { webSecurity: false, nodeIntegration: true, preload: path.join(__dirname, 'preload.js'), contextIsolation: false },
+      webPreferences: { webSecurity: false, nativeWindowOpen: true, nodeIntegration: true, preload: path.join(__dirname, 'preload.js'), contextIsolation: false },
       width: 1100,
       height: 768
     });
@@ -70,7 +70,7 @@ function createWindow() {
     mainWindow = new BrowserWindow({
       width: 1100,
       height: 768,
-      webPreferences: { nodeIntegration: true, preload: path.join(__dirname, 'preload.js'), },
+      webPreferences: { nodeIntegration: true, nativeWindowOpen: true, preload: path.join(__dirname, 'preload.js'), },
       icon: path.join(__dirname, '../build/u365.ico')
     });
 

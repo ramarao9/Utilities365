@@ -176,14 +176,14 @@ const getAttributesVerbs = (attributes: AttributeMetadata[], intellisenseType?: 
 
 
 
-const getPicklistAttributesVerbs = (attributes: PicklistMetadata[]): Array<CLIVerb> => {
+export const getPicklistAttributeVerbs = (picklistMetadata: PicklistMetadata): Array<CLIVerb> => {
 
     let picklistAttributeCliResults: Array<CLIVerb> = [];
-    picklistAttributeCliResults = attributes.map((picklistMetadata: PicklistMetadata) => {
+    picklistAttributeCliResults = picklistMetadata.OptionSet.Options.map((option) => {
 
         let cliVerb: CLIVerb = {
-            name: picklistMetadata.LogicalName,
-            text: picklistMetadata.LogicalName
+            name: option.Label.UserLocalizedLabel.Label,
+            text: option.Value.toString()
         }
 
         return cliVerb;
@@ -273,4 +273,20 @@ export const getVerbsFromCSV = (paramValueCSV: string, cliVerbsToFilter: CLIVerb
     }
 
     return filteredVerbs;
+}
+
+
+//If the last param in the CLI is an attribute
+//e.g. get contacts --birthdate  in this example the last param birthdate is an attribute
+export const isLastParamAttribute = (lastParam: ActionParam | undefined, attributes: Array<AttributeMetadata>): Boolean => {
+    return lastParam != undefined &&
+        lastParam &&
+        (attributes.findIndex(x => x.LogicalName && x.LogicalName === lastParam.name) !== -1);
+}
+
+
+export const isLastParamOptionSetAttribute= (lastParam: ActionParam | undefined, attributes: Array<AttributeMetadata>): Boolean => {
+    return lastParam != undefined &&
+        lastParam &&
+        (attributes.findIndex(x => x.LogicalName && x.LogicalName === lastParam.name && x.AttributeType==="Picklist") !== -1);
 }
