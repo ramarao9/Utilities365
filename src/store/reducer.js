@@ -1,4 +1,5 @@
-import { ConfidentialClientApplication, PublicClientApplication } from "@azure/msal-node";
+
+
 import AuthProvider from "../helpers/Auth/AuthHelper";
 import * as actionTypes from "./actions";
 
@@ -79,17 +80,25 @@ const reducer = (state = initialState, action) => {
         currentUserId: action.currentUserId
       };
 
-    case actionTypes.SIGNOUT_USER:
+    case actionTypes.SIGNOUT_USER:{
+
+
       return {
         ...state,
         tokenData: {},
         currentUserId: {},
         currentUser: {},
         crmUsers: [],
+        currentConnection: {},
+        currentMSALPublicClient: null,
+        currentMSALConfidentialClient: null,
         entities: [],
         entitiesAttributeCollection: [],
         authProvider: new AuthProvider()
       };
+
+    }
+  
 
     case actionTypes.SET_APPS:
       return {

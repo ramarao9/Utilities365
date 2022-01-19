@@ -36,7 +36,7 @@ export default class AuthProvider {
 
 
             if (connectionInfo.authType === "Client Credentials") {
-
+                console.log("Account type is client credentials..");
                 if (account) {
                     authResponse = await this.getTokenSilentConfidential(account, connectionInfo);
                 }
@@ -46,6 +46,8 @@ export default class AuthProvider {
 
             }
             else {
+
+                console.log("Account type is user credentials..");
 
                 authWindow = new BrowserWindow({
                     width: 800,
@@ -71,10 +73,11 @@ export default class AuthProvider {
                 }
             }
         }
-        catch (err : any) {
+        catch (err: any) {
 
             errorMessage = err.message;
 
+            console.log("Error occurred while retrieving the token." + err);
             if (authWindow)
                 authWindow.destroy();
 
@@ -86,7 +89,7 @@ export default class AuthProvider {
 
 
     public getTokenInteractive = async (authWindow: any, connectionInfo: AuthConnection) => {
-
+        console.log("Getting token interactively..");
         const msalPublicClientApp = this.getMSALPublicClient(connectionInfo);
         const authorizationUrlrequest: AuthorizationUrlRequest = this.getAuthorizationUrlRequest(connectionInfo);
         let authorizationCodeUrl = await msalPublicClientApp.getAuthCodeUrl(authorizationUrlrequest);
@@ -98,9 +101,12 @@ export default class AuthProvider {
             code: authCode,
         };
 
-        if (authWindow)
+        if (authWindow) {
+            console.log("Destroying auth window..");
             authWindow.destroy();
+        }
 
+        console.log("Aquiring token by code");
         return await msalPublicClientApp.acquireTokenByCode(authCodeRequest);
     }
 
@@ -122,6 +128,8 @@ export default class AuthProvider {
 
 
     getTokenSilentPublic = async (authWindow: any, account: AccountInfo, connectionInfo: AuthConnection) => {
+        console.log("Getting token silently..");
+
         try {
             const silentFlowRequest: SilentFlowRequest = {
                 account: account,
@@ -138,6 +146,7 @@ export default class AuthProvider {
 
 
     getTokenSilentConfidential = async (account: AccountInfo, connectionInfo: AuthConnection) => {
+        console.log("Getting token silently confidential..");
         try {
             const silentFlowRequest: SilentFlowRequest = {
                 account: account,
@@ -165,7 +174,7 @@ export default class AuthProvider {
 
     public getTokenByClientCredentials = async (connectionInfo: AuthConnection) => {
 
-
+        console.log("getTokenByClientCredentials..");
         const confidentialApp = this.getMSALConfidentialClient(connectionInfo);
 
         const clientCredentialRequest = {
@@ -181,7 +190,7 @@ export default class AuthProvider {
 
     public getMSALConfidentialClient = (connectionInfo: AuthConnection) => {
 
-
+        console.log("getMSALConfidentialClient..");
 
 
 
@@ -293,24 +302,7 @@ export default class AuthProvider {
 
     }
 
-    // function getCurrentMSALConfidentialClientFromStore(): any {
-    //     const currentState = store.getState();
-    //     return currentState != null ? currentState.currentMSALConfidentialClient : null;
-    // }
 
-    // function setCurrentMSALConfidentialClientInStore(msalClient: any) {
-    //     store.dispatch({ type: actionTypes.SET_CURRENT_MSAL_CONFIDENTIAL_CLIENT, currentMSALConfidentialClient: msalClient });
-    // }
-
-
-    // function getCurrentMSALPublicClientFromStore(): any {
-    //     const currentState = store.getState();
-    //     return currentState != null ? currentState.currentMSALPublicClient : null;
-    // }
-
-    // function setCurrentMSALPublicClientInStore(msalClient: any) {
-    //     store.dispatch({ type: actionTypes.SET_CURRENT_MSAL_PUBLIC_CLIENT, currentMSALPublicClient: msalClient });
-    // }
 
 
 }

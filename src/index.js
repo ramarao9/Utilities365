@@ -1,13 +1,13 @@
-import React from "react";
+
 import ReactDOM from "react-dom";
-import { BrowserRouter } from "react-router-dom";
+import { HashRouter, MemoryRouter as Router } from "react-router-dom";
 import { Provider } from "react-redux";
 
 import store from "./store/store";
 
 import "./index.css";
 import {App} from "./App";
-import registerServiceWorker from "./registerServiceWorker";
+
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 
@@ -24,6 +24,8 @@ import {
   faGreaterThan,
   faBan
 } from "@fortawesome/free-solid-svg-icons";
+
+
 library.add(
   faAngleDown,
   faGreaterThan,
@@ -40,11 +42,11 @@ library.add(
 
 const app = (
   <Provider store={store}>
-    <BrowserRouter>
+    <Router>
       <App />
-    </BrowserRouter>
+    </Router>
   </Provider>
 );
 
 ReactDOM.render(app, document.getElementById("root"));
-registerServiceWorker();
+

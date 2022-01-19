@@ -1,21 +1,17 @@
-import React, { FunctionComponent, useState, useRef } from "react";
-import { useNavigate  } from "react-router-dom";
-import { useSelector, useDispatch } from 'react-redux'
-import { connect } from "react-redux";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from 'react-redux'
 import ErrorMessage from "../../components/UI/ErrorMessage/ErrorMessage";
 import MoreButton from "../../components/UI/MoreButton/MoreButton";
-import { isValidToken } from "../../helpers/crmutil";
 import AnchorButton from "../../components/UI/AnchorButton/AnchorButton";
-import * as MsalNode from "@azure/msal-node";
+
 
 
 import Input from "../../components/UI/Input/Input";
-import Crypto from "crypto";
 import axios from "axios";
 import {
   saveConnection,
   getConnections,
-  getConnection,
   removeConnection
 } from "../../services/LocalStorageService";
 import AuthProvider from "../../helpers/Auth/AuthHelper";
@@ -23,10 +19,9 @@ import store from "../../store/store";
 import { retrieveAll } from "../../helpers/webAPIClientHelper";
 import * as actionTypes from "../../store/actions";
 import "./Auth.css";
-import isEmpty from "is-empty";
-import { Connection, ConnectionElement, ConnectionUI } from "../../interfaces/Auth/Connection";
+import { ConnectionElement, ConnectionUI } from "../../interfaces/Auth/Connection";
 import { AuthConnection } from "../../interfaces/Auth/AuthConnection";
-import { AuthenticationResult, AuthorizationUrlRequest } from "@azure/msal-node";
+import { AuthenticationResult } from "@azure/msal-node";
 
 
 const MSFT_APP_ID = "51f81489-12ee-4a9e-aaae-a2591f45987d";
@@ -303,17 +298,20 @@ export const Auth: React.FC = () => {
     try {
 
 
+      console.log("Connecting to org");
       let authProvider: AuthProvider = getAuthProviderFromStore();
-      let tokenResult = await authProvider.getToken(connectionInfo,onAuthWindowClosed);
+      let tokenResult = await authProvider.getToken(connectionInfo, onAuthWindowClosed);
       setConnectionInProcess(false);
       if (typeof tokenResult === "string") {
         setConnectionError("An error occurred while retrieving the token. Please try again. Error: " + tokenResult);
       }
       else {
+        console.log("navigating to home with token");
         await navigateToHome(tokenResult, connectionInfo);
       }
     }
-    catch (ex) {
+    catch (err) {
+      console.log("An error occurred when connecting to org" + err);
       setConnectionInProcess(false);
     }
   }
@@ -374,7 +372,7 @@ export const Auth: React.FC = () => {
     let authorizationUrl = null;
     try {
       await axios.get(`${orgUrl}/api/data`);
-    } catch (error : any) {
+    } catch (error: any) {
       let response = error.response;
       let responseHeaders = response.headers;
 
@@ -440,7 +438,9 @@ export const Auth: React.FC = () => {
 
     await setUserInfo(tokenObj, connectionInfo);
 
+
     navigate("/home");
+
   }
 
 
@@ -582,6 +582,8 @@ export const Auth: React.FC = () => {
       type: "text"
     };
 
+    console.log("in edit mode");
+
     return (
       <div className="conn-select-box" >
         <div className="conn-select-box-item" >
@@ -632,6 +634,7 @@ export const Auth: React.FC = () => {
       { id: "remove", label: "Remove" }
     ];
 
+    console.log("showing existing connections");
 
 
     return (<div className="conn-select-box">

@@ -1,13 +1,11 @@
-import React, { Component, ReactNode } from "react";
+import React from "react";
 import {
-  BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
-  Link,
   To
 } from "react-router-dom";
-import Home from "./containers/Home/Home";
+import { Home } from "./containers/Home/Home";
 import { Auth } from "./containers/Auth/Auth";
 import Layout from "./hoc/Layout/Layout";
 import GuidSearch from "./containers/GuidSearch/GuidSearch";
@@ -59,6 +57,11 @@ export const App: React.FC = () => {
             }
           />
 
+          <Route
+            path="/clitemp"
+            element={<Home />}
+          />
+
 
           <Route
             path="/guidsearch"
@@ -68,6 +71,10 @@ export const App: React.FC = () => {
               </RequireAuth>
             }
           />
+
+          <Route path="/" element={<Auth />} />
+
+          <Route path="#" element={<Auth />} />
 
           <Route path="*" element={<Auth />} />
         </Routes>

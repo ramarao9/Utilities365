@@ -5,8 +5,6 @@ const path = require("path");
 
 
 
-
-
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
@@ -43,7 +41,27 @@ function createWindow() {
     });
 
     mainWindow.loadURL("http://localhost:3000");
+  } else {
 
+
+
+    mainWindow = new BrowserWindow({
+      width: 1100,
+      height: 768,
+      webPreferences: { nodeIntegration: true, nativeWindowOpen: true, preload: path.join(__dirname, 'preload.js'), contextIsolation: false, enableRemoteModule: true },
+      icon: path.join(__dirname, '../build/u365.ico')
+    });
+
+    let filePath = path.join(__dirname, '../build/index.html')
+    mainWindow.loadFile(filePath);
+
+
+  }
+
+
+  if (isDev) {//Change this criteria when troubleshooting PROD builds that do not work as expected
+
+    mainWindow.webContents.openDevTools();
 
     mainWindow.webContents.on("will-redirect", (event, newUrl) => {
       console.log("will-redirect" + newUrl);
@@ -61,26 +79,7 @@ function createWindow() {
       console.log("did-navigate-in-page" + newUrl);
     });
 
-    // Open the DevTools.
-    mainWindow.webContents.openDevTools()
-  } else {
-
-    Menu.setApplicationMenu(null);
-
-    mainWindow = new BrowserWindow({
-      width: 1100,
-      height: 768,
-      webPreferences: { nodeIntegration: true, nativeWindowOpen: true, preload: path.join(__dirname, 'preload.js'), },
-      icon: path.join(__dirname, '../build/u365.ico')
-    });
-
-    let filePath = path.join(__dirname, '../build/index.html')
-    mainWindow.loadFile(filePath);
-
-
   }
-
-
 
 
   // Emitted when the window is closed.
