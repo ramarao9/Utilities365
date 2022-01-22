@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from "react";
-import Aux from "../../../hoc/_Aux/_Aux";
 import IsEmpty from "is-empty";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./DropDown.css";
@@ -58,7 +57,7 @@ const DropDown = props => {
       option =>
         (option.Label && option.Label.toLowerCase().includes(searchText)) ||
         (option.Value && option.Value.toLowerCase().includes(searchText)) ||
-        (option.AlternateValue != null && option.AlternateValue == searchText)
+        (option.AlternateValue != null && option.AlternateValue === searchText)
     );
 
 

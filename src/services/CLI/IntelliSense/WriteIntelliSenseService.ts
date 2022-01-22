@@ -1,11 +1,9 @@
 import { ActionParam, CliData } from "../../../interfaces/CliData";
-import { CLI_TARGET_GET } from "../Definitions/Target/Get"
-import { CLI_ACTION_PARAMS_GET_RECORDS } from "../Definitions/ActionParams/Get"
-import { getEntities, getEntity } from "../../CrmMetadataService"
-import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
+import {  getEntity } from "../../CrmMetadataService"
+import {  CLIVerb } from "../../../interfaces/CliIntelliSense"
 import { EntityMetadata } from "../../../interfaces/EntityMetadata"
-import { getCleanedCLIVerbs, getCLIVerbsForEntities, getCLIVerbsForAttributes, getCLIVerbsForEntitiesWrite, getEntityCLIVerbs, isLastParamAttribute, getLastParam, isLastParamOptionSetAttribute, getPicklistAttributeVerbs } from "../../../helpers/cliutil";
-import { getEntityCollectionName } from "../../../helpers/metadatautil";
+import {  getCLIVerbsForAttributes, getLastParam, isLastParamOptionSetAttribute, getPicklistAttributeVerbs } from "../../../helpers/cliutil";
+
 import { CRMOperation } from "../../../interfaces/CRMOperation";
 import { CLI_ACTION_PARAMS_UPDATE_RECORDS } from "../Definitions/ActionParams/Update";
 

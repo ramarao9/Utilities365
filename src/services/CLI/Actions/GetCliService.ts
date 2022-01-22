@@ -2,18 +2,16 @@
 import { CliData, ActionParam } from "../../../interfaces/CliData"
 import { CliResponse } from "../../../interfaces/CliResponse"
 import {
-  retrieveMultiple, retrieveEntitites, retrieveEntity, retrieveRequest,
-  retrieveAttribute, retrieveAttributes, executeUnboundFunction, retrieve, executeFetchXml
+  retrieveMultiple, retrieveEntitites, retrieveEntity, 
+  retrieveAttribute, retrieveAttributes, executeUnboundFunction,  executeFetchXml
 } from "../../../helpers/webAPIClientHelper"
 import { getErrorResponse } from "../CliResponseUtil";
-import { getArrayFromCSV, getParamVal, getAttributeMetadataName, getFirstLabelFromLocalizedLabels, isValidGuid } from "../../../helpers/common";
-import { getEntityMetadataBasic, getEntity as getEntityMetadata } from "../../CrmMetadataService"
+import { getArrayFromCSV, getParamVal, getFirstLabelFromLocalizedLabels, isValidGuid } from "../../../helpers/common";
+import { getEntityMetadataBasic } from "../../CrmMetadataService"
 import {
   STR_ERROR_OCCURRED
 } from "../../../helpers/strings";
 
-import { async } from "q";
-import { expand } from "../../../interfaces/expand";
 import { EntityMetadata } from "../../../interfaces/EntityMetadata";
 
 import {

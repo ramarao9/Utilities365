@@ -1,5 +1,5 @@
 import { AuthConnection } from "../interfaces/Auth/AuthConnection";
-import { ConnectionUI } from "../interfaces/Auth/Connection";
+
 
 
 const Store = window.require("electron-store");
@@ -34,7 +34,7 @@ export const saveConnection = (connectionInfo: AuthConnection) => {
 
   let existingConnectionIndex = connections.findIndex((x: AuthConnection) => (x.orgUrl === connectionInfo.orgUrl && x.appId === connectionInfo.appId));
 
-  if (existingConnectionIndex != -1) {
+  if (existingConnectionIndex !== -1) {
     connections[existingConnectionIndex] = connectionInfo;
   }
   else {

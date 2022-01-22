@@ -1,16 +1,15 @@
 import {
     AuthorizationCodeRequest, AuthenticationResult, AuthorizationUrlRequest,
     SilentFlowRequest, AccountInfo, Configuration, ConfidentialClientApplication
-    , PublicClientApplication, TokenCache, ClientApplication
+    , PublicClientApplication, TokenCache
 } from "@azure/msal-node";
-import axios from "axios";
-import * as actionTypes from "../../store/actions";
 
 import { AuthConnection } from "../../interfaces/Auth/AuthConnection";
-import store from "../../store/store";
+
 import { cachePlugin } from "./CachePlugin";
 
-const { BrowserWindow } = window.require("electron").remote;
+const { ipcRenderer } = window.require("electron");
+
 export default class AuthProvider {
 
 
@@ -26,11 +25,9 @@ export default class AuthProvider {
     }
 
 
-    public getToken = async (connectionInfo: AuthConnection, onAuthWidowClosed?: () => any) => {
-
+    public getToken = async (connectionInfo: AuthConnection) => {
         let errorMessage = null;
         let authResponse: AuthenticationResult | null = null;
-        let authWindow: any = null;
         try {
             const account = await this.getAccount(connectionInfo);
 
@@ -49,37 +46,21 @@ export default class AuthProvider {
 
                 console.log("Account type is user credentials..");
 
-                authWindow = new BrowserWindow({
-                    width: 800,
-                    height: 600,
-                    show: false
-                });
 
-                authWindow.on("closed", () => {
-                    authWindow = null;
-
-                    if (onAuthWidowClosed) {
-                        onAuthWidowClosed();
-                    }
-
-                });
 
                 if (account) {
-                    authResponse = await this.getTokenSilentPublic(authWindow, account, connectionInfo);
+                    authResponse = await this.getTokenSilentPublic( account, connectionInfo);
                 } else {
 
-                    authResponse = await this.getTokenInteractive(authWindow, connectionInfo);
+                    authResponse = await this.getTokenInteractive( connectionInfo);
 
                 }
             }
         }
         catch (err: any) {
-
             errorMessage = err.message;
-
             console.log("Error occurred while retrieving the token." + err);
-            if (authWindow)
-                authWindow.destroy();
+
 
             return errorMessage;
         }
@@ -88,36 +69,34 @@ export default class AuthProvider {
     }
 
 
-    public getTokenInteractive = async (authWindow: any, connectionInfo: AuthConnection) => {
+    public getTokenInteractive = async (connectionInfo: AuthConnection) => {
         console.log("Getting token interactively..");
         const msalPublicClientApp = this.getMSALPublicClient(connectionInfo);
         const authorizationUrlrequest: AuthorizationUrlRequest = this.getAuthorizationUrlRequest(connectionInfo);
         let authorizationCodeUrl = await msalPublicClientApp.getAuthCodeUrl(authorizationUrlrequest);
 
 
-        const authCode = await this.listenForAuthCode(authorizationCodeUrl, authWindow) as string;
+        const authCode = await this.listenForAuthCode(authorizationCodeUrl) as string;
         const authCodeRequest: AuthorizationCodeRequest = {
             ...authorizationUrlrequest,
             code: authCode,
         };
 
-        if (authWindow) {
-            console.log("Destroying auth window..");
-            authWindow.destroy();
-        }
 
         console.log("Aquiring token by code");
         return await msalPublicClientApp.acquireTokenByCode(authCodeRequest);
     }
 
 
-    listenForAuthCode = async (navigateUrl: string, authWindow: any) => {
+    listenForAuthCode = async (navigateUrl: string) => {
 
-        authWindow.loadURL(navigateUrl);
-        authWindow.show();
-        return new Promise((resolve, reject) => {
-            authWindow.webContents.on('will-redirect', (event: any, responseUrl: string) => {
-                const parsedUrl = new URL(responseUrl);
+        window.open(navigateUrl, '_blank', 'nodeIntegration=yes')
+
+        return new Promise((resolve, _reject) => {
+            ipcRenderer.on('redirectedUrl', (event, url) => {
+                console.log("Url after redirect " + url);
+
+                const parsedUrl = new URL(url);
                 const authCode = parsedUrl.searchParams.get('code');
                 if (authCode) {
                     resolve(authCode);
@@ -127,7 +106,7 @@ export default class AuthProvider {
     }
 
 
-    getTokenSilentPublic = async (authWindow: any, account: AccountInfo, connectionInfo: AuthConnection) => {
+    getTokenSilentPublic = async ( account: AccountInfo, connectionInfo: AuthConnection) => {
         console.log("Getting token silently..");
 
         try {
@@ -140,7 +119,7 @@ export default class AuthProvider {
             return await msalClient.acquireTokenSilent(silentFlowRequest);
         } catch (error) {
             console.log("Silent token acquisition failed, acquiring token using pop up");
-            return await this.getTokenInteractive(authWindow, connectionInfo);
+            return await this.getTokenInteractive(connectionInfo);
         }
     }
 

@@ -1,7 +1,16 @@
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, Menu } = require("electron");
+const { app, BrowserWindow, Menu,ipcMain } = require("electron");
 const isDev = require("electron-is-dev");
 const path = require("path");
+
+const Store = require('electron-store');
+Store.initRenderer();
+
+
+ipcMain.handle('get-user-data-path', async (event, someArgument) => {
+  const userDataPath = await app.getPath('userData');
+  return userDataPath
+})
 
 
 
@@ -89,6 +98,15 @@ function createWindow() {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
+
+
+  mainWindow.webContents.on('did-create-window', (childWindow) => {
+    childWindow.webContents.on('will-redirect', (e, navigationUrl) => {
+      console.log("Url redirected to " + navigationUrl);
+      mainWindow.webContents.send('redirectedUrl', navigationUrl);
+    });
+  });
+
 }
 
 // This method will be called when Electron has finished

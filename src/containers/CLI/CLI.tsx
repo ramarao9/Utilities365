@@ -1,9 +1,5 @@
-import React, { FunctionComponent, useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 
-import store from "../../store/store";
-import * as crmUtil from "../../helpers/crmutil";
-import * as actionTypes from "../../store/actions";
-import IsEmpty from "is-empty";
 import { getCliData } from "../../services/CliParsingService";
 import { PerformCrmAction } from "../../services/CLI/CrmCliService";
 import { Terminal } from "../../components/UI/Terminal/Terminal";
@@ -13,9 +9,8 @@ import { Spinner } from "../../interfaces/Spinner";
 import { TerminalOut } from "../../interfaces/TerminalOut";
 import { getIntelliSenseForText, getUpdatedInputOnSelection } from "../../services/CLI/IntelliSense/IntelliSenseService"
 import "./CLI.css";
-import { number } from "prop-types";
+
 import { CliIntelliSense, CLIVerb, ClientRect, IntelliSenseInput } from "../../interfaces/CliIntelliSense";
-import input from "../../components/UI/Input/Input";
 const KEYCODE_UP = 38;
 const KEYCODE_DOWN = 40;
 const KEYCODE_ENTER = 13;

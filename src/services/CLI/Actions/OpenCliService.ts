@@ -11,9 +11,7 @@ import { ActionParam, CliData } from "../../../interfaces/CliData";
 import { getActionParam } from "../../../helpers/common";
 import { EntityReference } from "../../../interfaces/EntityReference";
 import {
-  STR_NO_RECORDS_FOUND_FOR_CRITERIA,
-  STR_ERROR_OCCURRED,
-  STR_ONE_OR_MORE_RECORDS_FOUND_FOR_CRITERIA
+  STR_ERROR_OCCURRED
 } from "../../../helpers/strings";
 import { EntityMetadata } from "../../../interfaces/EntityMetadata";
 
@@ -89,7 +87,7 @@ const openNewRecord = (cliData: CliData): CliResponse => {
     let entityName: string = entityParam.value;
 
     let appParam = getActionParam("app", cliData.actionParams!!);
-    let formParam = getActionParam("form", cliData.actionParams!!);
+  
 
     let appIdQueryParam = "";
     if (appParam && appParam.value) {

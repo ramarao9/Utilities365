@@ -1,8 +1,22 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./AnchorButton.css";
+import { IconName } from "@fortawesome/fontawesome-svg-core";
 
-const anchorButton = props => {
+
+interface AnchorButtonProps {
+  iconName?: IconName;
+  iconClasses?: string[];
+  label?: string;
+  tooltip?: string;
+  classes?: string[];
+  disabled?: boolean;
+  onClick?(event:any): void;
+}
+
+
+
+export const AnchorButton: React.FC<AnchorButtonProps> = (props: AnchorButtonProps) => {
   let icon = null;
 
   if (props.iconName) {
@@ -18,7 +32,7 @@ const anchorButton = props => {
     );
   }
 
-  let buttonClasses = ["button", "btnMrgn"];
+  let buttonClasses = ["button", "btnMrgn", "btn"];
   if (props.label == null || props.label === "") {
     buttonClasses.push("no-label");
   }
@@ -28,16 +42,13 @@ const anchorButton = props => {
   }
 
   return (
-    <a
-      title={props.toolTip}
-      className={buttonClasses.join(" ")}
+    <button className={buttonClasses.join(" ")}
       disabled={props.disabled}
-      onClick={props.clicked}
-    >
+      onClick={props.onClick}>
       {icon}
       <span>{props.label}</span>
-    </a>
+    </button>
   );
 };
 
-export default anchorButton;
+

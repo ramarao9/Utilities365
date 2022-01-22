@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from 'react-redux'
 import ErrorMessage from "../../components/UI/ErrorMessage/ErrorMessage";
 import MoreButton from "../../components/UI/MoreButton/MoreButton";
-import AnchorButton from "../../components/UI/AnchorButton/AnchorButton";
+import {AnchorButton} from "../../components/UI/AnchorButton/AnchorButton";
 
 
 
@@ -300,7 +300,7 @@ export const Auth: React.FC = () => {
 
       console.log("Connecting to org");
       let authProvider: AuthProvider = getAuthProviderFromStore();
-      let tokenResult = await authProvider.getToken(connectionInfo, onAuthWindowClosed);
+      let tokenResult = await authProvider.getToken(connectionInfo);
       setConnectionInProcess(false);
       if (typeof tokenResult === "string") {
         setConnectionError("An error occurred while retrieving the token. Please try again. Error: " + tokenResult);
@@ -599,12 +599,12 @@ export const Auth: React.FC = () => {
 
         < div className="buttons is-right" >
           <AnchorButton
-            clicked={(event: any) => onUpdateExistingConnection(event)}
+            onClick={(event: any) => onUpdateExistingConnection(event)}
             label="Update"
           />
 
           <AnchorButton
-            clicked={(event: any) => onEditConnectionCancel(event)}
+            onClick={(event: any) => onEditConnectionCancel(event)}
             label="Cancel"
           />
         </div>
@@ -674,7 +674,7 @@ export const Auth: React.FC = () => {
             <AnchorButton
               iconName="plus"
               classes={["is-small"]}
-              clicked={(event: any) => onNewConnectionClick(event)}
+              onClick={(event: any) => onNewConnectionClick(event)}
               label="New"
             />
           </div>
@@ -683,6 +683,9 @@ export const Auth: React.FC = () => {
     </div>
     );
   }
+
+
+  console.log("new connection");
 
   const newConnectionElements = [];
 
@@ -726,12 +729,12 @@ export const Auth: React.FC = () => {
 
       <div className="buttons is-right" >
         <AnchorButton
-          clicked={(event: any) => connectClick(event)}
+          onClick={(event: any) => connectClick(event)}
           label="Connect"
         />
 
         <AnchorButton
-          clicked={(event: any) => cancelConnectionClick(event)}
+          onClick={(event: any) => cancelConnectionClick(event)}
           label="Cancel"
         />
       </div>

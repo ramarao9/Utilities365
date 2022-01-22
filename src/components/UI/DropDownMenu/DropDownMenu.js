@@ -1,16 +1,18 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import classes from "./DropDownMenu.css";
- const DropDownMenu = ({ menuItems, menuItemClick }) => {
+
+import { AnchorButton } from "../AnchorButton/AnchorButton";
+const DropDownMenu = ({ menuItems, menuItemClick }) => {
   const node = useRef();
 
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     // add when mounted
-     document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     // return function to be called when unmounted
     return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -34,17 +36,20 @@ import classes from "./DropDownMenu.css";
   }
 
   let dropDownContent = menuItems.map(menuItem => (
-    <a
+
+
+    <AnchorButton
       key={menuItem.id}
-      href="/#"
-      className="dropdown-item"
-      onClick={event => {
+      label={menuItem.label}
+      classes={["dropdown-item"]}
+      onClick={(event) => {
         closeMenu();
         menuItemClick(event, menuItem);
-      }}
-    >
-      {menuItem.label}
-    </a>
+      }
+      }
+    />
+
+
   ));
 
   return (

@@ -1,8 +1,8 @@
-import { Option, OptionData, EntityMetadata, AttributeMetadata } from "../interfaces/EntityMetadata";
-import { CliData, ActionParam } from "../interfaces/CliData"
+import { Option, EntityMetadata, AttributeMetadata } from "../interfaces/EntityMetadata";
+import {  ActionParam } from "../interfaces/CliData"
 import { expand } from "../interfaces/expand";
-import { getArrayFromCSV, getParamVal, getAttributeMetadataName, getFirstLabelFromLocalizedLabels } from "../helpers/common";
-import { QueryFunction, FunctionParameter, FunctionReturnType } from "../interfaces/QueryFunction";
+import { getArrayFromCSV,  getAttributeMetadataName, getFirstLabelFromLocalizedLabels } from "../helpers/common";
+import { QueryFunction } from "../interfaces/QueryFunction";
 import { CONDITION_OPERATORS, REGULAR_CONDITION_OPERATORS, STANDARD_QUERY_FUNCTION_CONDITION_OPERATORS } from "../services/CLI/Definitions/ActionParams/Get";
 import { ConditionOperatorType } from "../interfaces/ConditionOperatorType";
 
@@ -29,7 +29,7 @@ export const getExpandQueryParam = (expandParam: ActionParam | undefined, type: 
             });
         }
     }
-    else if (type && (type.indexOf("Picklist") != -1 || type.indexOf("State")!=-1)) {
+    else if (type && (type.indexOf("Picklist") !== -1 || type.indexOf("State")!==-1)) {
         let expandObj: expand = { property: "OptionSet" };
         expandArr.push(expandObj);
     }
@@ -49,7 +49,7 @@ export const hasActionParamVal = (name: string, actionParams: Array<ActionParam>
         return false;
 
     let matchedActionParam = actionParams.find(x => x.value && x.value.toLowerCase().trim() === name.trim().toLowerCase());
-    return (matchedActionParam != undefined);
+    return (matchedActionParam !== undefined);
 
 }
 
@@ -134,7 +134,7 @@ export const buildFilterUsingAttributeParams = (entitymetadata: EntityMetadata, 
     let filterOperator = getFilterOperator(actionParams);
     let filter: string = actionParams.reduce((acc: string, x: ActionParam, currentIndex: number): string => {
         let attributeLogicalName = x.name.toLowerCase();
-        let attributeMetadata = attributes.find(x => x.LogicalName === attributeLogicalName);
+        let attributeMetadata =attributes? attributes.find(x => x.LogicalName === attributeLogicalName):null;
         if (attributeMetadata && x.value) {
             let odataCondition = getODataCondition(x.value, attributeMetadata);
 
@@ -330,7 +330,7 @@ export const parseQueryFunctionInFilterIfAny = (filter: string): string => {
 
         let functionNameLC = queryFunction.Name.toLowerCase();
 
-        while (runningFilterLowerCase.indexOf(functionNameLC + "(") != -1) {
+        while (runningFilterLowerCase.indexOf(functionNameLC + "(") !== -1) {
 
             let indexOfCurrentFunction = runningFilterLowerCase.indexOf(functionNameLC);
             let substrFromCurrentFunctionIndex = parsedFilter.substr(indexOfCurrentFunction);

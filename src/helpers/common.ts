@@ -1,6 +1,5 @@
 import { ActionParam } from "../interfaces/CliData";
 import { Relationship, LocalizedLabel } from "../interfaces/EntityMetadata";
-import { Action } from "history";
 import { JSONTreeTheme } from "../interfaces/JSONTreeTheme";
 
 
@@ -32,7 +31,7 @@ export const hasActionParam = (paramname: string, params: Array<ActionParam> | u
     if (!params)
         return false;
 
-    return (params.findIndex(x => x.name.toLowerCase() === paramname.toLowerCase()) != -1);
+    return (params.findIndex(x => x.name.toLowerCase() === paramname.toLowerCase()) !== -1);
 }
 
 export const getReferencingEntityNavPropertyName = (referencedEntity : string,referencingAttribute: string, relationships: Array<Relationship>): string | undefined => {
@@ -124,7 +123,7 @@ export const isValidGuid = (id: string | undefined): boolean => {
 
     if(!isValid)
     {
-        var regexGuid = /^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$/gi;
+        var regexGuid = /^(\{){0,1}[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}(\}){0,1}$/gi;
         isValid= regexGuid.test(id);
     }
    

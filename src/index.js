@@ -1,6 +1,6 @@
 
 import ReactDOM from "react-dom";
-import { HashRouter, MemoryRouter as Router } from "react-router-dom";
+import { MemoryRouter as Router } from "react-router-dom";
 import { Provider } from "react-redux";
 
 import store from "./store/store";

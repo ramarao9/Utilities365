@@ -9,7 +9,7 @@ export const Home: React.FC = () => {
         openWindow(url, true);
     }
 
-    console.log("Loading home page");
+  
 
     return (
         <React.Fragment>

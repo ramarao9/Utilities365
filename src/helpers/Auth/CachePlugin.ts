@@ -2,14 +2,19 @@ const fs = window.require('fs');
 const electron = window.require('electron');
 
 
-const getCacheLocation = () => {
-    const userDataPath = (electron.app || electron.remote.app).getPath('userData');
+const getCacheLocation = async () => {
 
+    let userDataPath = "";
+    if (electron.ipcRenderer) {
+        userDataPath = await (electron.ipcRenderer).invoke('get-user-data-path');
+    }
+
+    console.log("user data path is " + userDataPath);
     return `${userDataPath}\\cache.json`;
 }
 
 const beforeCacheAccess = async (cacheContext: any) => {
-    let cacheLocation = getCacheLocation();
+    let cacheLocation = await getCacheLocation();
 
     return new Promise<void>(async (resolve, reject) => {
         if (fs.existsSync(cacheLocation)) {
@@ -32,7 +37,7 @@ const beforeCacheAccess = async (cacheContext: any) => {
 };
 
 const afterCacheAccess = async (cacheContext: any) => {
-    let cacheLocation = getCacheLocation();
+    let cacheLocation = await getCacheLocation();
     if (cacheContext.cacheHasChanged) {
         await fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (err: any) => {
             if (err) {

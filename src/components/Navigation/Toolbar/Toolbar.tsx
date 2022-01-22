@@ -5,16 +5,16 @@ import { NavigationItems } from '../NavigationItems/NavigationItems';
 
 import {UserInfo} from "../../../interfaces/UserInfo";
 
-interface LayoutProps{
-    currentUser?:UserInfo;
+interface ToolbarProps{
+    currentUser?:UserInfo|null;
     onUserSignout?():void;
   }
   
 
-export const Toolbar: React.FC<LayoutProps> = (layoutProps:LayoutProps) => (
+export const Toolbar: React.FC<ToolbarProps> = (toolbarProps:ToolbarProps) => (
     <header>
         <nav className="DesktopOnly">
-            <NavigationItems currentUser={layoutProps.currentUser} onUserSignout={layoutProps.onUserSignout} />
+            <NavigationItems currentUser={toolbarProps.currentUser} onUserSignout={toolbarProps.onUserSignout} />
         </nav>
     </header>
   

@@ -1,4 +1,4 @@
-import { CliData, ActionParam } from "../../../interfaces/CliData"
+import { CliData } from "../../../interfaces/CliData"
 import { CliResponse } from "../../../interfaces/CliResponse"
 import { getErrorResponse } from "../CliResponseUtil";
 import { disassociate } from "../../../helpers/webAPIClientHelper"
@@ -9,9 +9,7 @@ import {
 } from "../../../helpers/strings";
 
 import {
-    getTypeQueryParam, getExpandQueryParam, getAlternateKey, getActionParam,
-    getPrimaryIdAttribute, getFilterWhenAttributes, getOptionSetLabelValues,
-    hasActionParamVal, parseQueryFunctionInFilterIfAny
+     getActionParam,
 } from "../../../helpers/QueryHelper";
 
 
@@ -20,7 +18,7 @@ export const handleCrmRemoveActions = async (cliData: CliData) => {
 
     try {
 
-        let responseData = null;
+     
         switch (cliData.target.toLowerCase()) {
             case "role": await removeRoleFromUser(cliData);
                 cliResponse.message = `Role removed successfully from user`;

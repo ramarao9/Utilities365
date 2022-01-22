@@ -1,9 +1,12 @@
 
 
 import AuthProvider from "../helpers/Auth/AuthHelper";
+import { StoreState } from "../interfaces/Store/StoreState";
 import * as actionTypes from "./actions";
 
-const initialState = {
+
+
+const initialState: StoreState = {
   tokenData: {},
   currentConnection: {},
   currentMSALPublicClient: null,
@@ -17,7 +20,7 @@ const initialState = {
   apps: []
 };
 
-const reducer = (state = initialState, action) => {
+const reducer = (state = initialState, action:any) => {
   switch (action.type) {
     case actionTypes.SET_ACCESS_TOKEN:
       return {
@@ -80,9 +83,7 @@ const reducer = (state = initialState, action) => {
         currentUserId: action.currentUserId
       };
 
-    case actionTypes.SIGNOUT_USER:{
-
-
+    case actionTypes.SIGNOUT_USER:
       return {
         ...state,
         tokenData: {},
@@ -96,9 +97,6 @@ const reducer = (state = initialState, action) => {
         entitiesAttributeCollection: [],
         authProvider: new AuthProvider()
       };
-
-    }
-  
 
     case actionTypes.SET_APPS:
       return {

@@ -1,4 +1,4 @@
-import { CliData, ActionParam } from "../../../interfaces/CliData"
+import { CliData } from "../../../interfaces/CliData"
 import { CliResponse } from "../../../interfaces/CliResponse"
 import { getErrorResponse } from "../CliResponseUtil";
 import { associate } from "../../../helpers/webAPIClientHelper";
@@ -10,9 +10,7 @@ import {
 
 
 import {
-    getTypeQueryParam, getExpandQueryParam, getAlternateKey, getActionParam,
-    getPrimaryIdAttribute, getFilterWhenAttributes, getOptionSetLabelValues,
-    hasActionParamVal, parseQueryFunctionInFilterIfAny
+    getActionParam
 } from "../../../helpers/QueryHelper";
 
 
@@ -20,7 +18,7 @@ export const handleCrmAddActions = async (cliData: CliData) => {
     let cliResponse: CliResponse = { message: "", success: false, type: "" };
 
     try {
-        let responseData = null;
+     
         switch (cliData.target.toLowerCase()) {
             case "role": await addRoleToUser(cliData);
                 cliResponse.message = `Role added successfully to the user`;

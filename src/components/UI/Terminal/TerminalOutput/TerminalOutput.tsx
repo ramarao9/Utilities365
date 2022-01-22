@@ -2,7 +2,6 @@ import React from "react";
 import JSONTree from 'react-json-tree'
 import { TerminalOut } from "../../../../interfaces/TerminalOut";
 import "./TerminalOutput.css";
-import { object } from "prop-types";
 import { getJSONTreeTheme } from "../../../../helpers/common";
 import { Table } from "../../Table/Table";
 
@@ -27,7 +26,7 @@ export const terminalOutput: React.FC<TerminalOut> = (
       }
 
 
-      if (tableProperties.length == 0) {
+      if (tableProperties.length === 0) {
         output = (
           <pre className="terminal-output-line">{terminalOutputProps.message}</pre>
         );

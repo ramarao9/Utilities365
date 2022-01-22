@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from "react";
+import React, {  useCallback } from "react";
 import "./TerminalInput.css";
 import { CliIntelliSense, CLIVerb } from "../../../../interfaces/CliIntelliSense"
 import { Group } from "../../../../interfaces/Group";

@@ -1,24 +1,21 @@
 import React, { useState } from "react";
 import "bulma/css/bulma.css";
 import "./NavigationItems.css";
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, useNavigate} from "react-router-dom";
 import DropDownMenu from "../../UI/DropDownMenu/DropDownMenu";
-import { MenuItem } from "../../../interfaces/MenuItem";
 import { UserInfo } from "../../../interfaces/UserInfo";
-import store from "../../../store/store";
 import { useDispatch } from "react-redux";
 import * as actionTypes from "../../../store/actions"
 
 
 interface NavProps {
-  currentUser?: UserInfo;
+  currentUser?: UserInfo | null;
   onUserSignout?(): void;
 }
 
 
 export const NavigationItems: React.FC<NavProps> = (navProps: NavProps) => {
   let navigate = useNavigate();
-  let location = useLocation();
   const dispatch = useDispatch()
 
   const [isActive, setIsActive] = useState<boolean>(false);
@@ -28,15 +25,14 @@ export const NavigationItems: React.FC<NavProps> = (navProps: NavProps) => {
     setIsActive(!isActive);
   };
 
-  const OnUserMenuItemClick = (event: any, menuItem: any) => {
+
+  const OnUserMenuItemClick = async (event: any, menuItem: any) => {
 
     switch (menuItem.id) {
       case "signout":
-  
-        setSelectedNavItem("");
-        navigate("/auth");
-
         dispatch({ type: actionTypes.SIGNOUT_USER });
+        setSelectedNavItem("");
+        navigate("auth");
         break;
 
       default:

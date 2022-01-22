@@ -1,10 +1,6 @@
 import DynamicsWebApi from "dynamics-web-api";
 import store from "../store/store";
-import * as actionTypes from "../store/actions";
-import * as crmUtil from "./crmutil";
-import { getConnection, updateToken } from "../services/LocalStorageService";
 import { expand } from "../interfaces/expand";
-import MsalNode from "@azure/msal-node"
 import AuthProvider from "./Auth/AuthHelper";
 
 
@@ -135,7 +131,7 @@ export const getCurrentOrgUrl = () => {
 };
 
 function getWebAPIClient(useTokenRefresh: Boolean) {
-  const currentToken = getTokenFromStore();
+  
 
 
   let currentConnection = getCurrentConnectionFromStore()
@@ -159,8 +155,7 @@ function getWebAPIClient(useTokenRefresh: Boolean) {
 }
 
 const acquireTokenForRefresh = async (dynamicsWebApiCallback: any) => {
-  //check the token from the store
-  const tokenData = getTokenFromStore();
+
 
   let currentConnection = getCurrentConnectionFromStore()
 
@@ -174,26 +169,9 @@ const acquireTokenForRefresh = async (dynamicsWebApiCallback: any) => {
 
 }
 
-function setTokenOnRequestIfValid(request: any) {
-  const tokenData = getTokenFromStore();
-  const tokenExpired = hasTokenExpired();
-  if (!tokenExpired) {
-    request.token = tokenData.accessToken;
-  }
-  return request;
-}
 
-function hasTokenExpired() {
-  const tokenData = getTokenFromStore();
-  const now = new Date();
-  const tokenExpiresOn = new Date(tokenData.expiresOn);
-  return now > tokenExpiresOn;
-}
 
-function getTokenFromStore() {
-  const currentState = store.getState();
-  return currentState != null ? currentState.tokenData : null;
-}
+
 
 
 function getCurrentConnectionFromStore() {
@@ -208,15 +186,5 @@ function getAuthProviderFromStore() {
   return currentState != null ? currentState.authProvider : null;
 }
 
-function updateTokenInStore(tokenData: any) {
-  store.dispatch({ type: actionTypes.SET_ACCESS_TOKEN, token: tokenData });
-}
 
 
-function tooManyRequestsForToken(tokenExpiresOn: Date) {
-  var now = new Date();
-  var hourFromNow = now.setHours(now.getHours() + 1);
-  var diffMs: number = (tokenExpiresOn.getTime() - hourFromNow);
-  var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
-  return (diffMins < 2);
-}

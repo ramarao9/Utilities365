@@ -34,7 +34,7 @@ export const getEntityViews = async (entityName: string): Promise<EntityViewData
     let userViews = await getUserViews(entityLogicalName);
 
     let views = [...systemViews, ...userViews];
-    views = views.filter(x => x.name.indexOf("--") == -1);
+    views = views.filter(x => x.name.indexOf("--") === -1);
 
     //Remove views with duplicate names
     const flags = new Set();

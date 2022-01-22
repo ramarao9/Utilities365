@@ -6,11 +6,10 @@ import {
     CLI_ACTION_PARAMS_GET_COMMON_CONDITIONS, CLI_ACTION_PARAMS_GET_NUMERIC_CONDITIONS,
     CLI_ACTION_PARAMS_GET_STRING_CONDITIONS, CLI_ACTION_PARAMS_GET_LOOKUP_CONDITIONS, CLI_ACTION_PARAMS_GET_DATETIME_CONDITIONS
 } from "../Definitions/ActionParams/Get"
-import { getEntities, getEntityMetadataBasic } from "../../CrmMetadataService"
-import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE } from "../../../interfaces/CliIntelliSense"
+import {  getEntityMetadataBasic } from "../../CrmMetadataService"
+import {  IntelliSenseType, CLIVerb } from "../../../interfaces/CliIntelliSense"
 import { AttributeMetadata, EntityMetadata } from "../../../interfaces/EntityMetadata"
 import { getCleanedCLIVerbs, getCLIVerbsForEntities, getLastParam, getNameVerbsPartialOrNoMatch, getEntityCLIVerbs, getFilteredVerbs, getVerbsFromCSV, getCLIVerbsAttributes, isLastParamAttribute } from "../../../helpers/cliutil";
-import { getEntityCollectionName } from "../../../helpers/metadatautil";
 import { getActionParam } from "../../../helpers/QueryHelper";
 import { getEntityViews } from "../../ViewService";
 import { ViewType } from "../../../interfaces/ViewData";
@@ -565,8 +564,8 @@ const getRecordsViewVerbs = async (cliData: CliData, lastParam: ActionParam) => 
     let views = entityViewData.views
 
     views.forEach(x => {
-        let group = (x.type == ViewType.SystemView) ? "System Views" : "My Views";
-        let groupOrder = (x.type == ViewType.SystemView) ? 1 : 2;
+        let group = (x.type === ViewType.SystemView) ? "System Views" : "My Views";
+        let groupOrder = (x.type === ViewType.SystemView) ? 1 : 2;
         let cliVerb: CLIVerb = {
             name: x.name,
             type: IntelliSenseType.ActionParamValue,

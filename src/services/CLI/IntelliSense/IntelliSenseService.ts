@@ -1,4 +1,4 @@
-import { CliData, ActionParam } from "../../../interfaces/CliData";
+import { CliData } from "../../../interfaces/CliData";
 import { getCliData } from "../../CliParsingService";
 import { CliIntelliSense, IntelliSenseType, CLIVerb, MINIMUM_CHARS_FOR_INTELLISENSE, IntelliSenseInput } from "../../../interfaces/CliIntelliSense"
 import { getTargetForGet, getActionParamsForGet } from "../../../services/CLI/IntelliSense/GetIntelliSenseService"
@@ -7,14 +7,14 @@ import {
     ACTION_EXECUTE_NAME, ACTION_GET_NAME, ACTION_OPEN_NAME,
     ACTION_REMOVE_NAME, ACTION_UPDATE_NAME
 } from "../Definitions/ActionDefinitions"
-import { cursorTo } from "readline";
+
 import { getCleanedCLIVerbs, getEntityCLIVerbs, getLastParam } from "../../../helpers/cliutil";
 import { getActionsParamsForWrite } from "./WriteIntelliSenseService";
 import { CRMOperation } from "../../../interfaces/CRMOperation";
 import { getTargetForOpen, getActionParamsForOpen } from "./OpenIntelliSenseService";
 import { getActionParamsForAdd, getTargetForAdd } from "./AddIntelliSenseService";
 import { getActionParamsForRemove, getTargetForRemove } from "./RemoveIntelliSenseService";
-import { currentParamHasValue } from "../../../helpers/cliutil";
+
 
 
 export const getIntelliSenseForText = async (intellisenseInput: IntelliSenseInput): Promise<CliIntelliSense> => {
@@ -78,7 +78,7 @@ const getIntelliSenseType = async (inputText: string, cliData: CliData) => {
         return IntelliSenseType.None;
     }
 
-    let lastActionParam = getLastParam(cliData);
+  
     let actionParamsPopulated = await isLastActionParamsPopulated(inputText, cliData);
     if (actionParamsPopulated) {
         return IntelliSenseType.None;
@@ -136,7 +136,7 @@ export const getUpdatedInputOnSelection = async (intellisenseInput: IntelliSense
 
 
 
-    if (endIndexOfCurrentText == -1) {
+    if (endIndexOfCurrentText === -1) {
         endIndexOfCurrentText = currentInputText.length;
     }
     else {
@@ -168,7 +168,7 @@ export const getUpdatedInputOnSelection = async (intellisenseInput: IntelliSense
         //e.g. when selection for --entity param is made and when user inputis 'get entity '
         //e.g. when selection for --entity param is made and when user inputis 'get entity ent'
         if (!lastParamForCurrentPos ||
-            (selectedVerb.type && selectedVerb.type == IntelliSenseType.ActionParams) ||
+            (selectedVerb.type && selectedVerb.type === IntelliSenseType.ActionParams) ||
             (lastParamForCurrentPos && !lastParamForCurrentPos.value && !currentInputText.endsWith(" "))) {
             textToReplaceWith = "--" + textToReplaceWith;
         }
@@ -290,8 +290,8 @@ const getTargetIntelliSense = async (cliDataVal: CliData) => {
     if (targetName && targetName.length >= MINIMUM_CHARS_FOR_INTELLISENSE) {
         cliResults = cliResults.filter(x => x.name.toLowerCase().startsWith(targetName.toLowerCase()) ||
             x.name.toLowerCase().replace(/\s+/g, '').startsWith(targetName.toLowerCase()) ||
-            x.text && (x.text.toLowerCase().startsWith(targetName.toLowerCase()) ||
-                x.text.toLowerCase().replace(/\s+/g, '').startsWith(targetName.toLowerCase())
+            (x.text && (x.text.toLowerCase().startsWith(targetName.toLowerCase()) ||
+                x.text.toLowerCase().replace(/\s+/g, '').startsWith(targetName.toLowerCase()))
             ));
     }
 

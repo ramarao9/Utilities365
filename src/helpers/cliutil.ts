@@ -1,9 +1,8 @@
-import { CLIVerb, IntelliSenseType, MINIMUM_CHARS_FOR_INTELLISENSE } from "../interfaces/CliIntelliSense";
+import { CLIVerb, IntelliSenseType } from "../interfaces/CliIntelliSense";
 import { getEntities, getEntity } from "../services/CrmMetadataService";
 import { getEntityCollectionName, getAttributeDisplayName, getEntityDisplayLabel } from "./metadatautil";
 import { EntityMetadata, AttributeMetadata, PicklistMetadata } from "../interfaces/EntityMetadata";
 import { CliData, ActionParam } from "../interfaces/CliData";
-import { Action } from "redux";
 import { Group } from "../interfaces/Group";
 
 export const getCleanedCLIVerbs = (cliVerbs: Array<CLIVerb>): Array<CLIVerb> => {
@@ -75,7 +74,7 @@ export const removeODataTagsOnCollection = (records: any) => {
 
             let objKeys = Object.keys(record);
             objKeys.forEach(x => {
-                if (x.indexOf("@OData.Community.Display.V1.FormattedValue") != -1) {
+                if (x.indexOf("@OData.Community.Display.V1.FormattedValue") !== -1) {
                     delete record[x];
                 }
             })
@@ -139,7 +138,6 @@ export const getCLIVerbsAttributes = async (entityLogicalName: string, intellise
 export const getCLIVerbsForAttributes = (entityMetadata: EntityMetadata, intellisenseType?: IntelliSenseType, excludeFilters?: boolean, isWriteOperation: boolean = false): Array<CLIVerb> => {
     let attributeCliResults: Array<CLIVerb> = [];
     let attributes = entityMetadata.Attributes;
-    let picklistAttributes = entityMetadata.PicklistAttributes;
     attributeCliResults = getAttributesVerbs(attributes, intellisenseType, excludeFilters,isWriteOperation);
     return attributeCliResults;
 }
@@ -279,14 +277,14 @@ export const getVerbsFromCSV = (paramValueCSV: string, cliVerbsToFilter: CLIVerb
 //If the last param in the CLI is an attribute
 //e.g. get contacts --birthdate  in this example the last param birthdate is an attribute
 export const isLastParamAttribute = (lastParam: ActionParam | undefined, attributes: Array<AttributeMetadata>): Boolean => {
-    return lastParam != undefined &&
-        lastParam &&
+    return lastParam !== undefined &&
+        lastParam && attributes!==undefined && attributes &&
         (attributes.findIndex(x => x.LogicalName && x.LogicalName === lastParam.name) !== -1);
 }
 
 
 export const isLastParamOptionSetAttribute= (lastParam: ActionParam | undefined, attributes: Array<AttributeMetadata>): Boolean => {
-    return lastParam != undefined &&
+    return lastParam !== undefined &&
         lastParam &&
         (attributes.findIndex(x => x.LogicalName && x.LogicalName === lastParam.name && x.AttributeType==="Picklist") !== -1);
 }

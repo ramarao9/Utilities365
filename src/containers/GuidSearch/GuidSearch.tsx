@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Redirect } from "react-router";
 import store from "../../store/store";
 import * as crmUtil from "../../helpers/crmutil";
 import Input from "../../components/UI/Input/Input";
@@ -7,23 +6,25 @@ import ProgressBar from "../../components/UI/ProgressBar/ProgressBar";
 import Notification from "../../components/UI/Notification/Notification";
 import EntityMultiSelect from "../../components/CRM/EntityMultiSelect/EntityMultiSelect";
 import IsEmpty from "is-empty";
-import AnchorButton from "../../components/UI/AnchorButton/AnchorButton";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { AnchorButton } from "../../components/UI/AnchorButton/AnchorButton";
 import { getEntities } from "../../services/CrmMetadataService";
 import "./GuidSearch.css";
 import {
   getCurrentOrgUrl,
   batchRetrieveMultipleRequests
 } from "../../helpers/webAPIClientHelper";
+import { EntityMetadata } from "../../interfaces/EntityMetadata";
+
+const { clipboard } = window.require('electron');
 
 
+export const GuidSearch: React.FC = () => {
 
-const GuidSearch = () => {
-
-  const guidEl = useRef(null);
+  const guidEl: any = useRef(null);
 
   useEffect(() => {
-    guidEl.current.focus();
+
+    guidEl?.current?.focus();
   }, []);
 
 
@@ -37,7 +38,8 @@ const GuidSearch = () => {
     elementConfig: {
       type: "checkbox"
     },
-    checked: true
+    checked: true,
+    value: ""
   });
   const [guidToSearch, setGuidToSearch] = useState({
     id: "guidInput",
@@ -74,8 +76,8 @@ const GuidSearch = () => {
   const getEntitiesFromCRM = async () => {
     let entities = await getEntities();
 
-    let entitiesFromCrm = entities.map(entityObj => {
-      const entity = {};
+    let entitiesFromCrm = entities.map((entityObj: any) => {
+      const entity: any = {};
       if (
         entityObj.DisplayName !== null &&
         entityObj.DisplayName.LocalizedLabels !== null &&
@@ -97,7 +99,7 @@ const GuidSearch = () => {
       return entity;
     });
 
-    entitiesFromCrm = entitiesFromCrm.filter(x => {
+    entitiesFromCrm = entitiesFromCrm.filter((x: any) => {
       return (
         x.PrimaryNameAttribute != null &&
         x.PrimaryIdAttribute != null &&
@@ -108,7 +110,7 @@ const GuidSearch = () => {
       );
     });
 
-    entitiesFromCrm = entitiesFromCrm.sort((a, b) =>
+    entitiesFromCrm = entitiesFromCrm.sort((a: any, b: any) =>
       a.DisplayName.localeCompare(b.DisplayName)
     );
 
@@ -123,13 +125,13 @@ const GuidSearch = () => {
     setEntitiesToSearchOn([]);
   };
 
-  const updateGuidToSearch = value => {
+  const updateGuidToSearch = (value: any) => {
     let guid = { ...guidToSearch };
     guid.value = value;
 
     setGuidToSearch(guid);
   };
-  const updateAllEntitiesCheck = isChecked => {
+  const updateAllEntitiesCheck = (isChecked: boolean) => {
     const allEntCheck = { ...allEntitiesCheck };
     allEntCheck.checked = isChecked;
 
@@ -151,7 +153,7 @@ const GuidSearch = () => {
 
     if (!IsEmpty(entitiesToSearchOn) && entitiesToSearchOn.length >= 1) {
       entitiesToSearch = entitiesToSearchOn.map(x => {
-        return entities.find(y => y.LogicalName === x);
+        return entities.find((y: any) => y.LogicalName === x);
       });
     } else {
       entitiesToSearch = [...entities];
@@ -161,11 +163,11 @@ const GuidSearch = () => {
 
     setSearchInProcess(true);
 
-    let retrieveMultipleRequestsForSearch = entitiesToSearch.map(x => {
+    let retrieveMultipleRequestsForSearch = entitiesToSearch.map((x: EntityMetadata | undefined) => {
       return {
-        collection: x.EntitySetName,
-        select: [x.PrimaryIdAttribute, x.PrimaryNameAttribute],
-        filter: `${x.PrimaryIdAttribute} eq ${guidToSearchOn}`,
+        collection: x?.EntitySetName,
+        select: [x?.PrimaryIdAttribute, x?.PrimaryNameAttribute],
+        filter: `${x?.PrimaryIdAttribute} eq ${guidToSearchOn}`,
         maxPageSize: 1
       };
     });
@@ -189,7 +191,7 @@ const GuidSearch = () => {
     setSearchInProcess(false);
   };
 
-  const updateMatchedRecord = (result, url) => {
+  const updateMatchedRecord = (result: any, url: string) => {
     let record = { ...matchedRecord };
 
     record.entity = result != null ? result.LogicalName : "";
@@ -199,7 +201,7 @@ const GuidSearch = () => {
     setMatchedRecord(record);
   };
 
-  const performSearch = async retrieveMultipleRequestsForSearch => {
+  const performSearch = async (retrieveMultipleRequestsForSearch: any) => {
     let matchedRecord = null;
     try {
       const batchSize = 50;
@@ -232,16 +234,16 @@ const GuidSearch = () => {
 
         currentPage++;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log("Error occurred." + error.message);
     }
 
     return matchedRecord;
   };
 
-  const getMatchedRecord = matchedEntity => {
+  const getMatchedRecord = (matchedEntity: any) => {
     let matchedRecord = null;
-    let entityMetadata = getEntityMetadata(matchedEntity.oDataContext);
+    let entityMetadata: any = getEntityMetadata(matchedEntity.oDataContext);
     if (
       matchedEntity != null &&
       matchedEntity.value != null &&
@@ -260,7 +262,7 @@ const GuidSearch = () => {
     return matchedRecord;
   };
 
-  const getEntityMetadata = oDataContext => {
+  const getEntityMetadata = (oDataContext: string) => {
     let indexOfHash = oDataContext.indexOf("#");
     let entityInfo = oDataContext
       .substring(indexOfHash + 1)
@@ -271,17 +273,17 @@ const GuidSearch = () => {
     let entitySetName = entityArr[0];
     let entityLogicalName = entitySetName.slice(0, -1);
 
-    let entityMetadata = entities.find(
-      x => x.LogicalName === entityLogicalName
+    let entityMetadata: any = entities.find(
+      (x: any) => x.LogicalName === entityLogicalName
     );
     return entityMetadata;
   };
 
-  const onEntitySelectChange = selectedEntities => {
+  const onEntitySelectChange = (selectedEntities: any) => {
     setEntitiesToSearchOn(selectedEntities);
   };
 
-  const inputChangedHandler = (event, id) => {
+  const inputChangedHandler = (event: any, id: string) => {
     if (id === "guidInput") {
       const guidSearch = {
         ...guidToSearch
@@ -297,7 +299,7 @@ const GuidSearch = () => {
 
       setAllEntitiesCheck(allEntitiesChk);
     } else if (id === "matchedInput") {
-      window.Electron.clipboard.writeText(matchedRecord.url);
+      clipboard.writeText(matchedRecord.url);
     }
   };
 
@@ -357,8 +359,8 @@ const GuidSearch = () => {
               iconName="copy"
               classes={["is-small", "matched-link"]}
               iconClasses={["has-text-grey-darker"]}
-              toolTip="Copy URL to clipboard"
-              clicked={event => inputChangedHandler(event, matchedRecord.id)}
+              tooltip="Copy URL to clipboard"
+              onClick={(event: any) => inputChangedHandler(event, matchedRecord.id)}
             />
           </div>
         </div>
@@ -388,27 +390,24 @@ const GuidSearch = () => {
       <div className="columns is-desktop">
         <div className="column is-half">
           <div className="buttons" style={{ marginBottom: 0 }}>
-            <a
-              className="button is-radiusless is-white"
+            <AnchorButton
+              classes={["button", "is-radiusless", "is-white"]}
               disabled={searchInProcess}
               onClick={onSearchClick}
-            >
-              <span className="icon is-small">
-                <FontAwesomeIcon icon="search" />
-              </span>
-              <span>Search</span>
-            </a>
+              iconClasses={["icon", "is-small"]}
+              iconName="search"
+              label="Search"
+            />
 
-            <a
-              className="button is-radiusless is-white"
+            <AnchorButton
+              classes={["button", "is-radiusless", "is-white"]}
               disabled={searchInProcess}
               onClick={onClearClick}
-            >
-              <span className="icon is-small">
-                <FontAwesomeIcon icon="eraser" />
-              </span>
-              <span>Clear</span>
-            </a>
+              iconClasses={["icon", "is-small"]}
+              iconName="eraser"
+              label="Clear"
+            />
+
           </div>
           <hr className="hr" style={{ marginTop: 0 }}></hr>
 
@@ -425,7 +424,7 @@ const GuidSearch = () => {
             elementConfig={guidToSearch.elementConfig}
             size="is-small"
             value={guidToSearch.value}
-            changed={event => inputChangedHandler(event, guidToSearch.id)}
+            changed={(event: any) => inputChangedHandler(event, guidToSearch.id)}
             label="Guid"
           />
 
@@ -435,8 +434,8 @@ const GuidSearch = () => {
             elementConfig={allEntitiesCheck.elementConfig}
             size="is-small"
             checked={allEntitiesCheck.checked}
-            clicked={event => inputChangedHandler(event, allEntitiesCheck.id)}
-            changed={event => inputChangedHandler(event, allEntitiesCheck.id)}
+            clicked={(event: any) => inputChangedHandler(event, allEntitiesCheck.id)}
+            changed={(event: any) => inputChangedHandler(event, allEntitiesCheck.id)}
             value={allEntitiesCheck.value}
             label="All Entities"
           />
@@ -448,4 +447,4 @@ const GuidSearch = () => {
   );
 };
 
-export default GuidSearch;
+

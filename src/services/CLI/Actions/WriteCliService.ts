@@ -2,8 +2,8 @@ import IsEmpty from "is-empty";
 import { create, update, retrieveAll } from "../../../helpers/webAPIClientHelper"
 import { CliData } from "../../../interfaces/CliData"
 import { CliResponse } from "../../../interfaces/CliResponse"
-import { EntityMetadata, PicklistMetadata, Option, OptionData, AttributeMetadata } from "../../../interfaces/EntityMetadata"
-import { getErrorResponse, getTextResponse } from "../CliResponseUtil";
+import { EntityMetadata, PicklistMetadata, Option, OptionData } from "../../../interfaces/EntityMetadata"
+import { getErrorResponse } from "../CliResponseUtil";
 import { getActionParam, removeActionParam, getArrayFromCSV, hasActionParam, getReferencingEntityNavPropertyName, isValidGuid } from "../../../helpers/common";
 import {
   getEntityMetadataBasic,
@@ -13,10 +13,8 @@ import {
 import {
   STR_ERROR_OCCURRED
 } from "../../../helpers/strings";
-import { string } from "prop-types";
 import { EntityReference } from "../../../interfaces/EntityReference";
 import { ActivityParty, ParticipationTypeMask } from "../../../interfaces/Entities/ActivityParty";
-import { getEntityCollectionName } from "../../../helpers/metadatautil";
 import { PartyList } from "../../../interfaces/Entities/PartyList";
 
 export const handleCrmCreateActions = async (cliData: CliData) => {
@@ -235,7 +233,7 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
             let guidIsValid = isValidGuid(targetGuid);
             if (!guidIsValid) {
               let filter: string = `${targetEntityPrimaryNameAttribute} eq '${attributeValue}'`;
-              if (attributeValue.indexOf("$filter") != -1) {
+              if (attributeValue.indexOf("$filter") !== -1) {
                 filter = attributeValue.replace("$filter=", "");
               }
               let retrieveResp = await retrieveAll(targetEntityCollectionName, [targetEntityPrimaryIdAttribute], filter);
