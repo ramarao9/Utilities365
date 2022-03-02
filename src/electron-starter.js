@@ -13,6 +13,18 @@ ipcMain.handle('get-user-data-path', async (event, someArgument) => {
 })
 
 
+if (process.env.NODE_ENV === 'production') {
+  const sourceMapSupport = require('source-map-support');
+  sourceMapSupport.install();
+}
+
+const isDevelopment =
+  process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
+
+if (isDevelopment) {
+  require('electron-debug')();
+}
+
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -38,7 +50,7 @@ function createWindow() {
 
 
   // Create the browser window.
-  if (isDev) {
+  if (isDevelopment) {
 
     installExtensions();
 
@@ -47,6 +59,25 @@ function createWindow() {
       webPreferences: { webSecurity: false, nativeWindowOpen: true, nodeIntegration: true, preload: path.join(__dirname, 'preload.js'), contextIsolation: false },
       width: 1100,
       height: 768
+    });
+
+
+    mainWindow.webContents.openDevTools();
+
+    mainWindow.webContents.on("will-redirect", (event, newUrl) => {
+      console.log("will-redirect" + newUrl);
+    });
+
+    mainWindow.webContents.on("did-redirect-navigation", (event, newUrl) => {
+      console.log("did-redirect-navigation" + newUrl);
+    });
+
+    mainWindow.webContents.on("did-navigate", (event, newUrl) => {
+      console.log("did-navigate" + newUrl);
+    });
+
+    mainWindow.webContents.on("did-navigate-in-page", (event, newUrl) => {
+      console.log("did-navigate-in-page" + newUrl);
     });
 
     mainWindow.loadURL("http://localhost:3000");
@@ -68,27 +99,19 @@ function createWindow() {
   }
 
 
-  if (isDev) {//Change this criteria when troubleshooting PROD builds that do not work as expected
+ 
 
-    mainWindow.webContents.openDevTools();
 
-    mainWindow.webContents.on("will-redirect", (event, newUrl) => {
-      console.log("will-redirect" + newUrl);
-    });
-
-    mainWindow.webContents.on("did-redirect-navigation", (event, newUrl) => {
-      console.log("did-redirect-navigation" + newUrl);
-    });
-
-    mainWindow.webContents.on("did-navigate", (event, newUrl) => {
-      console.log("did-navigate" + newUrl);
-    });
-
-    mainWindow.webContents.on("did-navigate-in-page", (event, newUrl) => {
-      console.log("did-navigate-in-page" + newUrl);
-    });
-
-  }
+  mainWindow.on('ready-to-show', () => {
+    if (!mainWindow) {
+      throw new Error('"mainWindow" is not defined');
+    }
+    if (process.env.START_MINIMIZED) {
+      mainWindow.minimize();
+    } else {
+      mainWindow.show();
+    }
+  });
 
 
   // Emitted when the window is closed.
@@ -102,7 +125,6 @@ function createWindow() {
 
   mainWindow.webContents.on('did-create-window', (childWindow) => {
     childWindow.webContents.on('will-redirect', (e, navigationUrl) => {
-      console.log("Url redirected to " + navigationUrl);
       mainWindow.webContents.send('redirectedUrl', navigationUrl);
     });
   });
@@ -132,16 +154,7 @@ app.on("activate", function () {
 });
 
 
-app.on('web-contents-created', (event, contents) => {
-  contents.on('will-navigate', (event, navigationUrl) => {
-    const parsedUrl = new URL(navigationUrl)
 
-    console.log(parsedUrl);
-    // if (parsedUrl.origin !== 'https://example.com') {
-    //   event.preventDefault()
-    // }
-  })
-})
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.

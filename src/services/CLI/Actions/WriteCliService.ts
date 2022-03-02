@@ -26,7 +26,7 @@ export const handleCrmCreateActions = async (cliData: CliData) => {
     cliResponse.message = `Created! Id:${createResponse}`;
     cliResponse.response = createResponse;
   }
-  catch (error : any) {
+  catch (error: any) {
     console.log(error);
     return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
   }
@@ -54,7 +54,7 @@ export const handleCrmUpdateActions = async (cliData: CliData) => {
       cliResponse.type = "json";
     }
   }
-  catch (error:any) {
+  catch (error: any) {
     console.log(error);
     return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
   }
@@ -175,6 +175,8 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
             createRequest[attributeLogicalName] = attNumberVal;
             break;
 
+            
+          case "decimal":
           case "double":
           case "money": let floatVal = getFloatIfValid(attributeValue);
             if (attributeValue != null && floatVal == null) {
