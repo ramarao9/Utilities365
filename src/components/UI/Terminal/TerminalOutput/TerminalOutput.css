@@ -14,3 +14,20 @@
 {
     color:#ff0200;
 }
+
+.terminal-output-request-data{
+    background-color: black;
+    color: #ffffffde;
+    padding: 5px;
+    width:100%;
+    min-height:500px;
+    height:100%;
+
+    border: none;
+    overflow: auto;
+    outline: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    resize: none;
+}

@@ -1,7 +1,7 @@
 import IsEmpty from "is-empty";
 import { create, update, retrieveAll } from "../../../helpers/webAPIClientHelper"
 import { CliData } from "../../../interfaces/CliData"
-import { CliResponse } from "../../../interfaces/CliResponse"
+import { CliResponse, CliResponseType } from "../../../interfaces/CliResponse"
 import { EntityMetadata, PicklistMetadata, Option, OptionData } from "../../../interfaces/EntityMetadata"
 import { getErrorResponse } from "../CliResponseUtil";
 import { getActionParam, removeActionParam, getArrayFromCSV, hasActionParam, getReferencingEntityNavPropertyName, isValidGuid } from "../../../helpers/common";
@@ -18,7 +18,7 @@ import { ActivityParty, ParticipationTypeMask } from "../../../interfaces/Entiti
 import { PartyList } from "../../../interfaces/Entities/PartyList";
 
 export const handleCrmCreateActions = async (cliData: CliData) => {
-  let cliResponse: CliResponse = { message: "", success: false, type: "" };
+  let cliResponse: CliResponse = { message: "", success: false, type:CliResponseType.None};
 
   try {
     let createResponse = await createRecord(cliData);
@@ -38,7 +38,7 @@ export const handleCrmCreateActions = async (cliData: CliData) => {
 
 export const handleCrmUpdateActions = async (cliData: CliData) => {
 
-  let cliResponse: CliResponse = { message: "", success: false, type: "" };
+  let cliResponse: CliResponse = { message: "", success: false, type: CliResponseType.None };
 
   try {
 
@@ -51,7 +51,7 @@ export const handleCrmUpdateActions = async (cliData: CliData) => {
     cliResponse.response = updateResponse;
 
     if (hasSelectParam) {
-      cliResponse.type = "json";
+      cliResponse.type = CliResponseType.JSON;
     }
   }
   catch (error: any) {

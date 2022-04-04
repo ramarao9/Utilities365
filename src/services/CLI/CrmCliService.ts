@@ -6,11 +6,11 @@ import { handleCrmRemoveActions } from "../CLI/Actions/RemoveCliService";
 import {handleCrmExecuteActions} from "../CLI/Actions/ExecuteCliService";
 import IsEmpty from "is-empty";
 
-import { CliResponse } from "../../interfaces/CliResponse";
+import { CliResponse, CliResponseType } from "../../interfaces/CliResponse";
 
 export const PerformCrmAction = async (cliData: any): Promise<CliResponse> => {
   let cliResponse: CliResponse = {
-    type: "",
+    type: CliResponseType.None,
     message: "",
     success: false,
     response: null

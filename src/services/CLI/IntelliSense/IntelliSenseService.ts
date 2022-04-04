@@ -14,6 +14,7 @@ import { CRMOperation } from "../../../interfaces/CRMOperation";
 import { getTargetForOpen, getActionParamsForOpen } from "./OpenIntelliSenseService";
 import { getActionParamsForAdd, getTargetForAdd } from "./AddIntelliSenseService";
 import { getActionParamsForRemove, getTargetForRemove } from "./RemoveIntelliSenseService";
+import { getTargetForExecute } from "./ExecuteIntelliSenseService";
 
 
 
@@ -272,7 +273,7 @@ const getTargetIntelliSense = async (cliDataVal: CliData) => {
         case ACTION_UPDATE_NAME: cliResults = await getEntityCLIVerbs();
             break;
 
-        case ACTION_EXECUTE_NAME:
+        case ACTION_EXECUTE_NAME: cliResults= await getTargetForExecute(cliDataVal);
             break;
 
         case ACTION_GET_NAME: cliResults = await getTargetForGet(cliDataVal);

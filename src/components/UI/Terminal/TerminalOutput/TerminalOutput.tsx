@@ -4,23 +4,25 @@ import { TerminalOut } from "../../../../interfaces/TerminalOut";
 import "./TerminalOutput.css";
 import { getJSONTreeTheme } from "../../../../helpers/common";
 import { Table } from "../../Table/Table";
+import { CliResponse, CliResponseType } from "../../../../interfaces/CliResponse";
 
-export const terminalOutput: React.FC<TerminalOut> = (
-  terminalOutputProps: TerminalOut
+export const terminalOutput: React.FC<CliResponse> = (
+  terminalOutputProps: CliResponse
 ) => {
   let output = null;
 
 
 
+
+
   switch (terminalOutputProps.type) {
-    case "table":
-      let responseData = terminalOutputProps.data;
+    case CliResponseType.Table:
+      let responseData = terminalOutputProps.response;
       let uniqueidAttribute = responseData.uniqueidattribute as string;
       let tableData = responseData.data as Array<any>;
       let tableProperties: Array<string> = [];
 
-      if(tableData != null && tableData.length > 0)
-      {
+      if (tableData != null && tableData.length > 0) {
         let objWithKeys = tableData.reduce((res, item) => ({ ...res, ...item }));
         tableProperties = Object.keys(objWithKeys);
       }
@@ -40,14 +42,14 @@ export const terminalOutput: React.FC<TerminalOut> = (
 
       break;
 
-    case "json":
+    case CliResponseType.JSON:
 
       let treeTheme = getJSONTreeTheme();
-      let jsonData = terminalOutputProps.data;
+      let jsonData = terminalOutputProps.response;
       output = (<JSONTree data={jsonData} theme={treeTheme} invertTheme={false} shouldExpandNode={(keyName, data, level) => level < 2} />);
       break;
 
-    case "error":
+    case CliResponseType.Error:
       output = (
         <pre className="terminal-output-line error">
           {terminalOutputProps.message}

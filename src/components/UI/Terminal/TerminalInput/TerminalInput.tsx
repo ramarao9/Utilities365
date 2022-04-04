@@ -1,24 +1,46 @@
-import React, {  useCallback } from "react";
+import React, { KeyboardEventHandler, useCallback } from "react";
 import "./TerminalInput.css";
 import { CliIntelliSense, CLIVerb } from "../../../../interfaces/CliIntelliSense"
 import { Group } from "../../../../interfaces/Group";
 import { getGroups } from "../../../../helpers/cliutil";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { CliInput } from "../../../../interfaces/CliInput";
 interface TerminalInp {
-  terminalInputText: string;
+  cliInput: CliInput;
   intelliSenseResults: CliIntelliSense;
   onInputKeyDown(e: any): void;
   onInputChange(e: any): void;
   onInputKeyPress?(e: any): void;
   onInputBlur?(e: any): void;
   onIntelliSenseItemClick(e: any, resultItem: CLIVerb): void;
+  onTerminalAdditionalInputChange(e: React.ChangeEvent<HTMLTextAreaElement>): void;
+  onTerminalAdditionalInputKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement> | undefined): void;
   inputRef: any;
 }
 
 export const TerminalInput: React.FC<TerminalInp> = (terminalInpProp: TerminalInp) => {
 
 
-  const setScrollPosition= useCallback((el:any,isSelected:boolean| undefined) => {
+
+  const MIN_TEXTAREA_HEIGHT = 32;
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+
+  React.useLayoutEffect(() => {
+    if (textareaRef != null && textareaRef.current != null) {
+      // Reset height - important to shrink on delete
+      textareaRef.current.style.height = "inherit";
+      // Set height
+      textareaRef.current.style.height = `${Math.max(
+        textareaRef.current.scrollHeight,
+        MIN_TEXTAREA_HEIGHT
+      )}px`;
+    }
+  }, [terminalInpProp.cliInput.text]);
+
+
+
+  const setScrollPosition = useCallback((el: any, isSelected: boolean | undefined) => {
     if (el !== null && isSelected) {
       el.scrollIntoView();
     }
@@ -54,7 +76,7 @@ export const TerminalInput: React.FC<TerminalInp> = (terminalInpProp: TerminalIn
                 </div> : null}
                 <ul className="is-list-none">
                   {groupResults.map((resultItem: CLIVerb, index: number) => {
-                    return (<li ref={el=>setScrollPosition(el,resultItem.isSelected)}  key={resultItem.text ? `${groupName}_${resultItem.text}_${resultItem.name}` : `${groupName}_${resultItem.name}`} onMouseDown={event => terminalInpProp.onIntelliSenseItemClick(event, resultItem)} className={resultItem.isSelected ? 'selected' : ''}>
+                    return (<li ref={el => setScrollPosition(el, resultItem.isSelected)} key={resultItem.text ? `${groupName}_${resultItem.text}_${resultItem.name}` : `${groupName}_${resultItem.name}`} onMouseDown={event => terminalInpProp.onIntelliSenseItemClick(event, resultItem)} className={resultItem.isSelected ? 'selected' : ''}>
                       {resultItem.name}
                       {(resultItem.description !== "") ? (<span className="intsense-sub-title">{resultItem.description}</span>) : <span></span>}
                     </li>)
@@ -68,11 +90,10 @@ export const TerminalInput: React.FC<TerminalInp> = (terminalInpProp: TerminalIn
     }
   }
 
-  return (<div className="terminal-input">
-    <div>
-      <span className="terminal-prompt">
-        <FontAwesomeIcon icon="greater-than" color="lightgreen" style={{ height:'14px'}}   size="1x"/></span>
-    </div>
+  let inputCont = (<>  <div>
+    <span className="terminal-prompt">
+      <FontAwesomeIcon icon="greater-than" color="lightgreen" style={{ height: '14px' }} size="1x" /></span>
+  </div>
     <div className="terminal-inp-cont">
       <div>
         <input
@@ -80,12 +101,37 @@ export const TerminalInput: React.FC<TerminalInp> = (terminalInpProp: TerminalIn
           onKeyDown={event => terminalInpProp.onInputKeyDown(event)}
           onChange={event => terminalInpProp.onInputChange(event)}
           onBlur={event => terminalInpProp.onInputBlur ? terminalInpProp.onInputBlur(event) : null}
-          value={terminalInpProp.terminalInputText}
+          value={terminalInpProp.cliInput.text}
           className="terminal-main-input"
-          ref={terminalInpProp.inputRef}
-        />
+          ref={terminalInpProp.inputRef} />
       </div>
       {intelliSenseContent}
     </div>
+  </>
+  )
+
+  if (terminalInpProp.cliInput.isPartOfMultiInputRequest) {
+    inputCont = (
+      <div className="terminal-inp-cont">
+        <div>
+          <textarea
+            rows={terminalInpProp.cliInput.isMultiline ? 6 : 1}
+            ref={textareaRef}
+            style={{
+              minHeight: MIN_TEXTAREA_HEIGHT,
+              resize: "none"
+            }}
+            onKeyDown={event => { terminalInpProp.onTerminalAdditionalInputKeyDown(event) }}
+            onChange={event => { terminalInpProp.onTerminalAdditionalInputChange(event) }}
+            value={terminalInpProp.cliInput.text}
+            className="terminal-main-input terminal-main-input-textarea"
+            placeholder={terminalInpProp.cliInput.placeholder}
+          />
+        </div>
+      </div>)
+  }
+
+  return (<div className="terminal-input">
+    {inputCont}
   </div>);
 };

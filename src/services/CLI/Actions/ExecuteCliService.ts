@@ -1,5 +1,5 @@
 import { CliData } from "../../../interfaces/CliData";
-import { CliResponse } from "../../../interfaces/CliResponse";
+import { CliResponse, CliResponseType } from "../../../interfaces/CliResponse";
 import { getErrorResponse } from "../CliResponseUtil";
 import { executeFetchXml } from "../../../helpers/webAPIClientHelper";
 import { extractContentFromText } from "../../../helpers/common";
@@ -11,20 +11,28 @@ import {
 
 
 export const handleCrmExecuteActions = async (cliData: CliData) => {
-    let cliResponse: CliResponse = { message: "", success: false, type: "" };
+    let cliResponse: CliResponse = { message: "", success: false, type: CliResponseType.None };
     try {
-        let responseData = null;
+
         switch (cliData.target.toLowerCase()) {
 
-            case "fetch":
-            case "fetchxml": responseData = await executeFetch(cliData);
-                cliResponse.type = "table";
-                cliResponse.response = responseData;
+            case "fetchxml": //r
+                if (cliData.steps == null || cliData.steps.length === 0) {
+                    cliResponse.type = CliResponseType.RequestAdditionalMultiLineUserInput;
+                    cliResponse.response = "";
+                    cliResponse.userInputMessage = "Please paste Fetch XML here."
+                }
+                else {
+                    cliResponse.response = await executeFetch(cliData);
+                    cliResponse.type = CliResponseType.Table;
+                    cliResponse.success = true;
+                }
+
                 break;
         }
         cliResponse.success = true;
     }
-    catch (error : any) {
+    catch (error: any) {
         console.log(error);
         return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
     }
@@ -34,7 +42,8 @@ export const handleCrmExecuteActions = async (cliData: CliData) => {
 
 const executeFetch = async (cliData: CliData) => {
 
-    let fetchXml: string = cliData.unnamedParam as string;
+    let cliStep = cliData.steps!![0];
+    let fetchXml: string = cliStep.text;
     let entityNameTag = extractContentFromText(fetchXml, "<entity", ">");
 
     if (!entityNameTag)

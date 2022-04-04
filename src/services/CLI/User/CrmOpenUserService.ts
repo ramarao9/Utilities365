@@ -2,7 +2,7 @@ import { getCliResponse } from "../../../helpers/crmutil";
 import { STR_ERROR_OCCURRED, STR_NO_RECORDS_FOUND_FOR_CRITERIA } from "../../../helpers/strings";
 import { retrieveMultiple } from "../../../helpers/webAPIClientHelper";
 import { CliData } from "../../../interfaces/CliData";
-import { CliResponse } from "../../../interfaces/CliResponse";
+import { CliResponse, CliResponseType } from "../../../interfaces/CliResponse";
 import * as actionTypes from "../../../store/actions";
 import store from "../../../store/store";
 
@@ -14,7 +14,7 @@ export const handleCrmOpenUserActions = async (
   var hasNoparameters = !cliData.actionParams;
 
   let cliResponse: CliResponse = {
-    type: "",
+    type: CliResponseType.None,
     message: "",
     success: false,
     response: null
@@ -33,7 +33,7 @@ export const handleUserActionWithNamedParams = async (
   cliData: CliData
 ): Promise<CliResponse> => {
   let cliResponse: CliResponse = {
-    type: "",
+    type: CliResponseType.None,
     message: "",
     success: false,
     response: null

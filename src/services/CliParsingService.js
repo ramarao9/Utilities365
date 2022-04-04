@@ -3,7 +3,8 @@ import IsEmpty from 'is-empty';
 const EMPTY_SPACE = " ";
 const ACTION_PARAM_DELIMITER = "--";
 
-function CliData(action, target, unnamedParam, actionParams, outputVariable, cliOutput) {
+function CliData(rawInput, action, target, unnamedParam, actionParams, outputVariable, cliOutput) {
+    this.rawInput = rawInput;
     this.action = action;//action like open, create, update etc.
     this.target = target;//Specify the Target component ex: entity, control etc.
     this.unnamedParam = unnamedParam;
@@ -81,7 +82,7 @@ export function getCliData(userInput) {
         }
 
     }
-    const cliData = new CliData(action, actionTarget, unnamedParam, actionParams, outputVariableName, cliOutput);
+    const cliData = new CliData(userInput, action, actionTarget, unnamedParam, actionParams, outputVariableName, cliOutput);
     return cliData;
 }
 

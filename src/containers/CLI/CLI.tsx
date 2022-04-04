@@ -1,9 +1,9 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, KeyboardEventHandler } from "react";
 
 import { getCliData } from "../../services/CliParsingService";
 import { PerformCrmAction } from "../../services/CLI/CrmCliService";
 import { Terminal } from "../../components/UI/Terminal/Terminal";
-import { CliResponse } from "../../interfaces/CliResponse";
+import { CliResponse, CliResponseType } from "../../interfaces/CliResponse";
 import { CliData } from "../../interfaces/CliData";
 import { Spinner } from "../../interfaces/Spinner";
 import { TerminalOut } from "../../interfaces/TerminalOut";
@@ -11,6 +11,8 @@ import { getIntelliSenseForText, getUpdatedInputOnSelection } from "../../servic
 import "./CLI.css";
 
 import { CliIntelliSense, CLIVerb, ClientRect, IntelliSenseInput } from "../../interfaces/CliIntelliSense";
+import { CliInput } from "../../interfaces/CliInput";
+import { text } from "stream/consumers";
 const KEYCODE_UP = 38;
 const KEYCODE_DOWN = 40;
 const KEYCODE_ENTER = 13;
@@ -24,6 +26,12 @@ export const CLI: React.FC = () => {
   const getDefaultIntellisenseState = (): CliIntelliSense => {
     return { results: Array<CLIVerb>(), currentPos: { left: 0, top: 0 } };
   }
+
+  const getDefaultCliData = () => {
+    return { rawInput: "", action: "", target: "", outputVariable: "", cliOutput: { render: false, format: "" } };
+
+  }
+
   const cliInputRef = useRef();
   const intelliSensePositionCanvasRef = useRef(null);
   const [inputCaretPosition, setInputCaretPosition] = useState<number>(0);
@@ -31,11 +39,16 @@ export const CLI: React.FC = () => {
   const [spinnerInfo, setSpinner] = useState<Spinner>({ show: false });
   const [inIntelliSenseNavMode, setIntelliSenseNavMode] = useState<boolean>(false);
   const [intelliSenseVerbCurrentIndex, setintelliSenseVerbCurrentIndex] = useState<number>(0);
-  const [inputText, setInputText] = useState<string>("");
-  const [outputs, setOutputs] = useState<Array<any>>([]);
+  const [cliInput, setCliInput] = useState<CliInput>({ text: "", placeholder: "" });
+  const [lastUserRequestCommand, setLastUserRequestCommand] = useState<CliData>(getDefaultCliData());
+  const [outputs, setOutputs] = useState<Array<CliResponse>>([]);
   const [intellisenseResults, setIntelliSenseResults] = useState<CliIntelliSense>(getDefaultIntellisenseState());
   const [commandsHistoryCurrentIndex, setCommandsHistoryCurrentIndex] = useState<number>(-1);
   const [commandsHistory, setCommandsHistory] = useState<Array<string>>([]);
+
+
+
+
 
 
   const onTerminalInputBlur = async (ev: any) => {
@@ -58,20 +71,20 @@ export const CLI: React.FC = () => {
     let userInputText = inputtoUse ? inputtoUse : getCurrentTextInput();
     let intellisenseInput: IntelliSenseInput = { inputText: userInputText, inputCaretPosition: inputCaretPosition };
 
-   
-    
+
+
 
     let updatedIntelliSenseInput = await getUpdatedInputOnSelection(intellisenseInput, result);
-   
 
-    setInputText(updatedIntelliSenseInput.inputText);
+
+    setCliInput({ text: updatedIntelliSenseInput.inputText });
     setIntelliSenseNavMode(false);
 
     let intellisenseInfo = await getIntelliSenseForText(updatedIntelliSenseInput);
     intellisenseInfo.currentPos = calculateIntelliSensePos(updatedIntelliSenseInput.inputCaretPosition);
     focusInputAndSetCaretPosition(updatedIntelliSenseInput.inputCaretPosition);
     setIntelliSenseResults(intellisenseInfo);
-  
+
 
     setintelliSenseVerbCurrentIndex(0);
   }
@@ -86,6 +99,8 @@ export const CLI: React.FC = () => {
     }
   }
 
+
+  //Terminal Input key down event that handles the execution of the action on the target
   const onTerminalInputKeyDown = async (ev: any) => {
 
 
@@ -131,8 +146,8 @@ export const CLI: React.FC = () => {
 
     resetIntelliSense();
 
-    const cliDataVal = getCliData(inputText) as CliData;
-    let cliResponse: CliResponse = { type: "", success: false, message: "" };
+    const cliDataVal = getCliData(cliInput.text) as CliData;
+    let cliResponse: CliResponse = { type: CliResponseType.None, success: false, message: "" };
 
     if (cliDataVal.action != null) {//special cases
       switch (cliDataVal.action.toLowerCase()) {
@@ -261,19 +276,19 @@ export const CLI: React.FC = () => {
         ++updatedCommandsHistoryCurrentIndex;
     }
     else if (keyCode === KEYCODE_UP) {
-      updatedCommandsHistoryCurrentIndex = (inputText === "") ? commandsHistoryArrLength - 1 :
+      updatedCommandsHistoryCurrentIndex = (cliInput.text === "") ? commandsHistoryArrLength - 1 :
         ((updatedCommandsHistoryCurrentIndex === 0) ? 0 : --updatedCommandsHistoryCurrentIndex);
     }
 
     let updatedInputText = commandsHistory[updatedCommandsHistoryCurrentIndex];
-    setInputText(updatedInputText);
+    setCliInput({ text: updatedInputText });
     setCommandsHistoryCurrentIndex(updatedCommandsHistoryCurrentIndex);
   }
 
 
- 
+
   const clearTerminal = () => {
-    setInputText("");
+    setCliInput({ text: "", placeholder: "" });
     setOutputs([]);
     setVariables({});
   }
@@ -282,15 +297,11 @@ export const CLI: React.FC = () => {
     const updatedOutputs = [...outputs];
     const updatedCommandsHistory = [...commandsHistory];
 
-    var commandOut: TerminalOut = { type: "text", message: ">" + inputText };
-    var commandResultOut: TerminalOut = {
-      type: cliResponse.type,
-      data: cliResponse.response,
-      message: cliResponse.message
-    };
+    var commandOut: CliResponse = { type: CliResponseType.TEXT, message: ">" + cliInput.text, success: true };
+
 
     if (cliData.cliOutput != null && cliData.cliOutput.render) {
-      commandResultOut.type = cliData.cliOutput.format;
+      cliResponse.type = cliData.cliOutput.format.toUpperCase() as CliResponseType;
     }
 
 
@@ -302,33 +313,47 @@ export const CLI: React.FC = () => {
       updatedVariables["result"] = cliResponse.response;
     }
 
+    if (cliResponse.type !== CliResponseType.Multi_Input_Response) {
+      updatedOutputs.push(commandOut);
+      updatedCommandsHistory.push(cliInput.text);
+    }
 
+    if (cliResponse.type === CliResponseType.RequestAdditionalUserInput || cliResponse.type === CliResponseType.RequestAdditionalMultiLineUserInput) {
+      setCliInput({
+        text: "",
+        placeholder: cliResponse.userInputMessage,
+        isMultiline: cliResponse.type === CliResponseType.RequestAdditionalMultiLineUserInput,
+        isPartOfMultiInputRequest: true
+      });
 
+    }
+    else {
+      updatedOutputs.push(cliResponse);
+      setCliInput({ text: "", placeholder: "" });
 
-    updatedOutputs.push(commandOut);
-    updatedOutputs.push(commandResultOut);
-    updatedCommandsHistory.push(inputText);
+    }
 
-
-    setInputText("");
+    setLastUserRequestCommand(cliData);
     setOutputs(updatedOutputs);
     setVariables(updatedVariables);
     setCommandsHistory(updatedCommandsHistory);
     setCommandsHistoryCurrentIndex(updatedCommandsHistory.length - 1);
-  
+
+
+
   };
 
 
 
 
-
+  //Used to provide Intellisense during on change of the text field
   const onTerminalInputChanged = async (ev: any) => {
 
     console.log(`Entering onchange event...`);
     const userInput = ev.target.value;
     const caretPos = ev.target.selectionStart;
     console.log(`Input caret position: ${caretPos}, UserInput:${userInput}`);
-    setInputText(userInput);
+    setCliInput({ text: userInput });
     setInputCaretPosition(caretPos);
 
     let intellisenseInput: IntelliSenseInput = { inputText: userInput, inputCaretPosition: caretPos };
@@ -339,7 +364,61 @@ export const CLI: React.FC = () => {
 
   };
 
+  const onTerminalAdditionalInputChange = async (ev: React.ChangeEvent<HTMLTextAreaElement>) => {
 
+
+
+    const userInput = ev.target.value;
+
+    setCliInput({
+      text: userInput,
+      placeholder: cliInput.placeholder,
+      step: cliInput.step,
+      isMultiline: cliInput.isMultiline,
+      isPartOfMultiInputRequest: cliInput.isPartOfMultiInputRequest
+    });
+
+
+
+  }
+
+
+  const onTerminalAdditionalInputKeyDown = async (ev: React.KeyboardEvent<HTMLElement> | undefined) => {
+
+
+    if (ev?.key !== 'Enter')
+      return;
+
+
+
+    showProgressSpinner();
+    let cliData = getCliDataWhenMultiInput(lastUserRequestCommand, cliInput);
+
+    let cliResponse = await PerformCrmAction(cliData);
+    showActionResult(cliResponse, cliData);
+    hideProgressSpinner();
+
+  }
+
+
+  const getCliDataWhenMultiInput = (cliData: CliData, cliInput: CliInput): CliData => {
+
+
+    if (!cliData.steps)
+      cliData.steps = [];
+
+    if (!cliInput.step) {
+      cliInput.step = 1;
+    }
+    else {
+      cliInput.step += 1;
+    }
+
+
+    cliData.steps?.push(cliInput);
+    return cliData;
+
+  }
 
 
   return (
@@ -347,13 +426,15 @@ export const CLI: React.FC = () => {
       <div className="terminalContainer" >
         <Terminal
           outputs={outputs}
+          terminalAdditionalInputChange={onTerminalAdditionalInputChange}
+          terminalAdditionalInputKeyDown={onTerminalAdditionalInputKeyDown}
           intelliSenseResults={intellisenseResults}
           terminalInputChange={(event: any) => onTerminalInputChanged(event)}
           terminalInputKeyDown={onTerminalInputKeyDown}
           terminalIntelliSenseItemClick={onTerminalIntellisenseItemClick}
           terminalInputBlur={onTerminalInputBlur}
           terminalInputRef={cliInputRef}
-          inputText={inputText} spinner={spinnerInfo} />
+          cliInput={cliInput} spinner={spinnerInfo} />
       </div>
       <canvas ref={intelliSensePositionCanvasRef} className="posHelperCanvas" />
     </React.Fragment>

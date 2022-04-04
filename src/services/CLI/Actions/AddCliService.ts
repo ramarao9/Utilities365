@@ -1,5 +1,5 @@
 import { CliData } from "../../../interfaces/CliData"
-import { CliResponse } from "../../../interfaces/CliResponse"
+import { CliResponse, CliResponseType } from "../../../interfaces/CliResponse"
 import { getErrorResponse } from "../CliResponseUtil";
 import { associate } from "../../../helpers/webAPIClientHelper";
 import { getUser } from "../../SystemUserService";
@@ -15,7 +15,7 @@ import {
 
 
 export const handleCrmAddActions = async (cliData: CliData) => {
-    let cliResponse: CliResponse = { message: "", success: false, type: "" };
+    let cliResponse: CliResponse = { message: "", success: false, type: CliResponseType.None };
 
     try {
      

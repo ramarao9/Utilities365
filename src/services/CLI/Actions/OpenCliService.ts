@@ -6,7 +6,7 @@ import { isValidGuid } from "../../../helpers/common";
 import { getErrorResponse, getTextResponse } from "../CliResponseUtil";
 import { getCurrentOrgUrl } from "../../../helpers/webAPIClientHelper";
 import { openWindow } from "../../../helpers/util";
-import { CliResponse } from "../../../interfaces/CliResponse";
+import { CliResponse, CliResponseType } from "../../../interfaces/CliResponse";
 import { ActionParam, CliData } from "../../../interfaces/CliData";
 import { getActionParam } from "../../../helpers/common";
 import { EntityReference } from "../../../interfaces/EntityReference";
@@ -19,7 +19,7 @@ export const handleCrmOpenActions = async (
   cliData: any
 ): Promise<CliResponse> => {
   let cliResponse: CliResponse = {
-    type: "",
+    type: CliResponseType.None,
     message: "",
     success: false,
     response: null

@@ -1,7 +1,8 @@
 
+import { isLastParamAttribute } from '../../../helpers/cliutil';
 import { ActionParam } from '../../../interfaces/CliData';
 import { CLI_ACTION_PARAMS_GET_COMMON_CONDITIONS, CLI_ACTION_PARAMS_GET_STRING_CONDITIONS } from '../Definitions/ActionParams/Get';
-import { getVerbsWhenAttributeOnGetRecords, isLastParamAttribute } from './GetIntelliSenseService'
+import { getVerbsWhenAttributeOnGetRecords } from './GetIntelliSenseService'
 
 
 test('test if last ActionParam name is attribute', () => {

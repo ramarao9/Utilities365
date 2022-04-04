@@ -19,7 +19,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 const isDevelopment =
-  process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
+isDev ||process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
 
 if (isDevelopment) {
   require('electron-debug')();
@@ -46,7 +46,7 @@ const installExtensions = async () => {
 
 function createWindow() {
 
-
+ 
 
 
   // Create the browser window.
@@ -57,12 +57,12 @@ function createWindow() {
     //the below will show some security errors but since this is just local development it should be fine.
     mainWindow = new BrowserWindow({
       webPreferences: { webSecurity: false, nativeWindowOpen: true, nodeIntegration: true, preload: path.join(__dirname, 'preload.js'), contextIsolation: false },
-      width: 1100,
-      height: 768
+      width: 500,
+      height: 300
     });
 
 
-    mainWindow.webContents.openDevTools();
+ 
 
     mainWindow.webContents.on("will-redirect", (event, newUrl) => {
       console.log("will-redirect" + newUrl);
@@ -81,6 +81,8 @@ function createWindow() {
     });
 
     mainWindow.loadURL("http://localhost:3000");
+    mainWindow.webContents.openDevTools();
+
   } else {
 
 
@@ -95,11 +97,10 @@ function createWindow() {
     let filePath = path.join(__dirname, '../build/index.html')
     mainWindow.loadFile(filePath);
 
-
   }
 
 
- 
+
 
 
   mainWindow.on('ready-to-show', () => {

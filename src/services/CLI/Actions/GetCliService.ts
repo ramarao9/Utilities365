@@ -1,6 +1,6 @@
 
 import { CliData, ActionParam } from "../../../interfaces/CliData"
-import { CliResponse } from "../../../interfaces/CliResponse"
+import { CliResponse, CliResponseType } from "../../../interfaces/CliResponse"
 import {
   retrieveMultiple, retrieveEntitites, retrieveEntity, 
   retrieveAttribute, retrieveAttributes, executeUnboundFunction,  executeFetchXml
@@ -24,7 +24,7 @@ import { getFetchXml } from "../../ViewService";
 import { removeODataTagsOnCollection } from "../../../helpers/cliutil";
 
 export const handleCrmGetActions = async (cliData: CliData) => {
-  let cliResponse: CliResponse = { message: "", success: false, type: "json" };
+  let cliResponse: CliResponse = { message: "", success: false, type: CliResponseType.JSON};
 
   try {
 
@@ -37,7 +37,7 @@ export const handleCrmGetActions = async (cliData: CliData) => {
         break;
 
       case "entities": responseData = await getEntities(cliData);
-        cliResponse.type = "table";
+        cliResponse.type = CliResponseType.Table;
         cliResponse.response = cleanEntitiesData(cliData.actionParams as ActionParam[], responseData);
         break;
 
@@ -46,7 +46,7 @@ export const handleCrmGetActions = async (cliData: CliData) => {
 
         if (cliData.target.toLowerCase() === "attributes") {
           cliResponse.response = cleanAttributesData(cliData.actionParams as ActionParam[], responseData);
-          cliResponse.type = "table";
+          cliResponse.type = CliResponseType.Table;
         }
         else {
           cliResponse.response = responseData;
@@ -60,7 +60,7 @@ export const handleCrmGetActions = async (cliData: CliData) => {
         break;
 
       default: responseData = await getRecords(cliData);
-        cliResponse.type = "table";
+        cliResponse.type = CliResponseType.Table;
         cliResponse.response = { uniqueidattribute: getPrimaryIdAttribute(cliData.target), data: responseData };
         break;
     }
