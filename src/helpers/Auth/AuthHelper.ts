@@ -26,43 +26,35 @@ export default class AuthProvider {
 
 
     public getToken = async (connectionInfo: AuthConnection) => {
-        let errorMessage = null;
+
         let authResponse: AuthenticationResult | null = null;
-        try {
-            const account = await this.getAccount(connectionInfo);
+
+        const account = await this.getAccount(connectionInfo);
 
 
-            if (connectionInfo.authType === "Client Credentials") {
-                console.log("Account type is client credentials..");
-                if (account) {
-                    authResponse = await this.getTokenSilentConfidential(account, connectionInfo);
-                }
-                else {
-                    authResponse = await this.getTokenByClientCredentials(connectionInfo);
-                }
-
+        if (connectionInfo.authType === "Client Credentials") {
+            console.log("Account type is client credentials..");
+            if (account) {
+                authResponse = await this.getTokenSilentConfidential(account, connectionInfo);
             }
             else {
-
-                console.log("Account type is user credentials..");
-
-
-
-                if (account) {
-                    authResponse = await this.getTokenSilentPublic( account, connectionInfo);
-                } else {
-
-                    authResponse = await this.getTokenInteractive( connectionInfo);
-
-                }
+                authResponse = await this.getTokenByClientCredentials(connectionInfo);
             }
+
         }
-        catch (err: any) {
-            errorMessage = err.message;
-            console.log("Error occurred while retrieving the token." + err);
+        else {
+
+            console.log("Account type is user credentials..");
 
 
-            return errorMessage;
+
+            if (account) {
+                authResponse = await this.getTokenSilentPublic(account, connectionInfo);
+            } else {
+
+                authResponse = await this.getTokenInteractive(connectionInfo);
+
+            }
         }
 
         return authResponse || null;
@@ -90,7 +82,7 @@ export default class AuthProvider {
 
     listenForAuthCode = async (navigateUrl: string) => {
 
-        window.open(navigateUrl, '_blank', 'nodeIntegration=yes')
+        let authWindow = window.open(navigateUrl, '_blank', 'nodeIntegration=yes')
 
         return new Promise((resolve, _reject) => {
             ipcRenderer.on('redirectedUrl', (event, url) => {
@@ -99,14 +91,16 @@ export default class AuthProvider {
                 const parsedUrl = new URL(url);
                 const authCode = parsedUrl.searchParams.get('code');
                 if (authCode) {
+                    authWindow?.close();
                     resolve(authCode);
+
                 }
             });
         });
     }
 
 
-    getTokenSilentPublic = async ( account: AccountInfo, connectionInfo: AuthConnection) => {
+    getTokenSilentPublic = async (account: AccountInfo, connectionInfo: AuthConnection) => {
         console.log("Getting token silently..");
 
         try {
@@ -233,12 +227,6 @@ export default class AuthProvider {
 
 
     };
-
-
-
-
-
-
 
 
 

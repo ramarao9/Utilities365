@@ -297,7 +297,17 @@ export const CLI: React.FC = () => {
     const updatedOutputs = [...outputs];
     const updatedCommandsHistory = [...commandsHistory];
 
+
+
     var commandOut: CliResponse = { type: CliResponseType.TEXT, message: ">" + cliInput.text, success: true };
+    if (cliData.steps && cliData.steps.length > 0) {
+      //For multi input responses, we do not want the additional inputs to start with >, as this should only be used for displaying top levels commands
+      commandOut.message = cliInput.text;
+    }
+    else {
+      updatedCommandsHistory.push(cliInput.text);// We only want to push the commands but not the input to the commands
+    }
+    updatedOutputs.push(commandOut);
 
 
     if (cliData.cliOutput != null && cliData.cliOutput.render) {
@@ -313,10 +323,11 @@ export const CLI: React.FC = () => {
       updatedVariables["result"] = cliResponse.response;
     }
 
-    if (cliResponse.type !== CliResponseType.Multi_Input_Response) {
-      updatedOutputs.push(commandOut);
-      updatedCommandsHistory.push(cliInput.text);
-    }
+
+
+
+
+
 
     if (cliResponse.type === CliResponseType.RequestAdditionalUserInput || cliResponse.type === CliResponseType.RequestAdditionalMultiLineUserInput) {
       setCliInput({
@@ -390,6 +401,7 @@ export const CLI: React.FC = () => {
       return;
 
 
+    ev.currentTarget.blur();
 
     showProgressSpinner();
     let cliData = getCliDataWhenMultiInput(lastUserRequestCommand, cliInput);

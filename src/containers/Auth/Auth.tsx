@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from 'react-redux'
 import ErrorMessage from "../../components/UI/ErrorMessage/ErrorMessage";
 import MoreButton from "../../components/UI/MoreButton/MoreButton";
-import {AnchorButton} from "../../components/UI/AnchorButton/AnchorButton";
+import { AnchorButton } from "../../components/UI/AnchorButton/AnchorButton";
 
 
 
@@ -213,16 +213,24 @@ export const Auth: React.FC = () => {
 
   const connectClick = async (event: any) => {
 
-    let isValidConnection = validateConnection();
+    try {
+      let isValidConnection = validateConnection();
 
 
-    if (!isValidConnection) {
-      event.preventDefault();
-      return;
+      if (!isValidConnection) {
+        event.preventDefault();
+        return;
+      }
+
+      const connectionInfo = await getNewConnectionInfo();
+      await connectToOrg(connectionInfo);
+
     }
-
-    const connectionInfo = await getNewConnectionInfo();
-    await connectToOrg(connectionInfo);
+    catch (err: any) {
+      console.log("An error occurred when connecting to org" + err);
+      setConnectionError(`An error occurred while creating a connection. Message: ${err.message}`)
+      setConnectionInProcess(false);
+    }
 
   };
 
@@ -295,25 +303,16 @@ export const Auth: React.FC = () => {
 
     setConnectionInProcess(true);
 
-    try {
 
+    console.log("Connecting to org");
+    let authProvider: AuthProvider = getAuthProviderFromStore();
+    let tokenResult = await authProvider.getToken(connectionInfo);
+    setConnectionInProcess(false);
+    if (tokenResult != null) {
+      console.log("navigating to home with token");
+      await navigateToHome(tokenResult, connectionInfo);
+    }
 
-      console.log("Connecting to org");
-      let authProvider: AuthProvider = getAuthProviderFromStore();
-      let tokenResult = await authProvider.getToken(connectionInfo);
-      setConnectionInProcess(false);
-      if (typeof tokenResult === "string") {
-        setConnectionError("An error occurred while retrieving the token. Please try again. Error: " + tokenResult);
-      }
-      else {
-        console.log("navigating to home with token");
-        await navigateToHome(tokenResult, connectionInfo);
-      }
-    }
-    catch (err) {
-      console.log("An error occurred when connecting to org" + err);
-      setConnectionInProcess(false);
-    }
   }
 
   const connectToExistingOrg = async (event: any, connectionInfo: AuthConnection) => {
@@ -374,6 +373,12 @@ export const Auth: React.FC = () => {
       await axios.get(`${orgUrl}/api/data`);
     } catch (error: any) {
       let response = error.response;
+
+      if (!response) {
+        throw new Error(`Please check the connection information(Org Url) and try again. Error: ${error.message}`);
+      }
+
+
       let responseHeaders = response.headers;
 
       if (
