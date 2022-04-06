@@ -41,7 +41,7 @@ steps:
     cliProjectName: 'Utilities365'
     cliSources: '.'
 - script: |
-    npm install
+    npm install --global windows-build-tools
   displayName: 'npm install'
 
 - script: |

@@ -35,7 +35,10 @@ export const terminalOutput: React.FC<CliResponse> = (
       }
       else {
         output = (
-          <Table UniqueIdKey={uniqueidAttribute} HeaderColumns={tableProperties} RowData={tableData} />
+          <div>
+            <Table UniqueIdKey={uniqueidAttribute} HeaderColumns={tableProperties} RowData={tableData} />
+            <span className="table-count">Total records: {tableData.length}</span>
+          </div>
         );
       }
 

@@ -31,3 +31,9 @@
     box-shadow: none;
     resize: none;
 }
+
+.table-count{
+    background-color: black;
+    color: #ffffffde;
+    font-size: 12px;
+}

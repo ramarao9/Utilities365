@@ -45,3 +45,8 @@
     background: #555; 
     cursor: pointer;
   }
+
+
+  .table-container{
+    margin-bottom: 0 !important;
+  }
