@@ -40,9 +40,12 @@ steps:
     cliProjectKey: 'ramarao9_Utilities365'
     cliProjectName: 'Utilities365'
     cliSources: '.'
-- script: |
-    npm install --global windows-build-tools
+
+- task: Npm@1
   displayName: 'npm install'
+  inputs:
+    verbose: false
+
 
 - script: |
     npm run build
