@@ -12,6 +12,22 @@ export const getArrayFromCSV = (csv?: string): Array<string> | undefined => {
 }
 
 
+export const getActionParamValue = (paramName: string, params: Array<ActionParam> | null |undefined) => {
+
+    if (!params)
+      return "";
+  
+    let actionParam = getActionParam(paramName, params);
+    let paramVal = "";
+  
+    if (actionParam && actionParam.value) {
+        paramVal = actionParam.value;
+    }
+  
+    return paramVal;
+  }
+
+
 export const getParamVal = (param: ActionParam | undefined): string | undefined => {
     let paramVal = param ? param.value : undefined;
     return paramVal;

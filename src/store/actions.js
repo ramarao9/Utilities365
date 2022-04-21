@@ -16,3 +16,4 @@ export const SIGNOUT_USER="SIGNOUT_USER";
 
 
 export const SET_APPS="SET_APPS";
+export const SET_SYSTEM_FORMS="SET_SYSTEM_FORMS";

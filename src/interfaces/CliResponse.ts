@@ -14,9 +14,11 @@ export interface CliResponse {
 export enum CliResponseType {
   None = "",
   Table = "TABLE",
+  Message = "MESSAGE",
   Error = "ERROR",
   JSON = "JSON",
   TEXT = "TEXT",
+  RECORD_OPEN = "RECORD_OPEN",
   RequestAdditionalUserInput = "REQUEST_ADDITIONAL_USER_INPUT",
   RequestAdditionalMultiLineUserInput = "REQUEST_ADDITIONAL_MULTI_LINE_USER_INPUT",
   Multi_Input_Response = "MULTI_INPUT_RESPONSE"

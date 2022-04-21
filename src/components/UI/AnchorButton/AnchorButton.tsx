@@ -11,7 +11,7 @@ interface AnchorButtonProps {
   tooltip?: string;
   classes?: string[];
   disabled?: boolean;
-  onClick?(event:any): void;
+  onClick?(event: any): void;
 }
 
 
@@ -43,6 +43,7 @@ export const AnchorButton: React.FC<AnchorButtonProps> = (props: AnchorButtonPro
 
   return (
     <button className={buttonClasses.join(" ")}
+      title={props.tooltip}
       disabled={props.disabled}
       onClick={props.onClick}>
       {icon}

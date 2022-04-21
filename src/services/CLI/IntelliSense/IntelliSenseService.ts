@@ -8,7 +8,7 @@ import {
     ACTION_REMOVE_NAME, ACTION_UPDATE_NAME
 } from "../Definitions/ActionDefinitions"
 
-import { getCleanedCLIVerbs, getEntityCLIVerbs, getLastParam } from "../../../helpers/cliutil";
+import { getCleanedCLIVerbs, getEntityCLIVerbs, getFilteredVerbs, getLastParam } from "../../../helpers/cliutil";
 import { getActionsParamsForWrite } from "./WriteIntelliSenseService";
 import { CRMOperation } from "../../../interfaces/CRMOperation";
 import { getTargetForOpen, getActionParamsForOpen } from "./OpenIntelliSenseService";
@@ -334,9 +334,8 @@ const getParamsIntelliSense = async (userInput: string, cliDataVal: CliData) => 
     //if the action parameter has value than filter on the parameter values from the Cli results
     else if (lastActionParam && lastActionParam.name && !lastActionParam.value) {//Require filter on the value of the parameter
         let actionParamName = lastActionParam!!.name.toLowerCase();
-        cliResults = cliResults.filter(x => x.name.toLowerCase().startsWith(actionParamName) ||
-            x.name.replace(/\s/g, "").toLowerCase().startsWith(actionParamName)
-        );
+        cliResults= getFilteredVerbs(actionParamName,cliResults);
+
     }
 
     //filter on the name of the parameter

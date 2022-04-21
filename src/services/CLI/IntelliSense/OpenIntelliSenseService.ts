@@ -8,6 +8,7 @@ import { getEntityMetadataBasic } from "../../CrmMetadataService";
 import { GROUP_NAME_FILTER_ATTRIBUTES } from "../Definitions/ActionParams/Get";
 import { AppModule } from "../../../interfaces/Entities/AppModule";
 import { getAppModules } from "../../AppModuleService";
+import { getEntityForms } from "../../SystemFormService";
 
 
 export const getTargetForOpen = async (cliDataVal: CliData) => {
@@ -46,8 +47,6 @@ export const getActionParamsForOpen = async (userInput: string, cliDataVal: CliD
         case "new-record": cliResults = await getActionParams_New_Record(userInput, cliDataVal);
             break;
 
-        case "entity-form":
-            break;
 
         //Entity records
         default: cliResults = await getActionParams_Open_Records(userInput, cliDataVal);
@@ -65,6 +64,11 @@ export const getActionParams_New_Record = async (userInput: string, cliDataVal: 
     let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
     cliResults = cliResults.concat(CLI_ACTION_PARAMS_OPEN_NEW_RECORD);
 
+
+    let entityMetadata: EntityMetadata | null = await getEntityMetadataBasic(cliDataVal.target);
+    if (!entityMetadata)
+        return cliResults;
+
     let verbsWhenPartialOrNoMatch = getNameVerbsPartialOrNoMatch(userInput, lastParam, cliResults);
     if (verbsWhenPartialOrNoMatch)
         return verbsWhenPartialOrNoMatch;
@@ -77,6 +81,11 @@ export const getActionParams_New_Record = async (userInput: string, cliDataVal: 
 
         case "app": cliResults = await get_App_Verbs(lastParam);
             break;
+
+
+
+        case "form": cliResults = await get_Form_Verbs(entityMetadata.LogicalName, lastParam);
+        break;
     }
 
 
@@ -85,19 +94,6 @@ export const getActionParams_New_Record = async (userInput: string, cliDataVal: 
 
 }
 
-
-export const get_App_Verbs = async (lastParam: ActionParam) => {
-    let cliResults: CLIVerb[] = [];
-
-    let appModules: Array<AppModule> = await getAppModules();
-    appModules.forEach(x => {
-        let appModuleVerb: CLIVerb = { name: x.name, text: x.id, type: IntelliSenseType.ActionParamValue };
-        cliResults.push(appModuleVerb);
-    })
-
-    cliResults = getFilteredVerbs(lastParam.value, cliResults);
-    return cliResults;
-}
 
 
 export const get_Entity_Verbs = async (lastParam: ActionParam) => {
@@ -131,6 +127,7 @@ export const getActionParams_View = async (userInput: string, cliDataVal: CliDat
         case "app": cliResults = await get_App_Verbs(lastParam);
             break;
 
+
         case "mode": cliResults = get_Modes_Verbs(lastParam);
             break;
     }
@@ -148,7 +145,7 @@ export const getActionParams_Open_Records = async (userInput: string, cliDataVal
     cliResults = cliResults.concat(CLI_ACTION_PARAMS_OPEN_RECORD);
 
     //Handle Entity Records here
-    let entityMetadata: EntityMetadata = await getEntityMetadataBasic(cliDataVal.target);
+    let entityMetadata: EntityMetadata | null = await getEntityMetadataBasic(cliDataVal.target);
     if (!entityMetadata)
         return cliResults;
 
@@ -168,6 +165,9 @@ export const getActionParams_Open_Records = async (userInput: string, cliDataVal
 
         case "app": cliResults = await get_App_Verbs(lastParam);
             break;
+
+        case "form": cliResults = await get_Form_Verbs(entityMetadata.LogicalName, lastParam);
+            break;
     }
 
     return cliResults;
@@ -186,6 +186,42 @@ const get_Modes_Verbs = (lastParam: ActionParam) => {
     });
 
     cliResults = getFilteredVerbs(lastParam.value, cliResults);
+    return cliResults;
+
+}
+
+
+
+export const get_App_Verbs = async (lastParam: ActionParam) => {
+    let cliResults: CLIVerb[] = [];
+
+    let appModules: Array<AppModule> = await getAppModules();
+    appModules.forEach(x => {
+        let appModuleVerb: CLIVerb = { name: x.name, text: x.id, type: IntelliSenseType.ActionParamValue };
+        cliResults.push(appModuleVerb);
+    })
+
+    cliResults = getFilteredVerbs(lastParam.value, cliResults);
+    return cliResults;
+}
+
+
+
+const get_Form_Verbs = async (entityLogicalName: string, lastParam: ActionParam) => {
+
+    let cliResults: Array<CLIVerb> = [];
+
+
+    let entityForms = await getEntityForms(entityLogicalName);
+
+    entityForms.forEach(x => {
+        let cliVerb: CLIVerb = { name: x.name, text: x.formId, type: IntelliSenseType.ActionParamValue };
+        cliResults.push(cliVerb);
+    });
+
+    cliResults = getFilteredVerbs(lastParam.value, cliResults);
+
+
     return cliResults;
 
 }

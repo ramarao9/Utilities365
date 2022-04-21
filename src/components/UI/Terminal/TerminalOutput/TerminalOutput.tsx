@@ -5,6 +5,8 @@ import "./TerminalOutput.css";
 import { getJSONTreeTheme } from "../../../../helpers/common";
 import { Table } from "../../Table/Table";
 import { CliResponse, CliResponseType } from "../../../../interfaces/CliResponse";
+import { RecordInfo } from "../../RecordInfo/RecordInfo";
+import { EntityReference } from "../../../../interfaces/EntityReference";
 
 export const terminalOutput: React.FC<CliResponse> = (
   terminalOutputProps: CliResponse
@@ -61,6 +63,16 @@ export const terminalOutput: React.FC<CliResponse> = (
       break;
 
 
+    case CliResponseType.RECORD_OPEN:
+
+      let recordRef = terminalOutputProps.response as EntityReference;
+      output = (
+        <>
+          <pre className="terminal-output-line">{terminalOutputProps.message}</pre>
+          <RecordInfo name={recordRef.name} id={recordRef.id} logicalname={recordRef.logicalname}  entitySetName={recordRef.entitySetName}/>
+        </>
+      );
+      break;
 
     default:
       output = (

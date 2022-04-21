@@ -17,10 +17,11 @@ const initialState: StoreState = {
   entitiesAttributeCollection: [],
   currentUser: null,
   authProvider: new AuthProvider(),
-  apps: []
+  apps: [],
+  systemForms: []
 };
 
-const reducer = (state = initialState, action:any) => {
+const reducer = (state = initialState, action: any) => {
   switch (action.type) {
     case actionTypes.SET_ACCESS_TOKEN:
       return {
@@ -45,13 +46,13 @@ const reducer = (state = initialState, action:any) => {
       };
 
 
-      case actionTypes.SET_CURRENT_MSAL_CONFIDENTIAL_CLIENT:
-        return {
-          ...state,
-          currentMSALConfidentialClient: {
-            ...action.currentMSALConfidentialClient
-          }
-        };
+    case actionTypes.SET_CURRENT_MSAL_CONFIDENTIAL_CLIENT:
+      return {
+        ...state,
+        currentMSALConfidentialClient: {
+          ...action.currentMSALConfidentialClient
+        }
+      };
 
     case actionTypes.SET_ENTITIES:
       return {
@@ -104,6 +105,12 @@ const reducer = (state = initialState, action:any) => {
         apps: [...action.apps]
       };
 
+
+    case actionTypes.SET_SYSTEM_FORMS:
+      return {
+        ...state,
+        systemForms: [...action.systemForms]
+      };
 
     case actionTypes.SET_CURRENT_USER:
       return {

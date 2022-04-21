@@ -1,10 +1,11 @@
 import { Option, EntityMetadata, AttributeMetadata } from "../interfaces/EntityMetadata";
-import {  ActionParam } from "../interfaces/CliData"
+import { ActionParam } from "../interfaces/CliData"
 import { expand } from "../interfaces/expand";
-import { getArrayFromCSV,  getAttributeMetadataName, getFirstLabelFromLocalizedLabels } from "../helpers/common";
+import { getArrayFromCSV, getAttributeMetadataName, getFirstLabelFromLocalizedLabels } from "../helpers/common";
 import { QueryFunction } from "../interfaces/QueryFunction";
 import { CONDITION_OPERATORS, REGULAR_CONDITION_OPERATORS, STANDARD_QUERY_FUNCTION_CONDITION_OPERATORS } from "../services/CLI/Definitions/ActionParams/Get";
 import { ConditionOperatorType } from "../interfaces/ConditionOperatorType";
+import { getEntity } from "../services/CrmMetadataService";
 
 export const getTypeQueryParam = (typeParam: ActionParam | undefined): string | undefined => {
 
@@ -29,7 +30,7 @@ export const getExpandQueryParam = (expandParam: ActionParam | undefined, type: 
             });
         }
     }
-    else if (type && (type.indexOf("Picklist") !== -1 || type.indexOf("State")!==-1)) {
+    else if (type && (type.indexOf("Picklist") !== -1 || type.indexOf("State") !== -1)) {
         let expandObj: expand = { property: "OptionSet" };
         expandArr.push(expandObj);
     }
@@ -127,14 +128,20 @@ ${labelValue}`;
 
 }
 
-export const buildFilterUsingAttributeParams = (entitymetadata: EntityMetadata, actionParams: Array<ActionParam>): string => {
+export const buildFilterUsingAttributeParams = async (entitymetadata: EntityMetadata, actionParams: Array<ActionParam>): Promise<string> => {
 
     let attributes = entitymetadata.Attributes;
+
+    if (attributes == null) {
+        let entity = await getEntity(entitymetadata.LogicalName);
+        attributes = entity?.Attributes
+    }
+
 
     let filterOperator = getFilterOperator(actionParams);
     let filter: string = actionParams.reduce((acc: string, x: ActionParam, currentIndex: number): string => {
         let attributeLogicalName = x.name.toLowerCase();
-        let attributeMetadata =attributes? attributes.find(x => x.LogicalName === attributeLogicalName):null;
+        let attributeMetadata = attributes ? attributes.find(x => x.LogicalName === attributeLogicalName) : null;
         if (attributeMetadata && x.value) {
             let odataCondition = getODataCondition(x.value, attributeMetadata);
 
@@ -300,6 +307,7 @@ const getAttributeValueOnODataFilter = (attValue: string, attributeMetadata: Att
     let valueToUseForFilter = undefined;
     switch (attributeMetadata.AttributeType) {
 
+        case "EntityName":
         case "Memo":
         case "String": valueToUseForFilter = `'${attValue}'`;
             break;
@@ -312,6 +320,8 @@ const getAttributeValueOnODataFilter = (attValue: string, attributeMetadata: Att
         case "Uniqueidentifier":
         case "Integer": valueToUseForFilter = `${attValue}`;
             break;
+
+
 
     }
 

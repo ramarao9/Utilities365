@@ -6,16 +6,14 @@ import {
 
 import store from "../store/store";
 import * as actionTypes from "../store/actions";
+import { AttributeMetadata, DateTimeMetadata, EntityMetadata, LookupMetadata, PicklistMetadata } from "../interfaces/EntityMetadata";
 
 //Retrieves only the Basic Metadata details on the Entity
-export const getEntityMetadataBasic = async entityName => {
-  let entities = await getEntities();
+export const getEntityMetadataBasic = async (entityName: string) => {
+  let entities: EntityMetadata[] = await getEntities();
 
-  let entityMetadata =
-    entities != null ? entities.filter(filterEntityByName, entityName.toLowerCase().trim()) : null;
-  return entityMetadata != null && entityMetadata.length === 1
-    ? entityMetadata[0]
-    : null;
+  let entityMetadata =entities.filter(filterEntityByName, entityName.toLowerCase().trim()) ;
+  return entityMetadata[0];
 };
 
 export const getEntities = async () => {
@@ -39,57 +37,63 @@ export const getEntities = async () => {
 };
 
 //Returns the complete information including the Attributes, Relationships etc.
-export const getEntity = async entityName => {
+export const getEntity = async (entityName: string) => {
   let entitiesAttributeMetadata = getEntitiesAttributeCollectionFromStore(entityName);
 
-  let entityMetadata = entitiesAttributeMetadata != null ? entitiesAttributeMetadata.find(
-    x => x.LogicalName === entityName
+  let entityMetadata: EntityMetadata  = entitiesAttributeMetadata != null ? entitiesAttributeMetadata.find(
+    (x: { LogicalName: string; }) => x.LogicalName === entityName
   ) : null;
 
   if (entityMetadata == null || entityMetadata.Attributes == null || entityMetadata.Attributes.length === 0) {
     let retrieveAttributesResponse = await retrieveAttributes(
       `LogicalName='${entityName}'`,
-      null,
+      undefined,
       ["DisplayName", "AttributeType", "LogicalName", "IsValidForCreate", "IsValidForUpdate"],
-      null,
+      undefined,
       null
     );
 
-    var attributes = retrieveAttributesResponse.value;
+    var attributes = retrieveAttributesResponse.value as AttributeMetadata[];
 
 
     entityMetadata = await getEntityMetadataBasic(entityName);
 
     let retrievePicklistResponse = await retrieveAttributes(`LogicalName='${entityName}'`,
       "Microsoft.Dynamics.CRM.PicklistAttributeMetadata",
-      ["LogicalName", "IsValidForCreate", "IsValidForUpdate"], null,
+      ["LogicalName", "IsValidForCreate", "IsValidForUpdate"], undefined,
       "OptionSet");
 
-    let entityPicklistAttributes = retrievePicklistResponse.value;
+    let entityPicklistAttributes = retrievePicklistResponse.value as PicklistMetadata[];
 
 
     let retrieveDatetimeResponse = await retrieveAttributes(`LogicalName='${entityName}'`,
       "Microsoft.Dynamics.CRM.DateTimeAttributeMetadata",
-      ["LogicalName", "IsValidForCreate", "IsValidForUpdate", "DateTimeBehavior"], null,
+      ["LogicalName", "IsValidForCreate", "IsValidForUpdate", "DateTimeBehavior"], undefined,
       null);
 
-    let entityDatetimeAttributes = retrieveDatetimeResponse.value;
+    let entityDatetimeAttributes = retrieveDatetimeResponse.value as DateTimeMetadata[];
 
     let retrieveLookupResponse = await retrieveAttributes(`LogicalName='${entityName}'`,
       "Microsoft.Dynamics.CRM.LookupAttributeMetadata",
-      ["LogicalName", "IsValidForCreate", "IsValidForUpdate", "Targets"], null,
+      ["LogicalName", "IsValidForCreate", "IsValidForUpdate", "Targets"], undefined,
       null);
 
-    let entityLookupAttributes = retrieveLookupResponse.value;
+    let entityLookupAttributes = retrieveLookupResponse.value as LookupMetadata[];
 
 
-    entityMetadata.Attributes = attributes;
-    entityMetadata.PicklistAttributes = entityPicklistAttributes;
-    entityMetadata.DateTimeAttributes = entityDatetimeAttributes;
-    entityMetadata.LookupAttributes = entityLookupAttributes;
+    if (entityMetadata != null) {
 
-    let relationships = await getRelationships(entityName);
-    entityMetadata.ManyToOneRelationships = relationships.ManyToOneRelationships;
+
+      entityMetadata.Attributes = attributes;
+      entityMetadata.PicklistAttributes = entityPicklistAttributes;
+      entityMetadata.DateTimeAttributes = entityDatetimeAttributes;
+      entityMetadata.LookupAttributes = entityLookupAttributes;
+
+      let relationships = await getRelationships(entityName);
+      entityMetadata.ManyToOneRelationships = relationships.ManyToOneRelationships;
+    }
+
+
 
     if (entitiesAttributeMetadata == null) {
       entitiesAttributeMetadata = [];
@@ -103,7 +107,7 @@ export const getEntity = async entityName => {
 };
 
 
-export const getRelationships = async (entityName) => {
+export const getRelationships = async (entityName: string) => {
 
 
   let entityRelationships = await retrieveEntity(`LogicalName='${entityName}'`, ["LogicalName"], [{ property: "ManyToOneRelationships" }]);
@@ -113,9 +117,10 @@ export const getRelationships = async (entityName) => {
 }
 
 
+function filterEntityByName(this: any, entityMetadata: EntityMetadata, i: number, entities: EntityMetadata[]) {
 
-function filterEntityByName(entityMetadata, i, entities) {
-  let entityToFilterBy = this;
+
+  let entityToFilterBy = (<string><any>this)
   return (
 
     entityMetadata.LogicalName.toLowerCase() === entityToFilterBy ||
@@ -134,7 +139,7 @@ function getEntitiesFromStore() {
   return currentState != null ? currentState.entities : null;
 }
 
-function getEntitiesAttributeCollectionFromStore(entityName) {
+function getEntitiesAttributeCollectionFromStore(entityName: string) {
   const currentState = store.getState();
 
   let entitiesAttributeCollection =
@@ -144,11 +149,11 @@ function getEntitiesAttributeCollectionFromStore(entityName) {
   return entitiesAttributeCollection;
 }
 
-function updateEntitiesInStore(entities) {
+function updateEntitiesInStore(entities: any) {
   store.dispatch({ type: actionTypes.SET_ENTITIES, entities: entities });
 }
 
-function updateEntitiesAttributesInStore(entitiesAttributeCollection) {
+function updateEntitiesAttributesInStore(entitiesAttributeCollection: any) {
   store.dispatch({
     type: actionTypes.SET_ENTITIES_ATTRIBUTE_COLLECTION,
     entitiesAttributeCollection: entitiesAttributeCollection

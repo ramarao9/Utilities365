@@ -6,8 +6,8 @@ import {
     CLI_ACTION_PARAMS_GET_COMMON_CONDITIONS, CLI_ACTION_PARAMS_GET_NUMERIC_CONDITIONS,
     CLI_ACTION_PARAMS_GET_STRING_CONDITIONS, CLI_ACTION_PARAMS_GET_LOOKUP_CONDITIONS, CLI_ACTION_PARAMS_GET_DATETIME_CONDITIONS
 } from "../Definitions/ActionParams/Get"
-import {  getEntityMetadataBasic } from "../../CrmMetadataService"
-import {  IntelliSenseType, CLIVerb } from "../../../interfaces/CliIntelliSense"
+import { getEntityMetadataBasic } from "../../CrmMetadataService"
+import { IntelliSenseType, CLIVerb } from "../../../interfaces/CliIntelliSense"
 import { AttributeMetadata, EntityMetadata } from "../../../interfaces/EntityMetadata"
 import { getCleanedCLIVerbs, getCLIVerbsForEntities, getLastParam, getNameVerbsPartialOrNoMatch, getEntityCLIVerbs, getFilteredVerbs, getVerbsFromCSV, getCLIVerbsAttributes, isLastParamAttribute } from "../../../helpers/cliutil";
 import { getActionParam } from "../../../helpers/QueryHelper";
@@ -134,7 +134,7 @@ const getActionParamsFor_Get_Attributes = async (userInput: string, cliDataVal: 
 const getAttributesTypeVerbs = async (cliData: CliData, lastParam: ActionParam) => {
 
     let cliResults: Array<CLIVerb> = [];
-    let attributeTypes = ["string", "integer", "boolean", "lookup", "picklist", "datetime", "money", "decimal","state"];
+    let attributeTypes = ["string", "integer", "boolean", "lookup", "picklist", "datetime", "money", "decimal", "state"];
 
     attributeTypes.forEach(x => {
         let cliVerb: CLIVerb = { name: x, type: IntelliSenseType.ActionParamValue };
@@ -449,9 +449,9 @@ const getActionParamsFor_Get_Records = async (userInput: string, cliDataVal: Cli
 
 
     let attributesMetadata = entityMetadata.Attributes;
-    let isAttribute = isLastParamAttribute(lastParam, attributesMetadata);
+    let isAttribute = attributesMetadata ? isLastParamAttribute(lastParam, attributesMetadata) : false;
     if (isAttribute) {
-        cliVerbs = getVerbsWhenAttributeOnGetRecords(lastParam!!, attributesMetadata);
+        cliVerbs = getVerbsWhenAttributeOnGetRecords(lastParam!!, attributesMetadata!!);
         return cliVerbs;
     }
 
@@ -500,10 +500,10 @@ export const getVerbsWhenAttributeOnGetRecords = (param: ActionParam, attributes
         case "integer": cliResults = cliResults.concat(CLI_ACTION_PARAMS_GET_NUMERIC_CONDITIONS);
             break;
 
-        case "datetime":cliResults=cliResults.concat(CLI_ACTION_PARAMS_GET_DATETIME_CONDITIONS);
+        case "datetime": cliResults = cliResults.concat(CLI_ACTION_PARAMS_GET_DATETIME_CONDITIONS);
             break;
 
-        case "lookup":cliResults = cliResults.concat(CLI_ACTION_PARAMS_GET_LOOKUP_CONDITIONS);
+        case "lookup": cliResults = cliResults.concat(CLI_ACTION_PARAMS_GET_LOOKUP_CONDITIONS);
             break;
 
         case "uniqueidentifier":
@@ -516,8 +516,8 @@ export const getVerbsWhenAttributeOnGetRecords = (param: ActionParam, attributes
 
 
     if (param.value && param.value.length >= 2 &&
-        cliResults.findIndex(x => x.name && (x.name.toLowerCase()===param.value.toLowerCase() ||
-            param.value.toLowerCase()===x.name.toLowerCase())) !== -1) {
+        cliResults.findIndex(x => x.name && (x.name.toLowerCase() === param.value.toLowerCase() ||
+            param.value.toLowerCase() === x.name.toLowerCase())) !== -1) {
         return []; // in this case the condition verb has already been filled, the user just needs to provide the value
     }
 

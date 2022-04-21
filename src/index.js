@@ -22,7 +22,9 @@ import {
   faSlash,
   faAngleDown,
   faGreaterThan,
-  faBan
+  faBan,
+  faLink,
+  faTable
 } from "@fortawesome/free-solid-svg-icons";
 
 
@@ -37,7 +39,9 @@ library.add(
   faPlus,
   faCopy,
   faSlash,
-  faBan
+  faBan,
+  faLink,
+  faTable
 );
 
 const app = (

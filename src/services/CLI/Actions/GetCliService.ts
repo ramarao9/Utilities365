@@ -326,7 +326,7 @@ const getRequestBody = async (cliData: CliData) => {
   retrieveMultipleRequest.collection = entityMetadata.EntitySetName;
 
 
-  let filter = getFilterForQuery(cliData, entityMetadata);
+  let filter = await getFilterForQuery(cliData, entityMetadata);
   if (filter === "") {
     retrieveMultipleRequest.top = 250;//Default records if no filter specified
   }
@@ -358,7 +358,7 @@ const getRequestBody = async (cliData: CliData) => {
 }
 
 
-const getFilterForQuery = (cliData: CliData, entityMetadata: EntityMetadata) => {
+const getFilterForQuery = async (cliData: CliData, entityMetadata: EntityMetadata) => {
 
   let odataFilter: string = "";
   let isValidId = isValidGuid(cliData.unnamedParam);
@@ -377,7 +377,7 @@ const getFilterForQuery = (cliData: CliData, entityMetadata: EntityMetadata) => 
   }
 
   if (cliData.actionParams) {
-    odataFilter = buildFilterUsingAttributeParams(entityMetadata, cliData.actionParams);
+    odataFilter = await buildFilterUsingAttributeParams(entityMetadata, cliData.actionParams);
   }
 
   return odataFilter;

@@ -1,7 +1,7 @@
 import IsEmpty from "is-empty";
 import { getEntityMetadataBasic } from "../../CrmMetadataService";
 import { retrieveMultiple } from "../../../helpers/webAPIClientHelper";
-import { isValidGuid } from "../../../helpers/common";
+import { getActionParamValue, isValidGuid } from "../../../helpers/common";
 
 import { getErrorResponse, getTextResponse } from "../CliResponseUtil";
 import { getCurrentOrgUrl } from "../../../helpers/webAPIClientHelper";
@@ -87,19 +87,28 @@ const openNewRecord = (cliData: CliData): CliResponse => {
     let entityName: string = entityParam.value;
 
     let appParam = getActionParam("app", cliData.actionParams!!);
-  
+
 
     let appIdQueryParam = "";
     if (appParam && appParam.value) {
       appIdQueryParam = `appid=${appParam.value}&`;
     }
 
-    let url = `${getCurrentOrgUrl()}/main.aspx?${appIdQueryParam}etn=${entityName}&pagetype=entityrecord`;
+
+
+    let formParam = getActionParam("form", cliData.actionParams!!);
+    let formIdQueryParam = "";
+    if (formParam && formParam.value) {
+      formIdQueryParam = `formid=${formParam.value}&`;
+    }
+
+
+    let url = `${getCurrentOrgUrl()}/main.aspx?${formIdQueryParam}${appIdQueryParam}etn=${entityName}&pagetype=entityrecord`;
     openWindow(url, true);
 
     return getTextResponse(`New record for entity ${entityName} opened successfully!`);
   }
-  catch (error : any) {
+  catch (error: any) {
     return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`)
   }
 
@@ -144,7 +153,7 @@ const openView = (cliData: CliData) => {
 
     return getTextResponse(`View for entity ${entityName} opened successfully!`);
   }
-  catch (error : any) {
+  catch (error: any) {
     return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`)
   }
 
@@ -189,7 +198,7 @@ const openEntity = async (cliData: CliData) => {
     return getTextResponse(`Entity ${name} opened successfully!`);
 
   }
-  catch (error : any) {
+  catch (error: any) {
     return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
   }
 }
@@ -216,37 +225,22 @@ async function handleOpenRecordAction(cliData: CliData): Promise<CliResponse> {
         }
       }
 
-      let appId = getAppId(cliData);
-      openRecord(targetRecord, mode, appId);
+      let appId = getActionParamValue("app", cliData.actionParams);
+      let form = getActionParamValue("form", cliData.actionParams);
+      openRecord(targetRecord, mode, appId, form);
     }
 
 
-
-    return getTextResponse(
-      `Record  ${targetRecord != null ? targetRecord.name : ""} with id ${targetRecord != null ? targetRecord.id : ""
-      } opened successfully!`,
-      targetRecord
-    );
-  } catch (error : any) {
+    let message = `Record  ${targetRecord != null ? targetRecord.name : ""} opened successfully!`;
+    let cliResponse: CliResponse = { message: message, success: true, type: CliResponseType.RECORD_OPEN, response: targetRecord };
+    return cliResponse;
+  } catch (error: any) {
     return getErrorResponse(`${STR_ERROR_OCCURRED} ${error.message}`);
   }
 }
 
 
-const getAppId = (cliData: CliData) => {
 
-  if (!cliData.actionParams)
-    return "";
-
-  let appParam = getActionParam("app", cliData.actionParams);
-  let appId = "";
-
-  if (appParam && appParam.value) {
-    appId = appParam.value;
-  }
-
-  return appId;
-}
 
 async function getCRMRecord(cliData: any) {
   let entityMetadata = await getEntityMetadataBasic(cliData.target);
@@ -292,6 +286,7 @@ async function getCRMRecord(cliData: any) {
     entityReference: {
       id: entity[entityMetadata.PrimaryIdAttribute],
       logicalname: entityMetadata.LogicalName,
+      entitySetName: entityMetadata.EntitySetName,
       name: entity[entityMetadata.PrimaryNameAttribute]
     }
   };
@@ -316,7 +311,7 @@ function getEntityFilter(entityMetadata: any, cliData: any) {
   let entityFilters = Array<string>();
   cliData.actionParams.forEach((param: ActionParam) => {
     if (!IsEmpty(param.name) && !IsEmpty(param.value)) {
-      if (param.name.toLowerCase() !== "mode" && param.name.toLowerCase() !== "app") {
+      if (param.name.toLowerCase() !== "mode" && param.name.toLowerCase() !== "app" && param.name.toLowerCase() !== "form") {
         entityFilters.push(param.name + " eq '" + param.value + "'");
       }
     }
@@ -327,12 +322,12 @@ function getEntityFilter(entityMetadata: any, cliData: any) {
   return entityFilter;
 }
 
-function openRecord(entityreference: EntityReference, mode: string, appId: string) {
-  const userUrl = getRecordUrl(entityreference.logicalname, entityreference.id, mode, appId);
+function openRecord(entityreference: EntityReference, mode: string, appId: string, form: string) {
+  const userUrl = getRecordUrl(entityreference.logicalname, entityreference.id, mode, appId, form);
   openWindow(userUrl, true);
 }
 
-function getRecordUrl(logicalName: string, id: string, mode: string, appId?: string) {
+function getRecordUrl(logicalName: string, id: string, mode: string, appId?: string, form?: string) {
   const orgUrl = getCurrentOrgUrl();
 
   let uciParam = (mode && mode.toLowerCase() === "classic") ? "forceClassic=1&" : "";
@@ -340,6 +335,8 @@ function getRecordUrl(logicalName: string, id: string, mode: string, appId?: str
   if (appId && appId !== "") {
     uciParam = `appid=${appId}&`;
   }
-  const recordUrl = `${orgUrl}/main.aspx?${uciParam}etn=${logicalName}&pagetype=entityrecord&id=%7B${id}%7D`;
+
+  let formParam = form !== "" ? `formid=${form}&` : "";
+  const recordUrl = `${orgUrl}/main.aspx?${uciParam}${formParam}etn=${logicalName}&pagetype=entityrecord&id=%7B${id}%7D`;
   return recordUrl;
 }

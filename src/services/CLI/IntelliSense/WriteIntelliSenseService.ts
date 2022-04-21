@@ -1,8 +1,8 @@
 import { ActionParam, CliData } from "../../../interfaces/CliData";
-import {  getEntity } from "../../CrmMetadataService"
-import {  CLIVerb } from "../../../interfaces/CliIntelliSense"
+import { getEntity } from "../../CrmMetadataService"
+import { CLIVerb } from "../../../interfaces/CliIntelliSense"
 import { EntityMetadata } from "../../../interfaces/EntityMetadata"
-import {  getCLIVerbsForAttributes, getLastParam, isLastParamOptionSetAttribute, getPicklistAttributeVerbs } from "../../../helpers/cliutil";
+import { getCLIVerbsForAttributes, getLastParam, isLastParamOptionSetAttribute, getPicklistAttributeVerbs } from "../../../helpers/cliutil";
 
 import { CRMOperation } from "../../../interfaces/CRMOperation";
 import { CLI_ACTION_PARAMS_UPDATE_RECORDS } from "../Definitions/ActionParams/Update";
@@ -42,12 +42,16 @@ export const getActionsParamsForWrite = async (userInput: string, cliDataVal: Cl
     }
 
     let attributesMetadata = entityMetadata.Attributes;
-    let isOptionSetAttribute = isLastParamOptionSetAttribute(lastParam, attributesMetadata);
-    if (isOptionSetAttribute && !lastParam.value) {
-        let optionSetAttribute = entityMetadata.PicklistAttributes.find(x => x.LogicalName === lastParam?.name);
-        if (optionSetAttribute) {//e.g. update contact --id {id} --gendercode {we display the options here}
-            cliResults = getPicklistAttributeVerbs(optionSetAttribute);
-            return cliResults;
+    if (attributesMetadata) {
+
+
+        let isOptionSetAttribute = isLastParamOptionSetAttribute(lastParam, attributesMetadata);
+        if (isOptionSetAttribute && !lastParam.value) {
+            let optionSetAttribute = entityMetadata.PicklistAttributes.find(x => x.LogicalName === lastParam?.name);
+            if (optionSetAttribute) {//e.g. update contact --id {id} --gendercode {we display the options here}
+                cliResults = getPicklistAttributeVerbs(optionSetAttribute);
+                return cliResults;
+            }
         }
     }
 

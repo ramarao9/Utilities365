@@ -178,7 +178,6 @@ export const GuidSearch: React.FC = () => {
       let currentOrgUrl = getCurrentOrgUrl();
 
       let url = crmUtil.getRecordUrl(
-        currentOrgUrl,
         result.LogicalName,
         result.Id
       );

@@ -1,7 +1,7 @@
 export interface EntityMetadata {
     "@odata.context": string;
     LogicalName: string;
-    Attributes: Array<AttributeMetadata>;
+    Attributes: Array<AttributeMetadata> |null | undefined;
     LogicalCollectionName: string;
     SchemaName: string;
     ObjectTypeCode: number;

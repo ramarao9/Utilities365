@@ -138,36 +138,40 @@ export const getCLIVerbsAttributes = async (entityLogicalName: string, intellise
 export const getCLIVerbsForAttributes = (entityMetadata: EntityMetadata, intellisenseType?: IntelliSenseType, excludeFilters?: boolean, isWriteOperation: boolean = false): Array<CLIVerb> => {
     let attributeCliResults: Array<CLIVerb> = [];
     let attributes = entityMetadata.Attributes;
-    attributeCliResults = getAttributesVerbs(attributes, intellisenseType, excludeFilters,isWriteOperation);
+    attributeCliResults = getAttributesVerbs(attributes, intellisenseType, excludeFilters, isWriteOperation);
     return attributeCliResults;
 }
 
 
 
 
-const getAttributesVerbs = (attributes: AttributeMetadata[], intellisenseType?: IntelliSenseType, excludeFilters?: boolean, isWriteOperation: boolean = false): Array<CLIVerb> => {
+const getAttributesVerbs = (attributes: AttributeMetadata[] | null | undefined, intellisenseType?: IntelliSenseType, excludeFilters?: boolean, isWriteOperation: boolean = false): Array<CLIVerb> => {
 
     let attributeCliResults: Array<CLIVerb> = [];
 
     if (!excludeFilters) {
-        attributes = attributes.filter(x => x.AttributeType !== "Uniqueidentifier" && (x.IsValidForCreate || x.IsValidForUpdate));
+        attributes = attributes?.filter(x => x.AttributeType !== "Uniqueidentifier" && (x.IsValidForCreate || x.IsValidForUpdate));
     }
 
 
-    attributeCliResults = attributes.map((attributeMetadata: AttributeMetadata) => {
-        let attributeDisplayname = getAttributeDisplayName(attributeMetadata);
-        let cliVerb: CLIVerb = {
-            name: `${attributeDisplayname}`,
-            text: `${attributeMetadata.LogicalName}`,
-            type: intellisenseType ?? IntelliSenseType.ActionParams
-        }
+    if (attributes != null) {
 
-        if (!isWriteOperation && (attributeMetadata.AttributeType === "Lookup" || attributeMetadata.AttributeType === "Customer")) {
-            cliVerb.alternateText = `_${attributeMetadata.LogicalName}_value`;
-        }
 
-        return cliVerb;
-    });
+        attributeCliResults = attributes.map((attributeMetadata: AttributeMetadata) => {
+            let attributeDisplayname = getAttributeDisplayName(attributeMetadata);
+            let cliVerb: CLIVerb = {
+                name: `${attributeDisplayname}`,
+                text: `${attributeMetadata.LogicalName}`,
+                type: intellisenseType ?? IntelliSenseType.ActionParams
+            }
+
+            if (!isWriteOperation && (attributeMetadata.AttributeType === "Lookup" || attributeMetadata.AttributeType === "Customer")) {
+                cliVerb.alternateText = `_${attributeMetadata.LogicalName}_value`;
+            }
+
+            return cliVerb;
+        });
+    }
 
     return attributeCliResults;
 }
@@ -232,8 +236,7 @@ export const getNameVerbsPartialOrNoMatch = (userInput: string, actionParam: Act
         return undefined;
     }
     else if (paramName.length > 0) {//No param has been completely matched.In this case just filter the results
-        return verbs.filter(x => x.name.toLowerCase().startsWith(paramName) ||
-            x.name.replace(/\s/g, "").toLowerCase().startsWith(paramName));
+        return getFilteredVerbs(paramName, verbs);
     } else {
         return verbs;
     }
@@ -245,8 +248,11 @@ export const getFilteredVerbs = (nameToFilterOn: string, verbs: CLIVerb[]): CLIV
     if (nameToFilterOn == null)
         return verbs;
 
-    return verbs.filter(x => x.name.toLowerCase().startsWith(nameToFilterOn.toLowerCase()) ||
-        (x.text && x.text.toLowerCase().startsWith(nameToFilterOn.toLowerCase())));
+    //Do a case inssensitive search to see if the verbs contain 
+    return verbs.filter(x => x.name.toLowerCase().indexOf(nameToFilterOn.toLowerCase()) !== -1 ||
+        x.name.replace(/\s/g, "").toLowerCase().indexOf(nameToFilterOn.toLowerCase()) !== -1 ||
+        (x.text && x.text.toLowerCase().indexOf(nameToFilterOn.toLowerCase()) !== -1 ||
+            x.text && x.text.replace(/\s/g, "").toLowerCase().indexOf(nameToFilterOn.toLowerCase()) !== -1));
 }
 
 export const getVerbsFromCSV = (paramValueCSV: string, cliVerbsToFilter: CLIVerb[]): CLIVerb[] => {
@@ -278,13 +284,13 @@ export const getVerbsFromCSV = (paramValueCSV: string, cliVerbsToFilter: CLIVerb
 //e.g. get contacts --birthdate  in this example the last param birthdate is an attribute
 export const isLastParamAttribute = (lastParam: ActionParam | undefined, attributes: Array<AttributeMetadata>): Boolean => {
     return lastParam !== undefined &&
-        lastParam && attributes!==undefined && attributes &&
+        lastParam && attributes !== undefined && attributes &&
         (attributes.findIndex(x => x.LogicalName && x.LogicalName === lastParam.name) !== -1);
 }
 
 
-export const isLastParamOptionSetAttribute= (lastParam: ActionParam | undefined, attributes: Array<AttributeMetadata>): Boolean => {
+export const isLastParamOptionSetAttribute = (lastParam: ActionParam | undefined, attributes: Array<AttributeMetadata>): Boolean => {
     return lastParam !== undefined &&
         lastParam &&
-        (attributes.findIndex(x => x.LogicalName && x.LogicalName === lastParam.name && x.AttributeType==="Picklist") !== -1);
+        (attributes.findIndex(x => x.LogicalName && x.LogicalName === lastParam.name && x.AttributeType === "Picklist") !== -1);
 }

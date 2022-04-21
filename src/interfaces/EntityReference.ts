@@ -1,6 +1,6 @@
-export interface EntityReference
-{
-    name:string;
-    id:string;
-    logicalname:string;
+export interface EntityReference {
+    name: string;
+    id: string;
+    logicalname: string;
+    entitySetName?: string;
 }

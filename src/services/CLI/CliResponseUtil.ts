@@ -14,9 +14,11 @@ export const getErrorResponse = (error: string) => {
 
 export const getTextResponse = (text: string, response?: any) => {
   return {
-    type: CliResponseType.Error,
+    type: CliResponseType.TEXT,
     message: text,
     response: response,
     success: true
   };
 };
+
+

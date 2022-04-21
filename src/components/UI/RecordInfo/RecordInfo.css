@@ -1,0 +1,33 @@
+.ut-ri-cont{
+    display: flex;
+    flex-direction: column;
+    margin: 5px 2px;
+    font-size: 14px;
+    color: navajowhite;
+}
+
+.ut-ri-name-cont, .ut-ri-id-cont{
+    display: flex;
+    align-items: center;
+}
+
+
+.ut-ri-id, .ut-ri-name{
+    margin-right:5px;
+}
+
+.ut-ri-odata{
+
+
+}
+
+.ut-ri-btn{
+        background-color: black !important;
+        height: 24px !important;
+        width: 24px !important;
+        margin: 0px 4px !important;
+}
+
+.ut-ri-btn-icn{
+    color:white !important;
+}

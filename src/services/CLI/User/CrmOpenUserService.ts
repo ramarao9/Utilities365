@@ -62,10 +62,10 @@ export const handleUserActionWithNamedParams = async (
     );
   } catch (error: any) {
     return getCliResponse(
-      "message",
-      null,
+      CliResponseType.Message,
+      `${STR_ERROR_OCCURRED} ${error.message}`,
       false,
-      `${STR_ERROR_OCCURRED} ${error.message}`
+      false
     );
   }
 
@@ -73,29 +73,30 @@ export const handleUserActionWithNamedParams = async (
 
   if (responseData.length === 0) {
     return getCliResponse(
-      "message",
-      null,
+      CliResponseType.Message,
+      STR_NO_RECORDS_FOUND_FOR_CRITERIA,
       false,
-      STR_NO_RECORDS_FOUND_FOR_CRITERIA
+      false
     );
   }
 
   if (responseData.length > 1) {
     return getCliResponse(
-      "message",
-      null,
+      CliResponseType.Message,
+      STR_NO_RECORDS_FOUND_FOR_CRITERIA,
       false,
-      STR_NO_RECORDS_FOUND_FOR_CRITERIA
+      false
     );
   }
 
   const userId = responseData[0].systemuserid;
   const fullName = responseData[0].fullname;
   return getCliResponse(
-    "open",
+    CliResponseType.RECORD_OPEN,
+    `User record ${fullName} opened successfully!`,
     { id: userId, logicalname: "systemuser", name: fullName },
-    true,
-    `User record ${fullName} opened successfully!`
+    true
+
   );
 };
 

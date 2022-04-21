@@ -134,7 +134,7 @@ const getRequestBody = async (targetEntityMetadata: EntityMetadata, cliData: Cli
 
         let attributeValue: string = param.value;
         let attributeLogicalName: string = param.name.toLowerCase();
-        let attributeMetadata = attributesMetadata.find(x => x.LogicalName === attributeLogicalName);
+        let attributeMetadata = attributesMetadata?.find(x => x.LogicalName === attributeLogicalName);
 
 
         if (attributeMetadata == null)
