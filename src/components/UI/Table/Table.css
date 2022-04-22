@@ -49,6 +49,6 @@
 
   .table-container{
     margin-bottom: 0 !important;
-    max-height: 400px;
-    overflow: auto;
+    max-height: 400px !important;
+    overflow: auto !important;
   }

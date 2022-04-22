@@ -38,7 +38,7 @@ export const getActionParamsForOpen = async (userInput: string, cliDataVal: CliD
     //Handle Special Cases Which rely on Target
     switch (cliDataVal.target) {
 
-        case "entity": cliResults = cliResults.concat(CLI_ACTION_PARAMS_OPEN_GENERIC);
+        case "entity": cliResults = await getActionParamsForOpen_Entity(userInput,cliDataVal);
             break;
 
         case "view": cliResults = await getActionParams_View(userInput, cliDataVal);
@@ -56,6 +56,44 @@ export const getActionParamsForOpen = async (userInput: string, cliDataVal: CliD
 
     return cliResults;
 }
+
+
+export const getActionParamsForOpen_Entity=async(userInput: string, cliDataVal: CliData)=>{
+
+
+    let cliResults: Array<CLIVerb> = [];
+
+    let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
+    cliResults = cliResults.concat(CLI_ACTION_PARAMS_OPEN_GENERIC);
+
+
+    let entityMetadata: EntityMetadata | null = await getEntityMetadataBasic(cliDataVal.target);
+    if (!entityMetadata)
+        return cliResults;
+
+    let verbsWhenPartialOrNoMatch = getNameVerbsPartialOrNoMatch(userInput, lastParam, cliResults);
+    if (verbsWhenPartialOrNoMatch)
+        return verbsWhenPartialOrNoMatch;
+
+
+    //When Param Name has exact match the verbs are for the Param Value
+    switch (lastParam?.name) {
+        case "name": cliResults = await get_Entity_Param_Verbs(lastParam);
+            break;
+    }
+
+    return cliResults;
+
+}
+
+
+const get_Entity_Param_Verbs = async (lastParam: ActionParam) => {
+    let cliResults: Array<CLIVerb> = await getEntityCLIVerbs();
+    cliResults = getFilteredVerbs(lastParam.value, cliResults);
+    return cliResults;
+}
+
+
 
 export const getActionParams_New_Record = async (userInput: string, cliDataVal: CliData) => {
 

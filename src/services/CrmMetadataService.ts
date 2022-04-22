@@ -40,13 +40,19 @@ export const getEntities = async () => {
 export const getEntity = async (entityName: string) => {
   let entitiesAttributeMetadata = getEntitiesAttributeCollectionFromStore(entityName);
 
+
+  
+
   let entityMetadata: EntityMetadata  = entitiesAttributeMetadata != null ? entitiesAttributeMetadata.find(
-    (x: { LogicalName: string; }) => x.LogicalName === entityName
+    (x: EntityMetadata) => x.LogicalName === entityName || x.EntitySetName===entityName || x.LogicalCollectionName===entityName
   ) : null;
 
+
   if (entityMetadata == null || entityMetadata.Attributes == null || entityMetadata.Attributes.length === 0) {
+    entityMetadata = await getEntityMetadataBasic(entityName);
+
     let retrieveAttributesResponse = await retrieveAttributes(
-      `LogicalName='${entityName}'`,
+      `LogicalName='${entityMetadata.LogicalName}'`,
       undefined,
       ["DisplayName", "AttributeType", "LogicalName", "IsValidForCreate", "IsValidForUpdate"],
       undefined,
@@ -56,9 +62,9 @@ export const getEntity = async (entityName: string) => {
     var attributes = retrieveAttributesResponse.value as AttributeMetadata[];
 
 
-    entityMetadata = await getEntityMetadataBasic(entityName);
+    
 
-    let retrievePicklistResponse = await retrieveAttributes(`LogicalName='${entityName}'`,
+    let retrievePicklistResponse = await retrieveAttributes(`LogicalName='${entityMetadata.LogicalName}'`,
       "Microsoft.Dynamics.CRM.PicklistAttributeMetadata",
       ["LogicalName", "IsValidForCreate", "IsValidForUpdate"], undefined,
       "OptionSet");
@@ -66,14 +72,14 @@ export const getEntity = async (entityName: string) => {
     let entityPicklistAttributes = retrievePicklistResponse.value as PicklistMetadata[];
 
 
-    let retrieveDatetimeResponse = await retrieveAttributes(`LogicalName='${entityName}'`,
+    let retrieveDatetimeResponse = await retrieveAttributes(`LogicalName='${entityMetadata.LogicalName}'`,
       "Microsoft.Dynamics.CRM.DateTimeAttributeMetadata",
       ["LogicalName", "IsValidForCreate", "IsValidForUpdate", "DateTimeBehavior"], undefined,
       null);
 
     let entityDatetimeAttributes = retrieveDatetimeResponse.value as DateTimeMetadata[];
 
-    let retrieveLookupResponse = await retrieveAttributes(`LogicalName='${entityName}'`,
+    let retrieveLookupResponse = await retrieveAttributes(`LogicalName='${entityMetadata.LogicalName}'`,
       "Microsoft.Dynamics.CRM.LookupAttributeMetadata",
       ["LogicalName", "IsValidForCreate", "IsValidForUpdate", "Targets"], undefined,
       null);
@@ -89,7 +95,7 @@ export const getEntity = async (entityName: string) => {
       entityMetadata.DateTimeAttributes = entityDatetimeAttributes;
       entityMetadata.LookupAttributes = entityLookupAttributes;
 
-      let relationships = await getRelationships(entityName);
+      let relationships = await getRelationships(entityMetadata.LogicalName);
       entityMetadata.ManyToOneRelationships = relationships.ManyToOneRelationships;
     }
 

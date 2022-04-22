@@ -6,7 +6,7 @@ import {
     CLI_ACTION_PARAMS_GET_COMMON_CONDITIONS, CLI_ACTION_PARAMS_GET_NUMERIC_CONDITIONS,
     CLI_ACTION_PARAMS_GET_STRING_CONDITIONS, CLI_ACTION_PARAMS_GET_LOOKUP_CONDITIONS, CLI_ACTION_PARAMS_GET_DATETIME_CONDITIONS
 } from "../Definitions/ActionParams/Get"
-import { getEntityMetadataBasic } from "../../CrmMetadataService"
+import { getEntity, getEntityMetadataBasic } from "../../CrmMetadataService"
 import { IntelliSenseType, CLIVerb } from "../../../interfaces/CliIntelliSense"
 import { AttributeMetadata, EntityMetadata } from "../../../interfaces/EntityMetadata"
 import { getCleanedCLIVerbs, getCLIVerbsForEntities, getLastParam, getNameVerbsPartialOrNoMatch, getEntityCLIVerbs, getFilteredVerbs, getVerbsFromCSV, getCLIVerbsAttributes, isLastParamAttribute } from "../../../helpers/cliutil";
@@ -56,6 +56,9 @@ export const getActionParamsForGet = async (userInput: string, cliDataVal: CliDa
             break;
 
         case "org-detail":
+            break;
+
+        case "otc":
             break;
 
         //Get records 
@@ -439,7 +442,7 @@ const getActionParamsFor_Get_Records = async (userInput: string, cliDataVal: Cli
 
     let lastParam: ActionParam | undefined = getLastParam(cliDataVal);
 
-    let entityMetadata: EntityMetadata = await getEntityMetadataBasic(cliDataVal.target);
+    let entityMetadata: EntityMetadata = await getEntity(cliDataVal.target);
 
     if (!entityMetadata)
         return;
