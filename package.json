@@ -7,7 +7,7 @@
   "private": true,
   "homepage": "./",
   "dependencies": {
-    "@azure/msal-node": "^1.4.0",
+    "@azure/msal-node": "^1.14.6",
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
     "@fortawesome/free-regular-svg-icons": "^5.15.4",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
